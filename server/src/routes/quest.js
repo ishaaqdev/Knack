@@ -1,6 +1,9 @@
 import { Router } from 'express'
-import { db, getUser, listTracks } from '../db.js'
+import { db, findUserById, listTracks } from '../db.js'
 import { generateScenario, evaluateResponse } from '../ai.js'
+import { requireOnboarded } from '../auth.js'
+import { profileBrief } from '../profile.js'
+import { contextBrief, maybeRefresh } from '../context.js'
 import {
   levelFor,
   xpFor,
@@ -16,10 +19,12 @@ import {
 
 export const questRouter = Router()
 
+questRouter.use(requireOnboarded)
+
 const trackById = (id) => listTracks().find((t) => t.id === id)
 
 const recentScenarios = db.prepare(
-  'SELECT scenarioText FROM attempts WHERE trackId = ? ORDER BY id DESC LIMIT 4'
+  'SELECT scenarioText FROM attempts WHERE userId = ? AND trackId = ? ORDER BY id DESC LIMIT 4'
 )
 
 const insertAttempt = db.prepare(`
@@ -27,14 +32,14 @@ const insertAttempt = db.prepare(`
     (userId, trackId, difficulty, scenarioText, userResponse, score, feedback,
      strengths, gaps, suggestion, xpAwarded, source, timestamp, localDate)
   VALUES
-    (1, @trackId, @difficulty, @scenarioText, @userResponse, @score, @feedback,
+    (@userId, @trackId, @difficulty, @scenarioText, @userResponse, @score, @feedback,
      @strengths, @gaps, @suggestion, @xpAwarded, @source, @timestamp, @localDate)
 `)
 
 const updateUser = db.prepare(`
   UPDATE users SET xp = @xp, streak = @streak, longestStreak = @longestStreak,
                    lastActiveDate = @lastActiveDate
-  WHERE id = 1
+  WHERE id = @id
 `)
 
 /* ------------------------------------------- POST /api/quest/generate ----- */
@@ -44,22 +49,25 @@ questRouter.post('/generate', async (req, res, next) => {
     const track = trackById(req.body?.trackId)
     if (!track) return res.status(400).json({ error: 'Unknown trackId' })
 
-    // Difficulty is derived server-side from the rolling skill score. A client
-    // may override it (used by the "try harder" control), but never raise it
-    // beyond one step above what the score justifies.
-    const suggested = difficultyFor(track.id)
+    const user = req.user
+    const suggested = difficultyFor(user, track.id)
     const asked = req.body?.difficulty
     const difficulty = ['easy', 'medium', 'hard'].includes(asked) ? asked : suggested
 
-    const avoid = recentScenarios.all(track.id).map((r) => r.scenarioText)
-    const quest = await generateScenario({ track, difficulty, avoid })
+    const quest = await generateScenario({
+      track,
+      difficulty,
+      avoid: recentScenarios.all(user.id, track.id).map((r) => r.scenarioText),
+      profile: profileBrief(user),
+      learner: contextBrief(user.id),
+    })
 
     res.json({
       ...quest,
       trackId: track.id,
       trackName: track.name,
       suggestedDifficulty: suggested,
-      skill: trackScore(track.id),
+      skill: trackScore(user.id, track.id),
     })
   } catch (err) {
     next(err)
@@ -78,7 +86,7 @@ questRouter.post('/evaluate', async (req, res, next) => {
     if (!userResponse?.trim()) return res.status(400).json({ error: 'Write a response first.' })
     if (userResponse.length > 6000) return res.status(400).json({ error: 'Response is too long.' })
 
-    const before = getUser()
+    const before = req.user
     const beforeLevel = levelFor(before.xp)
     const today = localDate()
 
@@ -87,6 +95,7 @@ questRouter.post('/evaluate', async (req, res, next) => {
       difficulty,
       scenarioText,
       userResponse: userResponse.trim(),
+      learner: contextBrief(before.id),
     })
 
     const { streak, event } = streakAfterQuest(before, today)
@@ -97,6 +106,7 @@ questRouter.post('/evaluate', async (req, res, next) => {
 
     db.transaction(() => {
       insertAttempt.run({
+        userId: before.id,
         trackId: track.id,
         difficulty,
         scenarioText,
@@ -112,6 +122,7 @@ questRouter.post('/evaluate', async (req, res, next) => {
         localDate: today,
       })
       updateUser.run({
+        id: before.id,
         xp: afterXp,
         streak,
         longestStreak: Math.max(before.longestStreak, streak),
@@ -119,7 +130,7 @@ questRouter.post('/evaluate', async (req, res, next) => {
       })
     })()
 
-    const scores = allTrackScores()
+    const scores = allTrackScores(before.id)
     const weakest = weakestTrack(scores)
 
     res.json({
@@ -138,9 +149,15 @@ questRouter.post('/evaluate', async (req, res, next) => {
 
       trackScores: scores,
       readinessScore: readinessScore(scores),
-      // Powers the personalised forward-nudge; null once everything is strong.
-      nudge: weakest.score < 70 && weakest.id !== track.id ? { id: weakest.id, name: weakest.name, score: weakest.score } : null,
+      nudge:
+        weakest.score < 70 && weakest.id !== track.id
+          ? { id: weakest.id, name: weakest.name, score: weakest.score }
+          : null,
     })
+
+    // Off the request path — the learner summary is allowed to be one cycle
+    // stale, but the user should never wait on it.
+    maybeRefresh(before.id)
   } catch (err) {
     next(err)
   }

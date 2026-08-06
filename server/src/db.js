@@ -11,9 +11,13 @@ export const db = new Database(join(dataDir, 'knack.db'))
 db.pragma('journal_mode = WAL')
 db.pragma('foreign_keys = ON')
 
+/* --------------------------------------------------------------- schema --- */
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
-    id             INTEGER PRIMARY KEY,
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    email          TEXT,
+    passwordHash   TEXT,
     name           TEXT    NOT NULL DEFAULT 'Trainee',
     xp             INTEGER NOT NULL DEFAULT 0,
     streak         INTEGER NOT NULL DEFAULT 0,
@@ -49,9 +53,61 @@ db.exec(`
     FOREIGN KEY (trackId) REFERENCES tracks(id)
   );
 
-  CREATE INDEX IF NOT EXISTS idx_attempts_track ON attempts(trackId, id DESC);
-  CREATE INDEX IF NOT EXISTS idx_attempts_recent ON attempts(id DESC);
+  CREATE TABLE IF NOT EXISTS sessions (
+    tokenHash TEXT PRIMARY KEY,
+    userId    INTEGER NOT NULL,
+    createdAt TEXT    NOT NULL,
+    expiresAt TEXT    NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- The derived half of personalisation: a compact, model-written summary of
+  -- what this learner keeps getting right and wrong. Rewritten every few
+  -- attempts rather than accumulated, so prompt cost stays bounded.
+  CREATE TABLE IF NOT EXISTS learner_context (
+    userId           INTEGER PRIMARY KEY,
+    summary          TEXT    NOT NULL DEFAULT '',
+    recurringGaps    TEXT    NOT NULL DEFAULT '[]',
+    pushNext         TEXT    NOT NULL DEFAULT '',
+    attemptsAtUpdate INTEGER NOT NULL DEFAULT 0,
+    updatedAt        TEXT,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_attempts_user_track ON attempts(userId, trackId, id DESC);
+  CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(userId, id DESC);
+  CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(userId);
 `)
+
+/* ------------------------------------------------------------ migration --- */
+
+/** Additive-only migration. Existing rows and attempts are never dropped. */
+function addColumn(table, column, definition) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all()
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`)
+  }
+}
+
+// The onboarding profile — the "stated" half of personalisation.
+addColumn('users', 'email', 'TEXT')
+addColumn('users', 'passwordHash', 'TEXT')
+addColumn('users', 'yearOfStudy', 'TEXT')
+addColumn('users', 'branch', 'TEXT')
+addColumn('users', 'targetRole', 'TEXT')
+addColumn('users', 'experience', 'TEXT')
+addColumn('users', 'workSetting', 'TEXT')
+addColumn('users', 'confidence', "TEXT NOT NULL DEFAULT '{}'")
+addColumn('users', 'focusAreas', "TEXT NOT NULL DEFAULT '[]'")
+addColumn('users', 'onboardedAt', 'TEXT')
+
+// SQLite cannot add a UNIQUE column via ALTER TABLE, so the constraint lives in
+// an index. Partial, because pre-auth legacy rows have a NULL email.
+db.exec(
+  'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email IS NOT NULL'
+)
+
+/* ----------------------------------------------------------- track seed --- */
 
 export const TRACKS = [
   {
@@ -92,13 +148,32 @@ const seedTrack = db.prepare(`
 
 db.transaction(() => TRACKS.forEach((t) => seedTrack.run(t)))()
 
-// Single local profile — no auth in the MVP, so the user row is fixed at id 1.
-db.prepare(
-  `INSERT INTO users (id, name, xp, streak, longestStreak, lastActiveDate, createdAt)
-   VALUES (1, 'Trainee', 0, 0, 0, NULL, @now)
-   ON CONFLICT(id) DO NOTHING`
-).run({ now: new Date().toISOString() })
+/* ------------------------------------------------------------- helpers --- */
 
-export const getUser = () => db.prepare('SELECT * FROM users WHERE id = 1').get()
-export const listTracks = () =>
-  db.prepare('SELECT * FROM tracks ORDER BY sortOrder').all()
+export const listTracks = () => db.prepare('SELECT * FROM tracks ORDER BY sortOrder').all()
+
+export const findUserById = (id) => db.prepare('SELECT * FROM users WHERE id = ?').get(id)
+
+export const findUserByEmail = (email) =>
+  db.prepare('SELECT * FROM users WHERE email = ? COLLATE NOCASE').get(email)
+
+/** Strips secrets and parses the JSON profile columns for API responses. */
+export function publicUser(row) {
+  if (!row) return null
+  const { passwordHash, ...rest } = row
+  return {
+    ...rest,
+    confidence: safeParse(row.confidence, {}),
+    focusAreas: safeParse(row.focusAreas, []),
+    onboarded: !!row.onboardedAt,
+  }
+}
+
+export function safeParse(text, fallback) {
+  try {
+    const v = JSON.parse(text ?? '')
+    return v ?? fallback
+  } catch {
+    return fallback
+  }
+}

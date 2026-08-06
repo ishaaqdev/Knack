@@ -1,9 +1,11 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { useKnack } from './store/useKnack'
 import { AppShell } from './components/AppShell'
 import { Button, Spinner } from './components/primitives'
 import { Home } from './pages/Home'
+import { Login, Signup } from './pages/Auth'
+import { Onboarding } from './pages/Onboarding'
 import { Dashboard } from './pages/Dashboard'
 import { TrackSelect } from './pages/TrackSelect'
 import { QuestSession } from './pages/QuestSession'
@@ -46,19 +48,36 @@ function Boot({ children }) {
   return children
 }
 
+/** Signed in and onboarded, or you get bounced to the right place. */
+function Protected() {
+  const user = useKnack((s) => s.user)
+  const location = useLocation()
+
+  if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />
+  if (!user.onboarded) return <Navigate to="/onboarding" replace />
+  return <Outlet />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <Boot>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route element={<AppShell />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/tracks" element={<TrackSelect />} />
-            <Route path="/quest/:trackId" element={<QuestSession />} />
-            <Route path="/feedback" element={<Feedback />} />
-            <Route path="/profile" element={<Profile />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+
+          <Route element={<Protected />}>
+            <Route element={<AppShell />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/tracks" element={<TrackSelect />} />
+              <Route path="/quest/:trackId" element={<QuestSession />} />
+              <Route path="/feedback" element={<Feedback />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
           </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Boot>

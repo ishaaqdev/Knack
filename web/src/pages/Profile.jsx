@@ -6,8 +6,11 @@ import { api } from '../lib/api'
 import { Button, Card, Empty, Page, Pill, SectionLabel, SkillBar, Spinner } from '../components/primitives'
 import { Ring } from '../components/Ring'
 import { AttemptDetail } from '../components/AttemptDetail'
+import { Insight } from '../components/Insight'
+import { ProfileEditor } from '../components/ProfileEditor'
 import { TRACK_ICONS, IconArrowRight, IconChevron, IconClose } from '../components/Icons'
 import { cx, relativeDate, spring, useReducedMotion } from '../lib/ui'
+import { labelLookup, useOnboardingConfig } from '../lib/onboarding'
 
 const PAGE_SIZE = 20
 
@@ -77,7 +80,7 @@ function ResetConfirm({ open, onCancel, onConfirm, busy }) {
 export function Profile() {
   const user = useKnack((s) => s.user)
   const reset = useKnack((s) => s.reset)
-  const rename = useKnack((s) => s.rename)
+  const logout = useKnack((s) => s.logout)
 
   const [filter, setFilter] = useState('all')
   const [rows, setRows] = useState([])
@@ -86,9 +89,11 @@ export function Profile() {
   const [open, setOpen] = useState(null)
 
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [resetting, setResetting] = useState(false)
+
+  const { config } = useOnboardingConfig()
+  const labels = labelLookup(config)
 
   useEffect(() => {
     let alive = true
@@ -111,12 +116,6 @@ export function Profile() {
     setRows((r) => [...r, ...d.attempts])
   }
 
-  async function saveName() {
-    const name = draft.trim()
-    setEditing(false)
-    if (name && name !== user.name) await rename(name)
-  }
-
   if (!user) return null
 
   return (
@@ -128,42 +127,10 @@ export function Profile() {
         </Ring>
 
         <div className="min-w-0 flex-1">
-          {editing ? (
-            <div className="flex items-center gap-2">
-              <input
-                autoFocus
-                value={draft}
-                maxLength={32}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') saveName()
-                  if (e.key === 'Escape') setEditing(false)
-                }}
-                className="w-full min-w-0 rounded-lg border border-line bg-raised px-2.5 py-1.5 font-display text-[17px] font-semibold outline-none focus:border-ember"
-              />
-              <button
-                onClick={saveName}
-                className="shrink-0 text-[12px] font-medium text-ember"
-              >
-                Save
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => {
-                setDraft(user.name)
-                setEditing(true)
-              }}
-              className="group flex items-center gap-1.5 text-left"
-            >
-              <h1 className="truncate font-display text-[20px] font-bold tracking-tight">
-                {user.name}
-              </h1>
-              <span className="text-faint opacity-0 transition-opacity group-hover:opacity-100">
-                <IconChevron size={13} />
-              </span>
-            </button>
-          )}
+          <h1 className="truncate font-display text-[20px] font-bold tracking-tight">
+            {user.name}
+          </h1>
+          <p className="truncate text-[12px] text-faint">{user.email}</p>
 
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <Pill active>{user.level.name}</Pill>
@@ -196,6 +163,52 @@ export function Profile() {
         <Stat label="Best streak" value={user.longestStreak} />
         <Stat label="Avg score" value={user.avgScore || '—'} />
       </Card>
+
+      {/* what the app has learned */}
+      {user.insight && (
+        <section className="mt-6">
+          <SectionLabel>Your training profile</SectionLabel>
+          <Insight insight={user.insight} />
+        </section>
+      )}
+
+      {/* stated profile */}
+      <section className="mt-6">
+        <SectionLabel
+          right={
+            <button
+              onClick={() => setEditing((v) => !v)}
+              className="text-[12px] font-medium text-dim transition-colors hover:text-ember"
+            >
+              {editing ? 'Close' : 'Edit'}
+            </button>
+          }
+        >
+          About you
+        </SectionLabel>
+
+        {!editing && (
+          <Card className="flex flex-wrap gap-2">
+            {['yearOfStudy', 'branch', 'targetRole', 'experience', 'workSetting']
+              .map((key) => labels[key]?.[user[key]])
+              .filter(Boolean)
+              .map((label) => (
+                <Pill key={label} dot={false}>
+                  {label}
+                </Pill>
+              ))}
+            {(user.focusAreas ?? []).map((f) => (
+              <Pill key={f} active>
+                {labels.focusAreas?.[f] ?? f}
+              </Pill>
+            ))}
+          </Card>
+        )}
+
+        <AnimatePresence>
+          {editing && <ProfileEditor onDone={() => setEditing(false)} />}
+        </AnimatePresence>
+      </section>
 
       {/* skill breakdown */}
       <section className="mt-6">
@@ -301,16 +314,31 @@ export function Profile() {
       {/* settings */}
       <section className="mt-8">
         <SectionLabel>Settings</SectionLabel>
-        <Card className="flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[13.5px] font-medium">Reset progress</p>
-            <p className="mt-0.5 text-[12px] leading-relaxed text-dim">
-              Clears all attempts, XP and streaks. Useful before a demo.
-            </p>
+        <Card className="divide-y divide-hair p-0">
+          <div className="flex items-center justify-between gap-4 p-5">
+            <div className="min-w-0">
+              <p className="text-[13.5px] font-medium">Reset progress</p>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-dim">
+                Clears attempts, XP, streaks and everything Knack has learned about you. Your
+                profile is kept.
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" className="shrink-0" onClick={() => setConfirming(true)}>
+              <IconClose size={14} /> Reset
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" className="shrink-0" onClick={() => setConfirming(true)}>
-            <IconClose size={14} /> Reset
-          </Button>
+
+          <div className="flex items-center justify-between gap-4 p-5">
+            <div className="min-w-0">
+              <p className="text-[13.5px] font-medium">Sign out</p>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-dim">
+                Ends this session on this device.
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" className="shrink-0" onClick={logout}>
+              Sign out
+            </Button>
+          </div>
         </Card>
         <p className="mt-3 text-center text-[11px] text-faint">
           Member since {new Date(user.memberSince).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}

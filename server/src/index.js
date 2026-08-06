@@ -1,11 +1,14 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 import './db.js'
+import { attachUser } from './auth.js'
+import { authRouter } from './routes/auth.js'
 import { questRouter } from './routes/quest.js'
 import { userRouter } from './routes/user.js'
 import { historyRouter } from './routes/history.js'
@@ -14,9 +17,13 @@ import { health } from './ai.js'
 const here = dirname(fileURLToPath(import.meta.url))
 const app = express()
 
-app.use(cors())
+// Credentialed requests need an explicit origin — a wildcard cannot carry cookies.
+app.use(cors({ origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], credentials: true }))
 app.use(express.json({ limit: '256kb' }))
+app.use(cookieParser())
+app.use(attachUser)
 
+app.use('/api/auth', authRouter)
 app.use('/api/quest', questRouter)
 app.use('/api/user', userRouter)
 app.use('/api/history', historyRouter)

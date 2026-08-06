@@ -50,7 +50,39 @@ the human rather than the tool`,
   },
 }
 
-export function scenarioPrompt({ track, difficulty, avoid = [] }) {
+/**
+ * Personalisation blocks.
+ *
+ * The failure mode with a small model is recitation — hand it a profile and
+ * every scenario opens "As a final-year CSE student aiming for a software role,
+ * you...". The fix is to state explicitly that the profile selects the *setting*
+ * and is never surfaced in the text, and to repeat that at the rules.
+ */
+function contextBlock({ profile, learner }) {
+  if (!profile && !learner) return ''
+
+  const parts = ['\nWHO THIS IS FOR (background only — see the rules)']
+
+  if (profile) {
+    parts.push(`- Trainee: ${profile.who}`)
+    parts.push(`- Set the scenario inside: ${profile.setting}`)
+    if (profile.focus.length) {
+      parts.push(`- They say they struggle most with: ${profile.focus.join('; ')}`)
+    }
+  }
+
+  if (learner?.summary) {
+    parts.push(`- What their last few attempts showed: ${learner.summary}`)
+    if (learner.gaps?.length) {
+      parts.push(`- Weaknesses that keep recurring: ${learner.gaps.join('; ')}`)
+    }
+    if (learner.pushNext) parts.push(`- Push them on: ${learner.pushNext}`)
+  }
+
+  return parts.join('\n') + '\n'
+}
+
+export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner }) {
   const t = TRACK_BRIEF[track.id]
   const avoidBlock = avoid.length
     ? `\nDo NOT reuse these situations — the trainee has already seen them:\n${avoid
@@ -58,12 +90,14 @@ export function scenarioPrompt({ track, difficulty, avoid = [] }) {
         .join('\n')}\n`
     : ''
 
+  const personalised = contextBlock({ profile, learner })
+
   return `You write short training scenarios for a soft-skills app used by
 engineering students in India who are about to start their first job.
 
 TRACK: ${track.name} — ${t.focus}
 DIFFICULTY: ${DIFFICULTY_BRIEF[difficulty]}
-
+${personalised}
 Write ONE realistic workplace scenario drawn from this space: ${t.situations}.
 ${avoidBlock}
 RULES
@@ -75,12 +109,29 @@ RULES
   do next. Do NOT ask a question at the end and do NOT give advice.
 - Plain professional English. No jargon, no emoji, no markdown.
 
+CRITICAL — how to use the background above:
+It decides the SETTING, who else is in the room, how senior they are, and what is
+at stake. It is NOT part of the scenario. Never state or hint at the trainee's
+year of study, branch, career goal, confidence, or past performance. Do not open
+with "As a final-year student" or anything like it. Write the situation as it
+would actually be experienced, from inside it.
+
 Reply with ONLY this JSON object and nothing else:
 {"scenario":"<the scenario text>","prompt":"<a 6-10 word instruction telling the trainee what to write, e.g. 'Write the message you would send to Priya.'>"}`
 }
 
-export function evaluationPrompt({ track, difficulty, scenarioText, userResponse }) {
+export function evaluationPrompt({ track, difficulty, scenarioText, userResponse, learner }) {
   const t = TRACK_BRIEF[track.id]
+
+  const history = learner?.summary
+    ? `\nWHAT YOU KNOW ABOUT THIS TRAINEE ALREADY
+${learner.summary}${learner.gaps?.length ? `\nRecurring weaknesses: ${learner.gaps.join('; ')}` : ''}
+
+If they repeated a mistake you have flagged before, say so plainly — "this is the
+same gap as last time" is more useful than pretending it is new. If they fixed
+one, name it and give them credit. Do not invent history that is not listed here.
+`
+    : ''
 
   return `You are a fair, experienced engineering mentor grading a trainee's
 response to a workplace scenario. Be encouraging but honest — inflated scores
@@ -88,7 +139,7 @@ make the training worthless.
 
 TRACK: ${track.name} — ${t.focus}
 DIFFICULTY: ${difficulty}
-
+${history}
 SCENARIO
 """
 ${scenarioText}
@@ -118,4 +169,46 @@ RULES
 
 Reply with ONLY this JSON object and nothing else:
 {"score":<integer 1-10>,"strengths":"<what worked>","gaps":"<what was missing>","suggestion":"<one specific improvement>"}`
+}
+
+/**
+ * Rewrites the rolling learner summary. Kept deliberately short — this text is
+ * injected into every later prompt, so length here is a recurring cost.
+ */
+export function learnerSummaryPrompt({ attempts, previous }) {
+  const history = attempts
+    .map(
+      (a, i) =>
+        `${i + 1}. [${a.trackName}, ${a.difficulty}, scored ${a.score}/10]
+   Situation: ${a.scenarioText.slice(0, 160)}
+   They wrote: ${a.userResponse.slice(0, 300)}
+   Gaps noted: ${a.gaps || 'none recorded'}`
+    )
+    .join('\n\n')
+
+  const prior = previous?.summary
+    ? `\nYOUR PREVIOUS SUMMARY OF THEM (update it — do not just repeat it):\n${previous.summary}\n`
+    : ''
+
+  return `You are tracking one trainee's progress in a soft-skills training app so
+that future scenarios can be aimed at their actual weaknesses.
+
+THEIR MOST RECENT ATTEMPTS (newest first)
+${history}
+${prior}
+Write an updated picture of this trainee. Be specific and behavioural — "gives
+timelines but never explains the cause of a delay" is useful; "needs improvement"
+is not. Base it only on the attempts above.
+
+RULES
+- summary: under 60 words, third person, present tense. What they reliably do
+  well and what they reliably miss.
+- recurringGaps: 1-3 short phrases, each under 8 words. Only patterns that show
+  up more than once. Empty array if nothing recurs yet.
+- pushNext: one clause naming the specific thing the next scenario should force
+  them to confront.
+- Plain text. No markdown, no emoji.
+
+Reply with ONLY this JSON object and nothing else:
+{"summary":"<under 60 words>","recurringGaps":["<phrase>"],"pushNext":"<one clause>"}`
 }

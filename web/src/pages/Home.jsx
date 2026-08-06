@@ -7,9 +7,9 @@ import { IconArrowRight, IconFlame, IconCheck } from '../components/Icons'
 import { useReducedMotion } from '../lib/ui'
 
 const POINTS = [
-  'A real workplace scenario, generated for your level',
-  'Write how you would actually respond',
-  'Get scored 1–10 with specific feedback',
+  'Tell us where you are — year, target role, what you find hard',
+  'Get scenarios written for that, not generic textbook cases',
+  'Scored 1–10 with feedback that remembers your last attempt',
 ]
 
 export function Home() {
@@ -17,26 +17,30 @@ export function Home() {
   const navigate = useNavigate()
   const reduced = useReducedMotion()
 
-  const returning = (user?.totalQuests ?? 0) > 0
+  const signedIn = !!user?.onboarded
+  const returning = signedIn && (user?.totalQuests ?? 0) > 0
   const streak = user?.streak ?? 0
 
-  // Returning users with a live streak get the streak as the headline, not a
-  // generic welcome — the streak is the thing worth protecting.
-  const headline = !returning
+  // A live streak is the thing worth protecting, so it becomes the headline.
+  const headline = !signedIn
     ? 'Soft skills, five minutes a day.'
-    : user.doneToday
-      ? 'Today is done. Want another?'
-      : streak > 0
-        ? `Keep your streak alive — Day ${streak + 1}`
-        : 'Pick it back up today.'
+    : !returning
+      ? `You're set up, ${user.name.split(' ')[0]}.`
+      : user.doneToday
+        ? 'Today is done. Want another?'
+        : streak > 0
+          ? `Keep your streak alive — Day ${streak + 1}`
+          : 'Pick it back up today.'
 
-  const sub = !returning
-    ? 'Knack gives engineering students the part of the job no course teaches: saying the hard thing, thinking under ambiguity, and using AI without trusting it blindly.'
-    : user.doneToday
-      ? `You are on a ${streak}-day run and ${user.level.xpToNext ? `${user.level.xpToNext} XP from ${user.level.nextName}` : 'at the top level'}. Extra quests still earn full XP.`
-      : streak > 0
-        ? `One quest keeps it going. It takes about two minutes.`
-        : 'One quest today starts a new streak.'
+  const sub = !signedIn
+    ? 'Knack gives engineering students the part of the job no course teaches: saying the hard thing, thinking under ambiguity, and using AI without trusting it blindly. Every scenario is written for your year, your target role, and the things you said you find hard.'
+    : !returning
+      ? 'Your first scenario is waiting, written for the profile you just filled in.'
+      : user.doneToday
+        ? `You are on a ${streak}-day run and ${user.level.xpToNext ? `${user.level.xpToNext} XP from ${user.level.nextName}` : 'at the top level'}. Extra quests still earn full XP.`
+        : streak > 0
+          ? 'One quest keeps it going. It takes about two minutes.'
+          : 'One quest today starts a new streak.'
 
   const fade = (delay) => ({
     initial: reduced ? false : { opacity: 0, y: 14 },
@@ -52,9 +56,19 @@ export function Home() {
       />
 
       <div className="relative mx-auto flex w-full max-w-2xl flex-1 flex-col px-5 pb-10 pt-7 sm:px-6 sm:pt-12">
-        <motion.div {...fade(0)} className="flex items-center gap-2.5">
-          <Ring value={1} size={26} stroke={3} duration={1.1} />
-          <span className="font-display text-[17px] font-bold tracking-tight">Knack</span>
+        <motion.div {...fade(0)} className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Ring value={1} size={26} stroke={3} duration={1.1} />
+            <span className="font-display text-[17px] font-bold tracking-tight">Knack</span>
+          </div>
+          {!signedIn && (
+            <Link
+              to="/login"
+              className="text-[13px] font-medium text-dim transition-colors hover:text-text"
+            >
+              Log in
+            </Link>
+          )}
         </motion.div>
 
         <div className="flex flex-1 flex-col justify-center py-10 sm:py-14">
@@ -79,7 +93,7 @@ export function Home() {
             {sub}
           </motion.p>
 
-          {!returning && (
+          {!signedIn && (
             <motion.ul {...fade(0.22)} className="mt-7 space-y-2.5">
               {POINTS.map((p) => (
                 <li key={p} className="flex items-start gap-3 text-[14px] text-dim">
@@ -108,24 +122,32 @@ export function Home() {
           )}
 
           <motion.div {...fade(0.3)} className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button size="lg" className="w-full sm:w-auto" onClick={() => navigate('/tracks')}>
-              {returning ? 'Start a quest' : 'Start training'}
+            <Button
+              size="lg"
+              className="w-full sm:w-auto"
+              onClick={() => navigate(signedIn ? '/tracks' : '/signup')}
+            >
+              {signedIn ? (returning ? 'Start a quest' : 'Start my first quest') : 'Get started'}
               <IconArrowRight size={17} />
             </Button>
-            {returning && (
+
+            {signedIn ? (
               <Link
                 to="/dashboard"
                 className="text-center text-[13px] font-medium text-dim underline-offset-4 transition-colors hover:text-text hover:underline sm:text-left"
               >
                 Go to dashboard
               </Link>
+            ) : (
+              <p className="text-center text-[12.5px] text-faint sm:text-left">
+                Free. Takes two minutes to set up.
+              </p>
             )}
           </motion.div>
         </div>
 
         <motion.p {...fade(0.4)} className="text-[11px] leading-relaxed text-faint">
-          Scenarios and scoring by Gemma&nbsp;4 via OpenRouter. Progress is stored locally on this
-          machine — no account, no sign-in.
+          Scenarios and scoring by Gemma&nbsp;4 via OpenRouter. Your data stays on this machine.
         </motion.p>
       </div>
     </main>

@@ -2,10 +2,23 @@
 
 AI-powered gamified soft-skill training for engineering students.
 
-Pick a track, get an AI-generated workplace scenario at your level, write how you
-would actually respond, and get scored 1–10 with specific feedback. XP, streaks,
-per-track skill scores and a composite **Professional Readiness Score** turn it
-into a five-minute daily habit rather than a course.
+Pick a track, get an AI-generated workplace scenario **written for you**, write
+how you would actually respond, and get scored 1–10 with specific feedback. XP,
+streaks, per-track skill scores and a composite **Professional Readiness Score**
+turn it into a five-minute daily habit rather than a course.
+
+Scenarios are personalised from two independent sources:
+
+- **Stated profile** — an 8-field onboarding (year, branch, target role,
+  experience, work setting, what you find hard, and self-rated confidence per
+  track). A final-year CSE student aiming at a startup gets payment-gateway pull
+  requests; a first-year ECE student aiming at core engineering gets a PCB
+  calculation error in a sprint review.
+- **Derived context** — a rolling summary the model rewrites every three
+  attempts, describing what you reliably do well and what you keep missing. It
+  feeds forward into both scenario generation and grading, so feedback can say
+  *"this is the same gap as last time"* rather than treating every attempt as
+  the first.
 
 ---
 
@@ -49,40 +62,72 @@ Config lives in `server/.env`. Prompt templates are isolated in
 ```
 server/src/
   index.js          Express app, static SPA in production
-  db.js             SQLite schema + track seed + single local profile
+  db.js             SQLite schema, additive migrations, track seed
+  auth.js           scrypt password hashing, session tokens, route guards
+  profile.js        The 8 onboarding fields — options, validation, prompt phrasing
+  context.js        Derived learner context: when to refresh, what to inject
   gamification.js   XP, levels, streaks, rolling skill scores, readiness, difficulty
   prompts.js        Gemma prompt templates (tune here)
   ai.js             OpenRouter client — retries, model fallback, JSON extraction
   fallback.js       Offline scenario bank + rubric for when the model is down
-  routes/           quest.js · user.js · history.js
+  routes/           auth.js · quest.js · user.js · history.js
 
 web/src/
-  pages/            Home · Dashboard · TrackSelect · QuestSession · Feedback · Profile
-  components/       Header · Ring · ScoreDial · TrackCard · AttemptDetail · …
-  store/useKnack.js Global XP/streak/session state
+  pages/            Home · Auth · Onboarding · Dashboard · TrackSelect ·
+                    QuestSession · Feedback · Profile
+  components/       Header · Ring · ScoreDial · TrackCard · Insight ·
+                    ProfileEditor · AttemptDetail · …
+  store/useKnack.js Auth, profile, XP/streak and quest-session state
 ```
 
 ### API
 
 | Method | Route | Returns |
 |---|---|---|
+| `POST` | `/api/auth/signup` | creates account, sets session cookie |
+| `POST` | `/api/auth/login` | sets session cookie |
+| `POST` | `/api/auth/logout` | clears session |
+| `GET` | `/api/auth/me` | current account or `null` |
+| `GET` | `/api/auth/onboarding` | field definitions + options (server owns these) |
+| `POST` | `/api/auth/onboarding` | saves the 8-field profile |
 | `POST` | `/api/quest/generate` | `{ scenarioText, taskPrompt, difficulty, source }` |
 | `POST` | `/api/quest/evaluate` | `{ score, strengths, gaps, suggestion, xp, streak, levelUp, trackScores, readinessScore, nudge }` |
-| `GET` | `/api/user` | profile, XP, level, streak, per-track scores, readiness, last 5 attempts |
+| `GET` | `/api/user` | profile, XP, level, streak, per-track scores, readiness, derived insight, last 5 attempts |
+| `PATCH` | `/api/user` | edit the profile (re-validated against the same rules) |
+| `POST` | `/api/user/reset` | wipes progress and learned context, keeps the profile |
 | `GET` | `/api/history` | `?trackId=&limit=&offset=` — paginated attempts |
-| `POST` | `/api/user/reset` | wipes progress (demo/testing) |
-| `PATCH` | `/api/user` | rename the local profile |
 | `GET` | `/api/health` | server + OpenRouter key status |
+
+Everything under `/api/quest` additionally requires a completed profile —
+scenario quality depends on it, so the route refuses rather than degrading.
 
 ### Data model
 
 ```
-users     id, name, xp, streak, longestStreak, lastActiveDate, createdAt
-tracks    id, name, description, blurb, sortOrder
-attempts  id, trackId, difficulty, scenarioText, userResponse, score,
-          feedback, strengths, gaps, suggestion, xpAwarded, source,
-          timestamp, localDate
+users            id, email, passwordHash, name,
+                 yearOfStudy, branch, targetRole, experience, workSetting,
+                 confidence (JSON), focusAreas (JSON), onboardedAt,
+                 xp, streak, longestStreak, lastActiveDate, createdAt
+sessions         tokenHash, userId, createdAt, expiresAt
+learner_context  userId, summary, recurringGaps (JSON), pushNext,
+                 attemptsAtUpdate, updatedAt
+tracks           id, name, description, blurb, sortOrder
+attempts         id, userId, trackId, difficulty, scenarioText, userResponse,
+                 score, feedback, strengths, gaps, suggestion, xpAwarded,
+                 source, timestamp, localDate
 ```
+
+### Auth
+
+Email + password. Passwords are hashed with **scrypt** from Node's own `crypto`
+module (N=16384, r=8, p=1, 64-byte key, per-password random salt) — memory-hard,
+OWASP-recommended, and it keeps the project free of a native build step.
+Verification is timing-safe, and login returns the same error whether or not the
+email exists.
+
+Sessions are 32 bytes of CSPRNG output in an `httpOnly`, `sameSite=lax` cookie.
+Only the **SHA-256 hash** of the token is stored, so a database dump does not
+hand over live sessions. Expired rows are swept at boot.
 
 ---
 
@@ -94,8 +139,35 @@ attempts  id, trackId, difficulty, scenarioText, userResponse, score,
 | **Levels** | Novice 0–150 · Intermediate 150–400 · Advanced 400–800 · Expert 800+ |
 | **Streak** | +1 per calendar day with ≥1 quest; 0 after a full day missed |
 | **Track skill** | Rolling mean of the last 5 scores in that track, scaled to 0–100 |
-| **Difficulty** | <45 easy · 45–74 medium · 75+ hard, nudged ±1 by recent trend |
+| **Difficulty** | <45 easy · 45–74 medium · 75+ hard, nudged ±1 by recent trend. Before any attempts exist, self-rated confidence picks the entry point |
 | **Readiness** | Plain mean of the three track scores — an untouched track counts as 0 |
+
+---
+
+## Personalisation
+
+The two halves are kept deliberately separate.
+
+**Stated profile** (`profile.js`) is collected once and editable in Profile. Each
+option carries a `prompt` string — the phrasing handed to the model — so the UI
+label and the model's wording can differ without drifting apart. Self-rated
+confidence seeds the *starting difficulty* only; it never touches the score.
+
+**Derived context** (`context.js`) is the interesting half. The naive approach —
+stuffing past attempts into every prompt — grows without bound and degrades
+output on a small model. Instead the model rewrites a compact summary every
+**3 attempts** from a **6-attempt window**, and only that summary is injected.
+Prompt cost stays flat no matter how long someone trains. The refresh runs
+fire-and-forget after the response is sent, so it never sits on the request path;
+a failure just means the summary is one cycle stale.
+
+Both are surfaced in the UI (the "What Knack has picked up" card) rather than
+hidden — personalisation the user cannot see reads as a black box.
+
+**The failure mode to know about:** hand a small model a profile and it recites
+it back — every scenario opening *"As a final-year CSE student…"*. The prompts
+state explicitly that the background selects the setting, the other people and
+the stakes, and must never appear in the text. Worth keeping if you tune them.
 
 ---
 
@@ -127,7 +199,6 @@ Animation is Framer Motion springs, 200–600ms, and every animated element has 
 
 ## Notes and assumptions
 
-- **Single local profile, no auth.** The user row is fixed at `id = 1`.
 - **Streaks use the server's local calendar date.** The server runs on the same
   machine as the browser, so server-local == user-local.
 - **"Streak at risk" is 18:00 local** with today's quest still open. It is a
@@ -139,8 +210,14 @@ Animation is Framer Motion springs, 200–600ms, and every animated element has 
   back to a local scenario bank and a deterministic rubric. That output is tagged
   `source: "offline"` and labelled in the UI — it is never passed off as AI.
 
+- **No email verification or password reset.** Accounts are real but the recovery
+  flow is out of scope; there is no mail transport wired up.
+- **Age is deliberately not collected.** Year of study is strictly better signal
+  for scenario difficulty, and personal data that does not change the output is
+  not worth storing.
+
 ## Future scope
 
-Badges/achievements, multi-user accounts and leaderboards, a real skill-tree
-visualisation, a fully built-out AI hallucination-detection track, and a mobile
-app — all deliberately out of scope for this base version.
+Badges/achievements, leaderboards, a real skill-tree visualisation, a fully
+built-out AI hallucination-detection track, email verification and password
+reset, and a mobile app — all deliberately out of scope for this version.

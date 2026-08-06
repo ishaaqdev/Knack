@@ -1,4 +1,5 @@
 import { db, TRACKS } from './db.js'
+import { startingDifficulty } from './profile.js'
 
 /* ---------------------------------------------------------------- levels -- */
 
@@ -78,14 +79,16 @@ export function streakAfterQuest(user, today = localDate()) {
 export const ROLLING_WINDOW = 5
 
 const recentScores = db.prepare(
-  `SELECT score FROM attempts WHERE trackId = ? ORDER BY id DESC LIMIT ${ROLLING_WINDOW}`
+  `SELECT score FROM attempts WHERE userId = ? AND trackId = ? ORDER BY id DESC LIMIT ${ROLLING_WINDOW}`
 )
-const trackCount = db.prepare('SELECT COUNT(*) AS n FROM attempts WHERE trackId = ?')
+const trackCount = db.prepare(
+  'SELECT COUNT(*) AS n FROM attempts WHERE userId = ? AND trackId = ?'
+)
 
 /** Rolling mean of the last N scores in a track, scaled 1-10 -> 0-100. */
-export function trackScore(trackId) {
-  const rows = recentScores.all(trackId)
-  const attempts = trackCount.get(trackId).n
+export function trackScore(userId, trackId) {
+  const rows = recentScores.all(userId, trackId)
+  const attempts = trackCount.get(userId, trackId).n
   if (!rows.length) return { score: 0, attempts: 0, trend: 0 }
 
   const mean = rows.reduce((s, r) => s + r.score, 0) / rows.length
@@ -101,22 +104,24 @@ export function trackScore(trackId) {
   return { score: Math.round(mean * 10), attempts, trend }
 }
 
-export function allTrackScores() {
-  return Object.fromEntries(TRACKS.map((t) => [t.id, trackScore(t.id)]))
+export function allTrackScores(userId) {
+  return Object.fromEntries(TRACKS.map((t) => [t.id, trackScore(userId, t.id)]))
 }
 
 /** Composite headline metric: plain mean of the three track scores.
  *  Untouched tracks count as 0 — readiness is meant to reward breadth. */
-export function readinessScore(scores = allTrackScores()) {
+export function readinessScore(scores) {
   const vals = TRACKS.map((t) => scores[t.id]?.score ?? 0)
   return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
 }
 
 /* ---------------------------------------------------- adaptive difficulty -- */
 
-export function difficultyFor(trackId) {
-  const { score, attempts, trend } = trackScore(trackId)
-  if (attempts === 0) return 'easy'
+export function difficultyFor(user, trackId) {
+  const { score, attempts, trend } = trackScore(user.id, trackId)
+  // Before there is any performance data, self-rated confidence picks the entry
+  // point. It never touches the score itself.
+  if (attempts === 0) return startingDifficulty(user, trackId)
 
   let tier = score >= 75 ? 2 : score >= 45 ? 1 : 0
   // Nudge one step on a clear run in either direction.
@@ -126,7 +131,7 @@ export function difficultyFor(trackId) {
 }
 
 /** The track most in need of work — powers the forward-nudge on Feedback. */
-export function weakestTrack(scores = allTrackScores()) {
+export function weakestTrack(scores) {
   return TRACKS.map((t) => ({ ...t, ...scores[t.id] })).sort(
     (a, b) => a.score - b.score || a.attempts - b.attempts
   )[0]

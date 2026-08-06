@@ -1,4 +1,4 @@
-import { scenarioPrompt, evaluationPrompt } from './prompts.js'
+import { scenarioPrompt, evaluationPrompt, learnerSummaryPrompt } from './prompts.js'
 import { FALLBACK_SCENARIOS, heuristicEvaluation } from './fallback.js'
 
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions'
@@ -122,10 +122,10 @@ async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate
 
 /* --------------------------------------------------------------- public --- */
 
-export async function generateScenario({ track, difficulty, avoid }) {
+export async function generateScenario({ track, difficulty, avoid, profile, learner }) {
   try {
     const { data, model } = await askForJson(
-      scenarioPrompt({ track, difficulty, avoid }),
+      scenarioPrompt({ track, difficulty, avoid, profile, learner }),
       {
         temperature: 1.0,
         maxTokens: 400,
@@ -145,10 +145,10 @@ export async function generateScenario({ track, difficulty, avoid }) {
   }
 }
 
-export async function evaluateResponse({ track, difficulty, scenarioText, userResponse }) {
+export async function evaluateResponse({ track, difficulty, scenarioText, userResponse, learner }) {
   try {
     const { data, model } = await askForJson(
-      evaluationPrompt({ track, difficulty, scenarioText, userResponse }),
+      evaluationPrompt({ track, difficulty, scenarioText, userResponse, learner }),
       {
         temperature: 0.3,
         maxTokens: 600,
@@ -170,6 +170,31 @@ export async function evaluateResponse({ track, difficulty, scenarioText, userRe
   } catch (err) {
     console.warn('[ai] evaluation fell back to offline heuristic:', err.message)
     return { ...heuristicEvaluation({ track, userResponse }), source: 'offline' }
+  }
+}
+
+/**
+ * Rewrites the rolling learner summary. Returns null on failure rather than
+ * falling back — a stale summary is fine, an invented one is not.
+ */
+export async function summariseLearner({ attempts, previous }) {
+  try {
+    const { data } = await askForJson(learnerSummaryPrompt({ attempts, previous }), {
+      temperature: 0.4,
+      maxTokens: 400,
+      validate: (d) => typeof d.summary === 'string' && d.summary.trim().length > 20,
+    })
+    return {
+      summary: data.summary.trim().slice(0, 600),
+      recurringGaps: (Array.isArray(data.recurringGaps) ? data.recurringGaps : [])
+        .filter((g) => typeof g === 'string' && g.trim())
+        .slice(0, 3)
+        .map((g) => g.trim().slice(0, 80)),
+      pushNext: String(data.pushNext || '').trim().slice(0, 200),
+    }
+  } catch (err) {
+    console.warn('[ai] learner summary failed:', err.message)
+    return null
   }
 }
 

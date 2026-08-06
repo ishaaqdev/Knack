@@ -11,15 +11,55 @@ export const useKnack = create((set, get) => ({
   quest: null,
   result: null,
 
+  /**
+   * Two-stage load. /api/auth/me is cheap and works signed-out; the full
+   * progress payload is only fetched once a profile exists, because scenario
+   * quality (and half the dashboard) depends on onboarding being done.
+   */
   async load() {
     try {
-      const user = await api.user()
-      set({ user, loading: false, error: null })
-      return user
+      const { user } = await api.me()
+      if (!user) {
+        set({ user: null, loading: false, error: null })
+        return null
+      }
+      if (!user.onboarded) {
+        set({ user, loading: false, error: null })
+        return user
+      }
+      const full = await api.user()
+      set({ user: full, loading: false, error: null })
+      return full
     } catch (e) {
-      set({ error: e.message, loading: false })
+      // A network failure is fatal; a 401 just means signed out.
+      set({ user: null, loading: false, error: e.status === 401 ? null : e.message })
       return null
     }
+  },
+
+  async signup(body) {
+    await api.signup(body)
+    return get().load()
+  },
+
+  async login(body) {
+    await api.login(body)
+    return get().load()
+  },
+
+  async logout() {
+    await api.logout()
+    set({ user: null, quest: null, result: null })
+  },
+
+  async completeOnboarding(profile) {
+    await api.submitOnboarding(profile)
+    return get().load()
+  },
+
+  async saveProfile(profile) {
+    await api.updateProfile(profile)
+    return get().load()
   },
 
   setQuest: (quest) => set({ quest, result: null }),
@@ -54,11 +94,6 @@ export const useKnack = create((set, get) => ({
   async reset() {
     await api.resetProgress()
     set({ quest: null, result: null })
-    return get().load()
-  },
-
-  async rename(name) {
-    await api.rename(name)
     return get().load()
   },
 }))

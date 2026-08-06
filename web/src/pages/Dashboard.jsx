@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useKnack } from '../store/useKnack'
 import { Button, Card, Empty, Page, Pill, SectionLabel, SkillBar } from '../components/primitives'
 import { Gauge } from '../components/Ring'
+import { Insight } from '../components/Insight'
 import { CountUp } from '../components/CountUp'
 import { TRACK_ICONS, IconArrowRight, IconCheck, IconFlame } from '../components/Icons'
 import { relativeDate, useReducedMotion } from '../lib/ui'
@@ -148,6 +149,7 @@ export function Dashboard() {
 
       <div className="space-y-4">
         <TodayCard user={user} />
+        <Insight insight={user.insight} compact />
         <ReadinessCard user={user} />
 
         {/* tracks */}
