@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Knack design tokens — "Ember on Ink"
+   One accent + neutrals. Two fonts. Every quantity is drawn as an arc on a ring.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-ink: #0e0e10;
+  --color-surface: #16161a;
+  --color-raised: #1d1d22;
+  --color-line: #26262d;
+  --color-hair: #1f1f25;
+
+  --color-text: #f2f0ec;
+  --color-dim: #9a9aa5;
+  --color-faint: #63636e;
+
+  --color-ember: #ff7a35;
+  --color-ember-hi: #ffa061;
+  --color-ember-low: #8a4a24;
+
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 16px;
+  --radius-tile: 12px;
+
+  /* Narrow phones still need to drop one chip from the header. */
+  --breakpoint-xs: 400px;
+}
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    background: var(--color-ink);
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-ink);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior-y: none;
+  }
+
+  /* Numbers are stats, not prose — tabular so counters do not jitter. */
+  .stat {
+    font-family: var(--font-display);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+    letter-spacing: -0.02em;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: var(--color-ember);
+    color: #14100c;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ember);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  textarea,
+  input {
+    font-family: inherit;
+  }
+
+  /* Thin, quiet scrollbars — the chrome should never compete with the ember. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 99px;
+  }
+}
+
+@layer utilities {
+  .glow-ember {
+    box-shadow:
+      0 0 0 1px rgb(255 122 53 / 0.18),
+      0 0 24px -4px rgb(255 122 53 / 0.35);
+  }
+
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-card);
+  }
+
+  /* Fades a long scenario/history list into the page rather than cutting it. */
+  .mask-b {
+    mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+  }
+
+  .safe-b {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
