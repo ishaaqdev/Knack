@@ -101,6 +101,15 @@ addColumn('users', 'confidence', "TEXT NOT NULL DEFAULT '{}'")
 addColumn('users', 'focusAreas', "TEXT NOT NULL DEFAULT '[]'")
 addColumn('users', 'onboardedAt', 'TEXT')
 
+// Optional GitHub link — the distilled portfolio, never the raw READMEs.
+addColumn('users', 'githubUsername', 'TEXT')
+addColumn('users', 'githubBrief', 'TEXT')
+addColumn('users', 'githubStack', "TEXT NOT NULL DEFAULT '[]'")
+addColumn('users', 'githubDomains', "TEXT NOT NULL DEFAULT '[]'")
+addColumn('users', 'githubLevel', 'TEXT')
+addColumn('users', 'githubRepoCount', 'INTEGER')
+addColumn('users', 'githubSyncedAt', 'TEXT')
+
 // SQLite cannot add a UNIQUE column via ALTER TABLE, so the constraint lives in
 // an index. Partial, because pre-auth legacy rows have a NULL email.
 db.exec(
@@ -166,6 +175,17 @@ export function publicUser(row) {
     confidence: safeParse(row.confidence, {}),
     focusAreas: safeParse(row.focusAreas, []),
     onboarded: !!row.onboardedAt,
+    github: row.githubUsername
+      ? {
+          username: row.githubUsername,
+          brief: row.githubBrief,
+          stack: safeParse(row.githubStack, []),
+          domains: safeParse(row.githubDomains, []),
+          level: row.githubLevel,
+          repoCount: row.githubRepoCount,
+          syncedAt: row.githubSyncedAt,
+        }
+      : null,
   }
 }
 

@@ -11,6 +11,8 @@ import {
   verifyPassword,
 } from '../auth.js'
 import { FIELDS, CONFIDENCE_FIELD, MAX_FOCUS_AREAS, validateProfile } from '../profile.js'
+import { fetchProfile, profileForPrompt, GitHubError } from '../github.js'
+import { summarisePortfolio } from '../ai.js'
 
 export const authRouter = Router()
 
@@ -135,5 +137,76 @@ authRouter.post('/onboarding', requireAuth, (req, res) => {
     id: req.user.id,
   })
 
+  res.json({ user: publicUser(findUserById(req.user.id)) })
+})
+
+/* ----------------------------------------------- POST /api/auth/github --- */
+
+const saveGithub = db.prepare(`
+  UPDATE users SET githubUsername = @githubUsername, githubBrief = @githubBrief,
+                   githubStack = @githubStack, githubDomains = @githubDomains,
+                   githubLevel = @githubLevel, githubRepoCount = @githubRepoCount,
+                   githubSyncedAt = @githubSyncedAt
+  WHERE id = @id
+`)
+
+/**
+ * Links a public GitHub account. Fetches, distils to a short brief, stores only
+ * the brief — raw READMEs never touch a scenario prompt.
+ */
+authRouter.post('/github', requireAuth, async (req, res, next) => {
+  const username = String(req.body?.username ?? '')
+    .trim()
+    .replace(/^@/, '')
+    .replace(/^https?:\/\/(www\.)?github\.com\//i, '')
+    .replace(/\/.*$/, '')
+
+  if (!username) return res.status(400).json({ error: 'Enter your GitHub username.' })
+
+  try {
+    const profile = await fetchProfile(username)
+
+    if (!profile.repos.length) {
+      return res.status(422).json({
+        error: `${profile.username} has no public repositories of their own yet, so there is nothing to read. You can skip this — it is optional.`,
+      })
+    }
+
+    const summary = await summarisePortfolio({
+      raw: profileForPrompt(profile),
+      username: profile.username,
+    })
+
+    saveGithub.run({
+      id: req.user.id,
+      githubUsername: profile.username,
+      githubBrief: summary.brief,
+      githubStack: JSON.stringify(summary.stack),
+      githubDomains: JSON.stringify(summary.domains),
+      githubLevel: summary.level,
+      githubRepoCount: profile.repos.length,
+      githubSyncedAt: new Date().toISOString(),
+    })
+
+    res.json({ user: publicUser(findUserById(req.user.id)) })
+  } catch (err) {
+    if (err instanceof GitHubError) return res.status(err.status).json({ error: err.message })
+    // A model failure here must not save a fabricated portfolio.
+    console.warn('[github] distillation failed:', err.message)
+    return res.status(503).json({
+      error: 'Read your GitHub, but the model was busy summarising it. Try again in a moment.',
+    })
+  }
+})
+
+/* --------------------------------------------- DELETE /api/auth/github --- */
+
+authRouter.delete('/github', requireAuth, (req, res) => {
+  db.prepare(
+    `UPDATE users SET githubUsername = NULL, githubBrief = NULL, githubStack = '[]',
+                      githubDomains = '[]', githubLevel = NULL, githubRepoCount = NULL,
+                      githubSyncedAt = NULL
+     WHERE id = ?`
+  ).run(req.user.id)
   res.json({ user: publicUser(findUserById(req.user.id)) })
 })

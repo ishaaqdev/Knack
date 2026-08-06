@@ -136,6 +136,13 @@ export function IconFlame({ size = 20, lit = true, ...rest }) {
   )
 }
 
+/** GitHub mark, redrawn at our stroke weight rather than dropped in as a logo. */
+export const IconGithub = ({ size = 20, ...rest }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" {...rest} aria-hidden="true">
+    <path d="M12 2.2a9.8 9.8 0 0 0-3.1 19.1c.49.09.67-.21.67-.47v-1.8c-2.73.59-3.3-1.16-3.3-1.16-.45-1.13-1.09-1.43-1.09-1.43-.89-.61.07-.6.07-.6.98.07 1.5 1.01 1.5 1.01.88 1.5 2.3 1.07 2.86.82.09-.64.34-1.07.62-1.32-2.18-.25-4.47-1.09-4.47-4.85 0-1.07.38-1.95 1.01-2.63-.1-.25-.44-1.25.1-2.6 0 0 .83-.27 2.7 1.01a9.4 9.4 0 0 1 4.92 0c1.87-1.28 2.7-1.01 2.7-1.01.54 1.35.2 2.35.1 2.6.63.68 1.01 1.56 1.01 2.63 0 3.77-2.3 4.6-4.49 4.84.35.31.67.91.67 1.84v2.73c0 .26.18.57.68.47A9.8 9.8 0 0 0 12 2.2z" />
+  </svg>
+)
+
 export const TRACK_ICONS = {
   'workplace-communication': IconSpeech,
   'critical-thinking': IconBranch,

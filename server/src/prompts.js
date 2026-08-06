@@ -58,8 +58,8 @@ the human rather than the tool`,
  * you...". The fix is to state explicitly that the profile selects the *setting*
  * and is never surfaced in the text, and to repeat that at the rules.
  */
-function contextBlock({ profile, learner }) {
-  if (!profile && !learner) return ''
+function contextBlock({ profile, learner, portfolio }) {
+  if (!profile && !learner && !portfolio) return ''
 
   const parts = ['\nWHO THIS IS FOR (background only — see the rules)']
 
@@ -69,6 +69,13 @@ function contextBlock({ profile, learner }) {
     if (profile.focus.length) {
       parts.push(`- They say they struggle most with: ${profile.focus.join('; ')}`)
     }
+  }
+
+  if (portfolio?.stack?.length) {
+    parts.push(`- Technologies they actually know: ${portfolio.stack.join(', ')}`)
+  }
+  if (portfolio?.domains?.length) {
+    parts.push(`- Kinds of work they have done: ${portfolio.domains.join(', ')}`)
   }
 
   if (learner?.summary) {
@@ -82,7 +89,7 @@ function contextBlock({ profile, learner }) {
   return parts.join('\n') + '\n'
 }
 
-export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner }) {
+export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner, portfolio }) {
   const t = TRACK_BRIEF[track.id]
   const avoidBlock = avoid.length
     ? `\nDo NOT reuse these situations — the trainee has already seen them:\n${avoid
@@ -90,7 +97,7 @@ export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner
         .join('\n')}\n`
     : ''
 
-  const personalised = contextBlock({ profile, learner })
+  const personalised = contextBlock({ profile, learner, portfolio })
 
   return `You write short training scenarios for a soft-skills app used by
 engineering students in India who are about to start their first job.
@@ -115,6 +122,14 @@ at stake. It is NOT part of the scenario. Never state or hint at the trainee's
 year of study, branch, career goal, confidence, or past performance. Do not open
 with "As a final-year student" or anything like it. Write the situation as it
 would actually be experienced, from inside it.
+
+If technologies they know are listed, you may use ONE of them to make the
+scenario concrete — a real stack beats "the system". Vary which one you pick and
+invent a fresh product or feature each time; do not keep returning to the same
+project, domain or deadline. Do not name their repositories or describe their
+personal projects back to them. Do not force technology in where the situation
+does not call for it — this track is about the human problem, and the tech is
+only texture.
 
 Reply with ONLY this JSON object and nothing else:
 {"scenario":"<the scenario text>","prompt":"<a 6-10 word instruction telling the trainee what to write, e.g. 'Write the message you would send to Priya.'>"}`
@@ -169,6 +184,37 @@ RULES
 
 Reply with ONLY this JSON object and nothing else:
 {"score":<integer 1-10>,"strengths":"<what worked>","gaps":"<what was missing>","suggestion":"<one specific improvement>"}`
+}
+
+/**
+ * Distils a GitHub profile into a short brief. Run once at connect time — the
+ * raw READMEs are never injected into a scenario prompt.
+ */
+export function portfolioPrompt({ raw, username }) {
+  return `You are summarising an engineering student's public GitHub so a
+training app can make its workplace scenarios technically concrete.
+
+GITHUB PROFILE: ${username}
+${raw}
+
+Work out what this person actually builds. Be honest about the evidence — if the
+repos are small college projects, say so; do not inflate them into industry work.
+If there is genuinely too little to tell, say that in the brief.
+
+RULES
+- brief: under 45 words, third person. What they build and at what level. Concrete
+  ("builds small full-stack web apps, mostly React front-ends with Node APIs"),
+  not flattering ("passionate developer").
+- stack: up to 6 technologies they have actually used, most prominent first.
+  Real names only (React, Firebase, Flask, OpenCV). No vague entries like "web".
+- domains: up to 3 problem areas they work in (e.g. "web apps", "computer
+  vision", "embedded"). Empty array if unclear.
+- level: exactly one of "beginner", "intermediate", "advanced" — judged on
+  project complexity and breadth, not repo count.
+- Plain text. No markdown, no emoji.
+
+Reply with ONLY this JSON object and nothing else:
+{"brief":"<under 45 words>","stack":["<tech>"],"domains":["<area>"],"level":"<beginner|intermediate|advanced>"}`
 }
 
 /**

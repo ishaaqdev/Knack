@@ -8,6 +8,7 @@ import { Ring } from '../components/Ring'
 import { AttemptDetail } from '../components/AttemptDetail'
 import { Insight } from '../components/Insight'
 import { ProfileEditor } from '../components/ProfileEditor'
+import { GithubSection } from '../components/GithubCard'
 import { TRACK_ICONS, IconArrowRight, IconChevron, IconClose } from '../components/Icons'
 import { cx, relativeDate, spring, useReducedMotion } from '../lib/ui'
 import { labelLookup, useOnboardingConfig } from '../lib/onboarding'
@@ -208,6 +209,12 @@ export function Profile() {
         <AnimatePresence>
           {editing && <ProfileEditor onDone={() => setEditing(false)} />}
         </AnimatePresence>
+      </section>
+
+      {/* github */}
+      <section className="mt-6">
+        <SectionLabel>GitHub</SectionLabel>
+        <GithubSection />
       </section>
 
       {/* skill breakdown */}

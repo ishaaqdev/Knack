@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react'
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { useKnack } from './store/useKnack'
 import { AppShell } from './components/AppShell'
@@ -31,10 +31,10 @@ function Boot({ children }) {
     return (
       <div className="grid min-h-dvh place-items-center bg-ink px-6">
         <div className="max-w-sm text-center">
-          <h1 className="font-display text-xl font-bold">Canâ€™t reach the Knack server</h1>
+          <h1 className="font-display text-xl font-bold">Can’t reach the Knack server</h1>
           <p className="mt-2 text-[13.5px] leading-relaxed text-dim">{error}</p>
           <p className="mt-3 text-[12.5px] leading-relaxed text-faint">
-            Start it with <span className="text-dim">npm run dev</span> from the project root â€” the
+            Start it with <span className="text-dim">npm run dev</span> from the project root — the
             API should be listening on port 5190.
           </p>
           <Button className="mt-5" onClick={load}>

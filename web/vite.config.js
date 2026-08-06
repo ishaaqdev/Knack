@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     port: 5173,
     // Bind 0.0.0.0 so a phone on the same Wi-Fi can reach the dev server.
-    // Only this port is exposed — /api is proxied server-side to 127.0.0.1:5174,
+    // Only this port is exposed — /api is proxied server-side to 127.0.0.1:5190,
     // so the API and the SQLite file are never reachable from the network.
     host: true,
     proxy: {

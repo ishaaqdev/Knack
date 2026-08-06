@@ -5,6 +5,7 @@ import { useKnack } from '../store/useKnack'
 import { fetchOnboardingConfig } from '../lib/onboarding'
 import { Button, Spinner } from '../components/primitives'
 import { Ring } from '../components/Ring'
+import { GithubInput } from '../components/GithubCard'
 import { IconArrowLeft, IconArrowRight, IconCheck } from '../components/Icons'
 import { cx, spring, useReducedMotion } from '../lib/ui'
 
@@ -75,6 +76,7 @@ function ConfidenceRow({ track, value, scale, onChange }) {
 export function Onboarding() {
   const user = useKnack((s) => s.user)
   const completeOnboarding = useKnack((s) => s.completeOnboarding)
+  const linkGithub = useKnack((s) => s.linkGithub)
   const navigate = useNavigate()
   const reduced = useReducedMotion()
 
@@ -85,6 +87,7 @@ export function Onboarding() {
   const [error, setError] = useState(null)
 
   const [values, setValues] = useState({ name: '', focusAreas: [], confidence: {} })
+  const [github, setGithub] = useState('')
 
   useEffect(() => {
     fetchOnboardingConfig()
@@ -99,10 +102,15 @@ export function Onboarding() {
       .catch((e) => setError(e.message))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Name, then each server-defined field, then the confidence grid.
+  // Name, each server-defined field, the confidence grid, then optional GitHub.
   const steps = useMemo(() => {
     if (!config) return []
-    return [{ kind: 'name' }, ...config.fields.map((f) => ({ kind: 'field', field: f })), { kind: 'confidence' }]
+    return [
+      { kind: 'name' },
+      ...config.fields.map((f) => ({ kind: 'field', field: f })),
+      { kind: 'confidence' },
+      { kind: 'github' },
+    ]
   }, [config])
 
   if (!user) return <Navigate to="/login" replace />
@@ -148,10 +156,18 @@ export function Onboarding() {
     setTimeout(() => go(1), reduced ? 0 : 220)
   }
 
-  async function submit() {
+  /**
+   * GitHub is linked *before* the profile is marked complete — completing it
+   * flips the route guard and would redirect out of this page mid-flow. A
+   * GitHub failure leaves the user here with the error and a working Skip.
+   */
+  async function submit({ withGithub = false } = {}) {
     setBusy(true)
     setError(null)
     try {
+      if (withGithub && github.trim()) {
+        await linkGithub(github.trim())
+      }
       await completeOnboarding(values)
       navigate('/dashboard', { replace: true })
     } catch (e) {
@@ -282,6 +298,28 @@ export function Onboarding() {
                 </div>
               </>
             )}
+            {/* -------------------------------------------------- github -- */}
+            {current.kind === 'github' && (
+              <>
+                <div className="mb-6">
+                  <h1 className="font-display text-[26px] font-bold leading-tight tracking-tight">
+                    Got a GitHub?
+                  </h1>
+                  <p className="mt-2 text-[13.5px] leading-relaxed text-dim">
+                    Optional. If you link one, your scenarios use the tools you actually work with
+                    instead of generic ones. Only public repositories are read, and nothing is
+                    posted.
+                  </p>
+                </div>
+                <GithubInput
+                  autoFocus
+                  value={github}
+                  onChange={setGithub}
+                  onSubmit={() => submit({ withGithub: true })}
+                  busy={busy}
+                />
+              </>
+            )}
           </motion.div>
         </AnimatePresence>
 
@@ -294,7 +332,7 @@ export function Onboarding() {
         {/* Continue only where a tap cannot advance on its own. */}
         {(current.kind !== 'field' || current.field.key === 'focusAreas') && (
           <motion.div
-            className="mt-7"
+            className="mt-7 space-y-3"
             initial={reduced ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.15 }}
@@ -302,14 +340,17 @@ export function Onboarding() {
             <Button
               size="lg"
               className="w-full"
-              disabled={!canAdvance() || busy}
-              onClick={() => (isLast ? submit() : go(1))}
+              disabled={busy || (current.kind === 'github' ? !github.trim() : !canAdvance())}
+              onClick={() => (isLast ? submit({ withGithub: true }) : go(1))}
             >
               {busy ? (
-                <Spinner size={16} />
-              ) : isLast ? (
                 <>
-                  Start training <IconArrowRight size={17} />
+                  <Spinner size={16} />
+                  {current.kind === 'github' && github.trim() ? ' Reading your repositories…' : ''}
+                </>
+              ) : current.kind === 'github' ? (
+                <>
+                  Connect and start <IconArrowRight size={17} />
                 </>
               ) : (
                 <>
@@ -317,6 +358,17 @@ export function Onboarding() {
                 </>
               )}
             </Button>
+
+            {current.kind === 'github' && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => submit()}
+                className="w-full py-1 text-[13px] font-medium text-faint transition-colors hover:text-dim disabled:opacity-40"
+              >
+                Skip — I'll add it later
+              </button>
+            )}
           </motion.div>
         )}
       </div>

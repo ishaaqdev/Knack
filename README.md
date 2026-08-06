@@ -1,20 +1,24 @@
-﻿# Knack
+# Knack
 
 AI-powered gamified soft-skill training for engineering students.
 
 Pick a track, get an AI-generated workplace scenario **written for you**, write
-how you would actually respond, and get scored 1â€“10 with specific feedback. XP,
+how you would actually respond, and get scored 1–10 with specific feedback. XP,
 streaks, per-track skill scores and a composite **Professional Readiness Score**
 turn it into a five-minute daily habit rather than a course.
 
-Scenarios are personalised from two independent sources:
+Scenarios are personalised from three independent sources:
 
-- **Stated profile** â€” an 8-field onboarding (year, branch, target role,
+- **Stated profile** — an 8-field onboarding (year, branch, target role,
   experience, work setting, what you find hard, and self-rated confidence per
   track). A final-year CSE student aiming at a startup gets payment-gateway pull
   requests; a first-year ECE student aiming at core engineering gets a PCB
   calculation error in a sprint review.
-- **Derived context** â€” a rolling summary the model rewrites every three
+- **GitHub portfolio** (optional) — link a public GitHub and the app reads your
+  non-forked repositories, then trains you on the stack you actually use. An
+  embedded/IoT student gets TensorFlow Lite latency and Arduino calibration
+  arguments; a web student gets schema and deployment ones.
+- **Derived context** — a rolling summary the model rewrites every three
   attempts, describing what you reliably do well and what you keep missing. It
   feeds forward into both scenario generation and grading, so feedback can say
   *"this is the same gap as last time"* rather than treating every attempt as
@@ -32,7 +36,12 @@ npm run dev
 | | |
 |---|---|
 | **App** | **http://localhost:5173** |
-| API | http://localhost:5190 |
+| API | http://127.0.0.1:5190 (loopback only) |
+
+Testing on a phone? The Vite dev server binds `0.0.0.0`, so open
+`http://<your-lan-ip>:5173` on any device on the same Wi-Fi. `/api` is proxied
+server-side, so the API, the SQLite file and your OpenRouter key stay off the
+network.
 
 Single-port demo build (one URL, no Vite):
 
@@ -47,10 +56,10 @@ npm run build && npm start   # everything on http://localhost:5190
 
 ## Stack
 
-- **Frontend** â€” React 19 + Vite, Tailwind CSS v4, Framer Motion, React Router, Zustand
-- **Backend** â€” Node + Express 5
-- **AI** â€” `google/gemma-4-31b-it:free` via OpenRouter, with a fallback model chain
-- **Storage** â€” SQLite (`better-sqlite3`), file at `server/data/knack.db`
+- **Frontend** — React 19 + Vite, Tailwind CSS v4, Framer Motion, React Router, Zustand
+- **Backend** — Node + Express 5
+- **AI** — `google/gemma-4-31b-it:free` via OpenRouter, with a fallback model chain
+- **Storage** — SQLite (`better-sqlite3`), file at `server/data/knack.db`
 
 Config lives in `server/.env`. Prompt templates are isolated in
 `server/src/prompts.js` so they can be tuned without touching route logic.
@@ -64,19 +73,20 @@ server/src/
   index.js          Express app, static SPA in production
   db.js             SQLite schema, additive migrations, track seed
   auth.js           scrypt password hashing, session tokens, route guards
-  profile.js        The 8 onboarding fields â€” options, validation, prompt phrasing
+  profile.js        The 8 onboarding fields — options, validation, prompt phrasing
+  github.js         Public GitHub reader — repo filtering, README extraction
   context.js        Derived learner context: when to refresh, what to inject
   gamification.js   XP, levels, streaks, rolling skill scores, readiness, difficulty
   prompts.js        Gemma prompt templates (tune here)
-  ai.js             OpenRouter client â€” retries, model fallback, JSON extraction
+  ai.js             OpenRouter client — retries, model fallback, JSON extraction
   fallback.js       Offline scenario bank + rubric for when the model is down
-  routes/           auth.js Â· quest.js Â· user.js Â· history.js
+  routes/           auth.js · quest.js · user.js · history.js
 
 web/src/
-  pages/            Home Â· Auth Â· Onboarding Â· Dashboard Â· TrackSelect Â·
-                    QuestSession Â· Feedback Â· Profile
-  components/       Header Â· Ring Â· ScoreDial Â· TrackCard Â· Insight Â·
-                    ProfileEditor Â· AttemptDetail Â· â€¦
+  pages/            Home · Auth · Onboarding · Dashboard · TrackSelect ·
+                    QuestSession · Feedback · Profile
+  components/       Header · Ring · ScoreDial · TrackCard · Insight ·
+                    ProfileEditor · AttemptDetail · …
   store/useKnack.js Auth, profile, XP/streak and quest-session state
 ```
 
@@ -90,15 +100,17 @@ web/src/
 | `GET` | `/api/auth/me` | current account or `null` |
 | `GET` | `/api/auth/onboarding` | field definitions + options (server owns these) |
 | `POST` | `/api/auth/onboarding` | saves the 8-field profile |
+| `POST` | `/api/auth/github` | links a public GitHub, distils it, stores the brief |
+| `DELETE` | `/api/auth/github` | unlinks and clears the stored portfolio |
 | `POST` | `/api/quest/generate` | `{ scenarioText, taskPrompt, difficulty, source }` |
 | `POST` | `/api/quest/evaluate` | `{ score, strengths, gaps, suggestion, xp, streak, levelUp, trackScores, readinessScore, nudge }` |
 | `GET` | `/api/user` | profile, XP, level, streak, per-track scores, readiness, derived insight, last 5 attempts |
 | `PATCH` | `/api/user` | edit the profile (re-validated against the same rules) |
 | `POST` | `/api/user/reset` | wipes progress and learned context, keeps the profile |
-| `GET` | `/api/history` | `?trackId=&limit=&offset=` â€” paginated attempts |
+| `GET` | `/api/history` | `?trackId=&limit=&offset=` — paginated attempts |
 | `GET` | `/api/health` | server + OpenRouter key status |
 
-Everything under `/api/quest` additionally requires a completed profile â€”
+Everything under `/api/quest` additionally requires a completed profile —
 scenario quality depends on it, so the route refuses rather than degrading.
 
 ### Data model
@@ -107,6 +119,9 @@ scenario quality depends on it, so the route refuses rather than degrading.
 users            id, email, passwordHash, name,
                  yearOfStudy, branch, targetRole, experience, workSetting,
                  confidence (JSON), focusAreas (JSON), onboardedAt,
+                 githubUsername, githubBrief, githubStack (JSON),
+                 githubDomains (JSON), githubLevel, githubRepoCount,
+                 githubSyncedAt,
                  xp, streak, longestStreak, lastActiveDate, createdAt
 sessions         tokenHash, userId, createdAt, expiresAt
 learner_context  userId, summary, recurringGaps (JSON), pushNext,
@@ -120,7 +135,7 @@ attempts         id, userId, trackId, difficulty, scenarioText, userResponse,
 ### Auth
 
 Email + password. Passwords are hashed with **scrypt** from Node's own `crypto`
-module (N=16384, r=8, p=1, 64-byte key, per-password random salt) â€” memory-hard,
+module (N=16384, r=8, p=1, 64-byte key, per-password random salt) — memory-hard,
 OWASP-recommended, and it keeps the project free of a native build step.
 Verification is timing-safe, and login returns the same error whether or not the
 email exists.
@@ -129,32 +144,64 @@ Sessions are 32 bytes of CSPRNG output in an `httpOnly`, `sameSite=lax` cookie.
 Only the **SHA-256 hash** of the token is stored, so a database dump does not
 hand over live sessions. Expired rows are swept at boot.
 
+### Ports
+
+The API listens on **5190**, bound to `127.0.0.1` only. Port 5174 is avoided
+because it collided with an unrelated local service during development — and
+because Express binding the `0.0.0.0` wildcard loses to any process holding the
+specific `127.0.0.1` binding, that collision was silent and only surfaced when
+the proxy target changed from `localhost` (which resolved to `::1`) to
+`127.0.0.1`. Set `HOST=0.0.0.0` in `server/.env` only if you deliberately want
+the API on the network.
+
 ---
 
 ## Gamification rules
 
 | Mechanic | Rule |
 |---|---|
-| **XP** | `score Ã— 10`, plus `+5` at a 3-day streak and `+10` at 7 days |
-| **Levels** | Novice 0â€“150 Â· Intermediate 150â€“400 Â· Advanced 400â€“800 Â· Expert 800+ |
-| **Streak** | +1 per calendar day with â‰¥1 quest; 0 after a full day missed |
-| **Track skill** | Rolling mean of the last 5 scores in that track, scaled to 0â€“100 |
-| **Difficulty** | <45 easy Â· 45â€“74 medium Â· 75+ hard, nudged Â±1 by recent trend. Before any attempts exist, self-rated confidence picks the entry point |
-| **Readiness** | Plain mean of the three track scores â€” an untouched track counts as 0 |
+| **XP** | `score × 10`, plus `+5` at a 3-day streak and `+10` at 7 days |
+| **Levels** | Novice 0–150 · Intermediate 150–400 · Advanced 400–800 · Expert 800+ |
+| **Streak** | +1 per calendar day with ≥1 quest; 0 after a full day missed |
+| **Track skill** | Rolling mean of the last 5 scores in that track, scaled to 0–100 |
+| **Difficulty** | <45 easy · 45–74 medium · 75+ hard, nudged ±1 by recent trend. Before any attempts exist, self-rated confidence picks the entry point |
+| **Readiness** | Plain mean of the three track scores — an untouched track counts as 0 |
 
 ---
 
 ## Personalisation
 
-The two halves are kept deliberately separate.
+The three sources are kept deliberately separate.
 
 **Stated profile** (`profile.js`) is collected once and editable in Profile. Each
-option carries a `prompt` string â€” the phrasing handed to the model â€” so the UI
+option carries a `prompt` string — the phrasing handed to the model — so the UI
 label and the model's wording can differ without drifting apart. Self-rated
 confidence seeds the *starting difficulty* only; it never touches the score.
 
-**Derived context** (`context.js`) is the interesting half. The naive approach â€”
-stuffing past attempts into every prompt â€” grows without bound and degrades
+**GitHub portfolio** (`github.js`) is optional and skippable. Two things matter
+in how it reads a profile:
+
+*READMEs are the least reliable signal.* Plenty of student repos ship
+`# project-name` or an untouched Create React App readme, so language,
+description, topics and recency lead, and READMEs only enrich — boilerplate ones
+are detected and dropped. Forks and archived repos are excluded: a forked
+tutorial is not evidence of anything and skews the whole picture.
+
+*The brief is never sent to the scenario prompt.* This one was learned the hard
+way. The distilled brief names specific project subjects — "edge-AI waste
+management system" — and a small model anchors on that so hard that back-to-back
+generations came back as near-duplicates about the same project with the same
+deadline. Only the bounded `stack` and `domains` lists reach the prompt; they
+give the same technical concreteness with no single subject to fixate on. The
+brief stays user-facing, shown on the Profile page so the inference is
+inspectable.
+
+Scenario generation also de-duplicates against recently *served* scenarios, not
+just completed attempts — otherwise "Different scenario" hands back a near-copy,
+since nothing was stored.
+
+**Derived context** (`context.js`) is the most interesting source. The naive approach —
+stuffing past attempts into every prompt — grows without bound and degrades
 output on a small model. Instead the model rewrites a compact summary every
 **3 attempts** from a **6-attempt window**, and only that summary is injected.
 Prompt cost stays flat no matter how long someone trains. The refresh runs
@@ -162,10 +209,10 @@ fire-and-forget after the response is sent, so it never sits on the request path
 a failure just means the summary is one cycle stale.
 
 Both are surfaced in the UI (the "What Knack has picked up" card) rather than
-hidden â€” personalisation the user cannot see reads as a black box.
+hidden — personalisation the user cannot see reads as a black box.
 
 **The failure mode to know about:** hand a small model a profile and it recites
-it back â€” every scenario opening *"As a final-year CSE studentâ€¦"*. The prompts
+it back — every scenario opening *"As a final-year CSE student…"*. The prompts
 state explicitly that the background selects the setting, the other people and
 the stakes, and must never appear in the text. Worth keeping if you tune them.
 
@@ -173,26 +220,26 @@ the stakes, and must never appear in the text. Worth keeping if you tune them.
 
 ## Design
 
-**"Ember on Ink"** â€” one accent, no second brand colour.
+**"Ember on Ink"** — one accent, no second brand colour.
 
 | Token | Hex |
 |---|---|
-| ink / surface / raised | `#0E0E10` Â· `#16161A` Â· `#1D1D22` |
-| line / hairline | `#26262D` Â· `#1F1F25` |
-| text / dim / faint | `#F2F0EC` Â· `#9A9AA5` Â· `#63636E` |
+| ink / surface / raised | `#0E0E10` · `#16161A` · `#1D1D22` |
+| line / hairline | `#26262D` · `#1F1F25` |
+| text / dim / faint | `#F2F0EC` · `#9A9AA5` · `#63636E` |
 | **ember** (XP, streak, CTA) | **`#FF7A35`** |
-| ember-hi / ember-dormant | `#FFA061` Â· `#8A4A24` |
+| ember-hi / ember-dormant | `#FFA061` · `#8A4A24` |
 
 Two fonts: **Space Grotesk** for headings and every number (tabular figures, so
 counters do not jitter), **Inter** for body.
 
-**Signature motif â€” the Ember Ring.** Every quantity is an arc on a ring: ember
+**Signature motif — the Ember Ring.** Every quantity is an arc on a ring: ember
 stroke, round caps, starting at 12 o'clock. XP-to-level, track skill, readiness
 and the score dial all share one shape language. Identity markers are pills with
-a leading dot â€” solid and glowing when active, hollow when dormant. Icons are
+a leading dot — solid and glowing when active, hollow when dormant. Icons are
 hand-rolled 1.5px SVGs on a single grid; no icon library, no emoji.
 
-Animation is Framer Motion springs, 200â€“600ms, and every animated element has a
+Animation is Framer Motion springs, 200–600ms, and every animated element has a
 `prefers-reduced-motion` fallback.
 
 ---
@@ -202,22 +249,26 @@ Animation is Framer Motion springs, 200â€“600ms, and every animated element
 - **Streaks use the server's local calendar date.** The server runs on the same
   machine as the browser, so server-local == user-local.
 - **"Streak at risk" is 18:00 local** with today's quest still open. It is a
-  visual state on the flame only â€” no popups, no notifications.
+  visual state on the flame only — no popups, no notifications.
 - **Readiness counts untouched tracks as 0**, so it rewards breadth. A single
   track at 90 gives a readiness of 30.
 - **Offline fallback.** Free-tier Gemma is served from a shared upstream pool and
   does return 429s under load. When every model in the chain fails, the app falls
   back to a local scenario bank and a deterministic rubric. That output is tagged
-  `source: "offline"` and labelled in the UI â€” it is never passed off as AI.
+  `source: "offline"` and labelled in the UI — it is never passed off as AI.
 
 - **No email verification or password reset.** Accounts are real but the recovery
   flow is out of scope; there is no mail transport wired up.
 - **Age is deliberately not collected.** Year of study is strictly better signal
   for scenario difficulty, and personal data that does not change the output is
   not worth storing.
+- **GitHub reads public data only**, is entirely optional, and stores only the
+  distilled brief — not the repositories or their contents. Unauthenticated the
+  API allows 60 requests/hour and one sync costs about 7, so set `GITHUB_TOKEN`
+  in `server/.env` if several people will demo it in one sitting.
 
 ## Future scope
 
 Badges/achievements, leaderboards, a real skill-tree visualisation, a fully
 built-out AI hallucination-detection track, email verification and password
-reset, and a mobile app â€” all deliberately out of scope for this version.
+reset, and a mobile app — all deliberately out of scope for this version.

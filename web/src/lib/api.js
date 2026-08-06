@@ -23,6 +23,8 @@ export const api = {
   logout: () => req('/auth/logout', { method: 'POST' }),
   onboardingOptions: () => req('/auth/onboarding'),
   submitOnboarding: (body) => req('/auth/onboarding', { method: 'POST', body }),
+  linkGithub: (username) => req('/auth/github', { method: 'POST', body: { username } }),
+  unlinkGithub: () => req('/auth/github', { method: 'DELETE' }),
 
   // profile + progress
   user: () => req('/user'),

@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { db, findUserById, listTracks } from '../db.js'
 import { generateScenario, evaluateResponse } from '../ai.js'
 import { requireOnboarded } from '../auth.js'
-import { profileBrief } from '../profile.js'
+import { profileBrief, portfolioBrief } from '../profile.js'
 import { contextBrief, maybeRefresh } from '../context.js'
 import {
   levelFor,
@@ -26,6 +26,26 @@ const trackById = (id) => listTracks().find((t) => t.id === id)
 const recentScenarios = db.prepare(
   'SELECT scenarioText FROM attempts WHERE userId = ? AND trackId = ? ORDER BY id DESC LIMIT 4'
 )
+
+/**
+ * Scenarios that were generated but never answered — "Different scenario", or a
+ * quest abandoned midway. Without this, `avoid` only sees completed attempts and
+ * the button hands back near-duplicates. In memory on purpose: it is a
+ * de-duplication hint, not data worth persisting.
+ */
+const justServed = new Map()
+const SERVED_MAX = 6
+
+function rememberServed(userId, trackId, text) {
+  const key = `${userId}:${trackId}`
+  const list = justServed.get(key) ?? []
+  list.unshift(text)
+  justServed.set(key, list.slice(0, SERVED_MAX))
+  // Bound the map itself so a long-lived server cannot grow unbounded.
+  if (justServed.size > 500) justServed.delete(justServed.keys().next().value)
+}
+
+const recentlyServed = (userId, trackId) => justServed.get(`${userId}:${trackId}`) ?? []
 
 const insertAttempt = db.prepare(`
   INSERT INTO attempts
@@ -54,13 +74,21 @@ questRouter.post('/generate', async (req, res, next) => {
     const asked = req.body?.difficulty
     const difficulty = ['easy', 'medium', 'hard'].includes(asked) ? asked : suggested
 
+    const avoid = [
+      ...recentlyServed(user.id, track.id),
+      ...recentScenarios.all(user.id, track.id).map((r) => r.scenarioText),
+    ].slice(0, 8)
+
     const quest = await generateScenario({
       track,
       difficulty,
-      avoid: recentScenarios.all(user.id, track.id).map((r) => r.scenarioText),
+      avoid,
       profile: profileBrief(user),
       learner: contextBrief(user.id),
+      portfolio: portfolioBrief(user),
     })
+
+    rememberServed(user.id, track.id, quest.scenarioText)
 
     res.json({
       ...quest,

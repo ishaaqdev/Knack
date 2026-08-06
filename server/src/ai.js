@@ -1,4 +1,9 @@
-import { scenarioPrompt, evaluationPrompt, learnerSummaryPrompt } from './prompts.js'
+import {
+  scenarioPrompt,
+  evaluationPrompt,
+  learnerSummaryPrompt,
+  portfolioPrompt,
+} from './prompts.js'
 import { FALLBACK_SCENARIOS, heuristicEvaluation } from './fallback.js'
 
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions'
@@ -122,10 +127,10 @@ async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate
 
 /* --------------------------------------------------------------- public --- */
 
-export async function generateScenario({ track, difficulty, avoid, profile, learner }) {
+export async function generateScenario({ track, difficulty, avoid, profile, learner, portfolio }) {
   try {
     const { data, model } = await askForJson(
-      scenarioPrompt({ track, difficulty, avoid, profile, learner }),
+      scenarioPrompt({ track, difficulty, avoid, profile, learner, portfolio }),
       {
         temperature: 1.0,
         maxTokens: 400,
@@ -170,6 +175,31 @@ export async function evaluateResponse({ track, difficulty, scenarioText, userRe
   } catch (err) {
     console.warn('[ai] evaluation fell back to offline heuristic:', err.message)
     return { ...heuristicEvaluation({ track, userResponse }), source: 'offline' }
+  }
+}
+
+const LEVELS = new Set(['beginner', 'intermediate', 'advanced'])
+
+/** Distils a fetched GitHub profile. Throws so the route can report failure —
+ *  an unlinked account is better than a fabricated portfolio. */
+export async function summarisePortfolio({ raw, username }) {
+  const { data } = await askForJson(portfolioPrompt({ raw, username }), {
+    temperature: 0.3,
+    maxTokens: 500,
+    validate: (d) => typeof d.brief === 'string' && d.brief.trim().length > 15,
+  })
+
+  const list = (v, max, cap) =>
+    (Array.isArray(v) ? v : [])
+      .filter((x) => typeof x === 'string' && x.trim())
+      .slice(0, max)
+      .map((x) => x.trim().slice(0, cap))
+
+  return {
+    brief: data.brief.trim().slice(0, 400),
+    stack: list(data.stack, 6, 30),
+    domains: list(data.domains, 3, 40),
+    level: LEVELS.has(data.level) ? data.level : 'beginner',
   }
 }
 

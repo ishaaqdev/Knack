@@ -62,6 +62,16 @@ export const useKnack = create((set, get) => ({
     return get().load()
   },
 
+  async linkGithub(username) {
+    await api.linkGithub(username)
+    return get().load()
+  },
+
+  async unlinkGithub() {
+    await api.unlinkGithub()
+    return get().load()
+  },
+
   setQuest: (quest) => set({ quest, result: null }),
   setResult: (result) => set({ result }),
   clearSession: () => set({ quest: null, result: null }),

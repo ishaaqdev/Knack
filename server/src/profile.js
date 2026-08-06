@@ -146,6 +146,22 @@ export function profileBrief(user) {
   }
 }
 
+/**
+ * The distilled GitHub portfolio, if one is linked.
+ *
+ * Deliberately excludes the free-text brief. The brief names specific project
+ * subjects ("edge-AI waste management system"), and a small model anchors hard
+ * on that — back-to-back generations came back as near-duplicates about the same
+ * project. The bounded stack and domain lists give the same technical concreteness
+ * without a single subject to fixate on. The brief stays user-facing only.
+ */
+export function portfolioBrief(user) {
+  const stack = safeParse(user?.githubStack, [])
+  const domains = safeParse(user?.githubDomains, [])
+  if (!stack.length && !domains.length) return null
+  return { stack, domains }
+}
+
 /** Self-rated confidence seeds the opening difficulty only — never the score. */
 export function startingDifficulty(user, trackId) {
   const c = safeParse(user?.confidence, {})[trackId]
