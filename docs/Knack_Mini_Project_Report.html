@@ -1,0 +1,2392 @@
+<!doctype html>
+<!--
+  ============================================================================
+  KNACK — VTU MINI-PROJECT REPORT
+  ============================================================================
+
+  TO PRODUCE THE PDF
+    1. Open this file in Chrome or Edge.
+    2. Ctrl+P  →  Destination: "Save as PDF"
+    3. Paper size: A4   ·   Margins: Default   ·   Scale: 100%
+    4. TICK "Background graphics"  (without it every diagram prints blank)
+    5. UNTICK "Headers and footers" unless your department wants the browser's
+       automatic page numbers.
+
+  >>> BEFORE YOU SUBMIT, EDIT THE BLOCK MARKED  "EDIT ME"  BELOW. <<<
+      College name, department, student names, USNs, guide, HOD, Principal and
+      academic year are all placeholders. Everything else is real.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Knack — Mini-Project Report</title>
+<style>
+/* ===================================================================
+   VTU FORMATTING
+   Times New Roman · body 12pt · sections 14pt bold · chapters 14pt caps
+   line spacing 1.5 · A4 · margins L 1.25in / R 1in / T,B 0.75in
+   =================================================================== */
+
+@page {
+  size: A4;
+  margin: 0.75in 1in 0.75in 1.25in;
+}
+
+html { font-size: 12pt; }
+
+body {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: #000;
+  background: #fff;
+  margin: 0;
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* On-screen only: mimic the printed page so what you see is what prints. */
+.sheet {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 0.75in 1in 0.75in 1.25in;
+  margin: 0 auto 10mm;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+@media screen {
+  body { background: #d8d8d8; padding: 10mm 0; }
+  .sheet { box-shadow: 0 1px 6px rgba(0,0,0,0.28); }
+}
+
+@media print {
+  body { background: #fff; padding: 0; }
+  .sheet {
+    width: auto; min-height: 0; padding: 0; margin: 0;
+    box-shadow: none;
+    page-break-after: always;
+  }
+  .sheet:last-child { page-break-after: auto; }
+  .no-print { display: none !important; }
+}
+
+/* ------------------------------------------------------- headings ------ */
+
+h1.chapter {
+  font-size: 14pt;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 0 0 18pt;
+  line-height: 1.4;
+  page-break-after: avoid;
+}
+
+h2 {
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 16pt 0 8pt;
+  text-align: left;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 12pt 0 6pt;
+  text-align: left;
+  page-break-after: avoid;
+}
+
+h4 {
+  font-size: 12pt;
+  font-weight: bold;
+  font-style: italic;
+  margin: 10pt 0 4pt;
+  text-align: left;
+  page-break-after: avoid;
+}
+
+p { margin: 0 0 8pt; orphans: 2; widows: 2; }
+
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin-bottom: 4pt; }
+
+code, .mono {
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 10.5pt;
+}
+
+/* -------------------------------------------------- figures & tables --- */
+
+figure {
+  margin: 14pt 0 16pt;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+figcaption {
+  font-size: 11pt;
+  font-style: italic;
+  text-align: center;
+  margin-top: 6pt;
+}
+
+svg { max-width: 100%; height: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6pt 0 14pt;
+  font-size: 11pt;
+  page-break-inside: avoid;
+}
+
+caption {
+  caption-side: top;
+  font-size: 11pt;
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 6pt;
+}
+
+th, td {
+  border: 1px solid #000;
+  padding: 4pt 6pt;
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.35;
+}
+
+th { font-weight: bold; }
+
+td.num, th.num { text-align: center; }
+
+/* ------------------------------------------------------ front matter --- */
+
+.cover { text-align: center; border: 2px solid #000; padding: 22pt 18pt; min-height: 245mm; box-sizing: border-box; }
+.cover .univ { font-size: 13pt; font-weight: bold; text-transform: uppercase; line-height: 1.4; }
+.cover .title { font-size: 17pt; font-weight: bold; text-transform: uppercase; line-height: 1.35; margin: 20pt 14pt; }
+.cover .sub { font-size: 12pt; }
+.cover .band { font-size: 13pt; font-weight: bold; margin: 14pt 0; letter-spacing: 0.5pt; }
+.cover .who { border: 1px solid #000; display: inline-block; padding: 10pt 26pt; margin-top: 12pt; text-align: center; }
+.cover-logo { margin: 10pt 0; }
+
+.centered { text-align: center; }
+.tight { line-height: 1.35; }
+
+.sign-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 52pt;
+  font-size: 11.5pt;
+  text-align: center;
+}
+.sign-row div { flex: 1; line-height: 1.4; }
+
+/* -------------------------------------------------------------- TOC ---- */
+
+.toc { font-size: 12pt; }
+.toc-row { display: flex; align-items: baseline; margin-bottom: 5pt; }
+.toc-row .lbl { white-space: nowrap; }
+.toc-row .dots { flex: 1; border-bottom: 1px dotted #444; margin: 0 4pt 3pt; }
+.toc-row .pg { white-space: nowrap; }
+.toc-row.sub { padding-left: 22pt; font-size: 11.5pt; }
+.toc-row.top { font-weight: bold; margin-top: 9pt; }
+
+/* --------------------------------------------------------- callouts ---- */
+
+.box {
+  border: 1px solid #000;
+  padding: 8pt 10pt;
+  margin: 10pt 0 14pt;
+  page-break-inside: avoid;
+}
+.box p:last-child { margin-bottom: 0; }
+
+pre.code {
+  border: 1px solid #000;
+  padding: 7pt 9pt;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 9.5pt;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  text-align: left;
+  margin: 6pt 0 12pt;
+  page-break-inside: avoid;
+}
+
+.abstract-kw { margin-top: 14pt; }
+
+/* Screen-only helper banner */
+.helper {
+  max-width: 210mm; margin: 0 auto 10mm; padding: 10pt 14pt;
+  background: #fffbe6; border: 1px solid #b8a13a; font-size: 11pt;
+  font-family: "Segoe UI", sans-serif; line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<div class="helper no-print">
+  <strong>How to export:</strong> Ctrl+P → Save as PDF → A4 → <strong>tick “Background graphics”</strong>
+  (diagrams print blank without it) → untick “Headers and footers”.
+  <br><strong>Before submitting:</strong> replace the college, department, student, guide, HOD and
+  Principal placeholders on the cover, certificate and declaration pages. Everything else is real
+  and matches the code.
+</div>
+
+
+<!-- ============================================================ COVER === -->
+<!--                          >>> EDIT ME <<<                              -->
+<section class="sheet">
+  <div class="cover">
+    <div class="univ">
+      Visvesvaraya Technological University<br>
+      Jnana Sangama, Belagavi – 590018, Karnataka
+    </div>
+
+    <div class="cover-logo">
+      <!-- University emblem placeholder — replace with your college crest -->
+      <svg width="82" height="82" viewBox="0 0 82 82" role="img" aria-label="Emblem">
+        <circle cx="41" cy="41" r="38" fill="none" stroke="#000" stroke-width="1.5"/>
+        <circle cx="41" cy="41" r="31" fill="none" stroke="#000" stroke-width="0.8"/>
+        <text x="41" y="47" text-anchor="middle" font-family="Times New Roman"
+              font-size="15" font-weight="bold">VTU</text>
+      </svg>
+    </div>
+
+    <div class="sub">A Mini-Project Report on</div>
+
+    <div class="title">
+      Knack: An AI-Powered Gamified Platform for<br>
+      Personalised Soft-Skill Training of<br>
+      Engineering Students
+    </div>
+
+    <div class="sub">
+      Submitted in partial fulfilment of the requirements for the award of the degree of
+    </div>
+    <div class="band">Bachelor of Engineering<br>in<br>Computer Science and Engineering</div>
+
+    <div class="sub" style="margin-top:14pt;">Submitted by</div>
+    <div class="who">
+      <strong>&lt;STUDENT NAME 1&gt;</strong> &nbsp;&nbsp; &lt;1XX22CS0XX&gt;<br>
+      <strong>&lt;STUDENT NAME 2&gt;</strong> &nbsp;&nbsp; &lt;1XX22CS0XX&gt;
+    </div>
+
+    <div class="sub" style="margin-top:16pt;">Under the guidance of</div>
+    <div style="font-weight:bold;">&lt;GUIDE NAME&gt;</div>
+    <div class="sub">Assistant Professor, Department of Computer Science and Engineering</div>
+
+    <div style="margin-top:20pt;" class="univ">
+      &lt;COLLEGE NAME&gt;<br>
+      Department of Computer Science and Engineering<br>
+      &lt;City&gt; – &lt;PIN&gt;
+    </div>
+    <div class="sub" style="margin-top:8pt;">Academic Year 2025–2026</div>
+  </div>
+</section>
+
+
+<!-- ====================================================== CERTIFICATE === -->
+<section class="sheet">
+  <div class="centered tight" style="margin-bottom:14pt;">
+    <div style="font-size:13pt;font-weight:bold;text-transform:uppercase;">&lt;COLLEGE NAME&gt;</div>
+    <div style="font-size:12pt;">Department of Computer Science and Engineering</div>
+    <div style="font-size:11.5pt;">(Affiliated to Visvesvaraya Technological University, Belagavi)</div>
+  </div>
+
+  <h1 class="chapter" style="margin-top:24pt;">Certificate</h1>
+
+  <p style="text-indent:24pt;">
+    This is to certify that the mini-project work entitled
+    <strong>“Knack: An AI-Powered Gamified Platform for Personalised Soft-Skill Training of
+    Engineering Students”</strong> is a bonafide record of the work carried out by
+    <strong>&lt;STUDENT NAME 1&gt; (&lt;USN&gt;)</strong> and
+    <strong>&lt;STUDENT NAME 2&gt; (&lt;USN&gt;)</strong>, bonafide students of
+    &lt;COLLEGE NAME&gt;, in partial fulfilment of the requirements for the award of the degree of
+    <strong>Bachelor of Engineering in Computer Science and Engineering</strong> of Visvesvaraya
+    Technological University, Belagavi, during the academic year 2025–2026.
+  </p>
+
+  <p style="text-indent:24pt;">
+    It is certified that all corrections and suggestions indicated during the internal assessment
+    have been incorporated in the report. The mini-project report has been approved as it satisfies
+    the academic requirements prescribed for the said degree.
+  </p>
+
+  <div class="sign-row">
+    <div>
+      ____________________<br>
+      <strong>&lt;GUIDE NAME&gt;</strong><br>
+      Assistant Professor<br>Dept. of CSE
+    </div>
+    <div>
+      ____________________<br>
+      <strong>&lt;HOD NAME&gt;</strong><br>
+      Professor &amp; Head<br>Dept. of CSE
+    </div>
+    <div>
+      ____________________<br>
+      <strong>&lt;PRINCIPAL NAME&gt;</strong><br>
+      Principal<br>&lt;COLLEGE NAME&gt;
+    </div>
+  </div>
+
+  <div style="margin-top:46pt;">
+    <strong>External Viva</strong>
+    <table style="margin-top:8pt;">
+      <tr><th style="width:50%">Name of the Examiners</th><th>Signature with Date</th></tr>
+      <tr><td>1. &nbsp;</td><td>&nbsp;</td></tr>
+      <tr><td>2. &nbsp;</td><td>&nbsp;</td></tr>
+    </table>
+  </div>
+</section>
+
+
+<!-- ====================================================== DECLARATION === -->
+<section class="sheet">
+  <h1 class="chapter">Declaration</h1>
+
+  <p style="text-indent:24pt;">
+    We, <strong>&lt;STUDENT NAME 1&gt; (&lt;USN&gt;)</strong> and
+    <strong>&lt;STUDENT NAME 2&gt; (&lt;USN&gt;)</strong>, students of the sixth semester
+    Bachelor of Engineering in Computer Science and Engineering at &lt;COLLEGE NAME&gt;, hereby
+    declare that the mini-project entitled <strong>“Knack: An AI-Powered Gamified Platform for
+    Personalised Soft-Skill Training of Engineering Students”</strong> has been carried out by us
+    under the guidance of &lt;GUIDE NAME&gt;, Assistant Professor, Department of Computer Science
+    and Engineering, and submitted in partial fulfilment of the requirements for the award of the
+    degree of Bachelor of Engineering in Computer Science and Engineering of Visvesvaraya
+    Technological University, Belagavi, during the academic year 2025–2026.
+  </p>
+
+  <p style="text-indent:24pt;">
+    We further declare that the work reported in this report has not been submitted, either in part
+    or in full, for the award of any other degree or diploma of this or any other institution. The
+    software described in this report was designed and implemented by us; third-party libraries and
+    services used are acknowledged in Chapter 3 and in the References.
+  </p>
+
+  <div style="margin-top:52pt;">
+    <p>Place: &lt;City&gt;</p>
+    <p>Date: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+  </div>
+
+  <div class="sign-row" style="margin-top:40pt;">
+    <div>____________________<br><strong>&lt;STUDENT NAME 1&gt;</strong><br>&lt;USN&gt;</div>
+    <div>____________________<br><strong>&lt;STUDENT NAME 2&gt;</strong><br>&lt;USN&gt;</div>
+  </div>
+</section>
+
+
+<!-- ================================================= ACKNOWLEDGEMENT === -->
+<section class="sheet">
+  <h1 class="chapter">Acknowledgement</h1>
+
+  <p style="text-indent:24pt;">
+    The satisfaction and euphoria that accompany the successful completion of any task would be
+    incomplete without mentioning the people who made it possible, and whose constant guidance and
+    encouragement crowned our efforts with success.
+  </p>
+
+  <p style="text-indent:24pt;">
+    We express our sincere gratitude to <strong>&lt;PRINCIPAL NAME&gt;</strong>, Principal,
+    &lt;COLLEGE NAME&gt;, for providing the academic environment and infrastructure that made this
+    work possible.
+  </p>
+
+  <p style="text-indent:24pt;">
+    We are deeply indebted to <strong>&lt;HOD NAME&gt;</strong>, Professor and Head, Department of
+    Computer Science and Engineering, for the encouragement and facilities extended to us
+    throughout the course of this mini-project.
+  </p>
+
+  <p style="text-indent:24pt;">
+    We wish to record our profound gratitude to our guide,
+    <strong>&lt;GUIDE NAME&gt;</strong>, Assistant Professor, Department of Computer Science and
+    Engineering, whose consistent direction, technical insight and patient review of our design
+    decisions shaped this work substantially. The emphasis on measuring the system's behaviour
+    rather than merely asserting it, in particular, changed the way we approached evaluation.
+  </p>
+
+  <p style="text-indent:24pt;">
+    We also thank the teaching and non-teaching staff of the Department of Computer Science and
+    Engineering for their cooperation, and our family and friends for their constant support and
+    encouragement.
+  </p>
+
+  <div style="margin-top:44pt; text-align:right;">
+    <strong>&lt;STUDENT NAME 1&gt;</strong> (&lt;USN&gt;)<br>
+    <strong>&lt;STUDENT NAME 2&gt;</strong> (&lt;USN&gt;)
+  </div>
+</section>
+
+
+<!-- ======================================================== ABSTRACT === -->
+<section class="sheet">
+  <h1 class="chapter">Abstract</h1>
+
+  <p style="text-indent:24pt;">
+    Technical competence alone no longer determines the employability of an engineering graduate.
+    Recruiters consistently report that fresh graduates struggle to communicate under pressure,
+    reason through ambiguous requirements, and use generative AI tools without accepting their
+    output uncritically. These abilities are behavioural rather than declarative: they cannot be
+    acquired from lecture videos or multiple-choice tests, which is precisely how most existing
+    soft-skill training platforms deliver them.
+  </p>
+
+  <p style="text-indent:24pt;">
+    This report presents <strong>Knack</strong>, a web application that reframes soft-skill practice
+    as a short daily exercise. A trainee selects one of three tracks — Workplace Communication,
+    Critical Thinking, or AI Fluency — and receives a realistic workplace scenario generated by a
+    large language model. The trainee writes the response they would actually send, and the same
+    model grades it on a ten-point rubric, returning what worked, what was missing, and one concrete
+    improvement. Experience points, daily streaks, per-track skill scores and a composite
+    Professional Readiness Score convert this into a repeatable habit.
+  </p>
+
+  <p style="text-indent:24pt;">
+    The distinguishing contribution of the system is <em>multi-source personalisation under a
+    bounded token budget</em>. Scenarios are conditioned on three independent signals: an eight-field
+    stated profile captured at onboarding; an optional distillation of the trainee's public GitHub
+    repositories, which supplies the technologies they genuinely work with; and a derived learner
+    context that the model rewrites every three attempts from a six-attempt window. Because only the
+    rewritten summary is ever injected — never the raw history — prompt size remains constant
+    irrespective of how long a trainee has been training. Empirical testing showed the grader to be
+    well separated (a considered response scored 9/10 against 1/10 for a deliberately evasive one),
+    the derived context to correctly identify a planted recurring weakness and reference it in later
+    feedback, and profile substitution to change scenario content substantially. A documented
+    failure mode is also reported: injecting the free-text portfolio summary caused the model to
+    anchor on a single project, which was resolved by restricting prompt input to bounded technology
+    and domain lists.
+  </p>
+
+  <p style="text-indent:24pt;">
+    The system is implemented as a React 19 single-page application with a Node.js and Express 5
+    backend, SQLite persistence, scrypt-based authentication, and Gemma 4 accessed through
+    OpenRouter. A model fallback chain and a deterministic offline scenario bank keep the
+    application usable when the free-tier inference endpoint is rate-limited.
+  </p>
+
+  <p class="abstract-kw">
+    <strong>Keywords:</strong> Large Language Models, Prompt Engineering, Personalised Learning,
+    Gamification, Adaptive Difficulty, Soft-Skill Training, Context Compression, Full-Stack Web
+    Development.
+  </p>
+</section>
+
+
+<!-- ======================================================== CONTENTS === -->
+<section class="sheet">
+  <h1 class="chapter">Table of Contents</h1>
+
+  <div class="toc">
+    <div class="toc-row top"><span class="lbl">Certificate</span><span class="dots"></span><span class="pg">i</span></div>
+    <div class="toc-row top"><span class="lbl">Declaration</span><span class="dots"></span><span class="pg">ii</span></div>
+    <div class="toc-row top"><span class="lbl">Acknowledgement</span><span class="dots"></span><span class="pg">iii</span></div>
+    <div class="toc-row top"><span class="lbl">Abstract</span><span class="dots"></span><span class="pg">iv</span></div>
+    <div class="toc-row top"><span class="lbl">Table of Contents</span><span class="dots"></span><span class="pg">v</span></div>
+    <div class="toc-row top"><span class="lbl">List of Figures and Tables</span><span class="dots"></span><span class="pg">vi</span></div>
+
+    <div class="toc-row top"><span class="lbl">1. Introduction</span><span class="dots"></span><span class="pg">1</span></div>
+    <div class="toc-row sub"><span class="lbl">1.1 Background and Motivation</span><span class="dots"></span><span class="pg">1</span></div>
+    <div class="toc-row sub"><span class="lbl">1.2 Problem Statement</span><span class="dots"></span><span class="pg">2</span></div>
+    <div class="toc-row sub"><span class="lbl">1.3 Objectives</span><span class="dots"></span><span class="pg">2</span></div>
+    <div class="toc-row sub"><span class="lbl">1.4 Scope and Limitations</span><span class="dots"></span><span class="pg">3</span></div>
+    <div class="toc-row sub"><span class="lbl">1.5 Organisation of the Report</span><span class="dots"></span><span class="pg">3</span></div>
+
+    <div class="toc-row top"><span class="lbl">2. Literature Survey</span><span class="dots"></span><span class="pg">4</span></div>
+    <div class="toc-row sub"><span class="lbl">2.1 Existing Soft-Skill Training Systems</span><span class="dots"></span><span class="pg">4</span></div>
+    <div class="toc-row sub"><span class="lbl">2.2 LLMs as Assessors of Free-Text Responses</span><span class="dots"></span><span class="pg">4</span></div>
+    <div class="toc-row sub"><span class="lbl">2.3 Context Management in Long-Running LLM Applications</span><span class="dots"></span><span class="pg">5</span></div>
+    <div class="toc-row sub"><span class="lbl">2.4 Gamification and Habit Formation</span><span class="dots"></span><span class="pg">5</span></div>
+    <div class="toc-row sub"><span class="lbl">2.5 Identified Research Gap</span><span class="dots"></span><span class="pg">6</span></div>
+
+    <div class="toc-row top"><span class="lbl">3. System Requirements and Analysis</span><span class="dots"></span><span class="pg">7</span></div>
+    <div class="toc-row sub"><span class="lbl">3.1 Functional Requirements</span><span class="dots"></span><span class="pg">7</span></div>
+    <div class="toc-row sub"><span class="lbl">3.2 Non-Functional Requirements</span><span class="dots"></span><span class="pg">8</span></div>
+    <div class="toc-row sub"><span class="lbl">3.3 Hardware and Software Requirements</span><span class="dots"></span><span class="pg">8</span></div>
+
+    <div class="toc-row top"><span class="lbl">4. System Design</span><span class="dots"></span><span class="pg">9</span></div>
+    <div class="toc-row sub"><span class="lbl">4.1 Architectural Overview</span><span class="dots"></span><span class="pg">9</span></div>
+    <div class="toc-row sub"><span class="lbl">4.2 Use-Case Model</span><span class="dots"></span><span class="pg">10</span></div>
+    <div class="toc-row sub"><span class="lbl">4.3 Database Design</span><span class="dots"></span><span class="pg">11</span></div>
+    <div class="toc-row sub"><span class="lbl">4.4 Data-Flow Design</span><span class="dots"></span><span class="pg">12</span></div>
+    <div class="toc-row sub"><span class="lbl">4.5 Quest Lifecycle — Sequence Design</span><span class="dots"></span><span class="pg">13</span></div>
+    <div class="toc-row sub"><span class="lbl">4.6 Personalisation Pipeline</span><span class="dots"></span><span class="pg">14</span></div>
+
+    <div class="toc-row top"><span class="lbl">5. Implementation</span><span class="dots"></span><span class="pg">15</span></div>
+    <div class="toc-row sub"><span class="lbl">5.1 Authentication and Session Management</span><span class="dots"></span><span class="pg">15</span></div>
+    <div class="toc-row sub"><span class="lbl">5.2 Stated Profile Module</span><span class="dots"></span><span class="pg">16</span></div>
+    <div class="toc-row sub"><span class="lbl">5.3 GitHub Portfolio Distiller</span><span class="dots"></span><span class="pg">16</span></div>
+    <div class="toc-row sub"><span class="lbl">5.4 Derived Learner Context</span><span class="dots"></span><span class="pg">17</span></div>
+    <div class="toc-row sub"><span class="lbl">5.5 Prompt Engineering and Anti-Recitation</span><span class="dots"></span><span class="pg">18</span></div>
+    <div class="toc-row sub"><span class="lbl">5.6 Gamification Engine</span><span class="dots"></span><span class="pg">19</span></div>
+    <div class="toc-row sub"><span class="lbl">5.7 Resilience: Fallback Chain and Offline Bank</span><span class="dots"></span><span class="pg">20</span></div>
+
+    <div class="toc-row top"><span class="lbl">6. Testing and Results</span><span class="dots"></span><span class="pg">21</span></div>
+    <div class="toc-row sub"><span class="lbl">6.1 Test Strategy</span><span class="dots"></span><span class="pg">21</span></div>
+    <div class="toc-row sub"><span class="lbl">6.2 Functional Test Cases</span><span class="dots"></span><span class="pg">21</span></div>
+    <div class="toc-row sub"><span class="lbl">6.3 Grader Calibration</span><span class="dots"></span><span class="pg">22</span></div>
+    <div class="toc-row sub"><span class="lbl">6.4 Personalisation Effectiveness</span><span class="dots"></span><span class="pg">22</span></div>
+    <div class="toc-row sub"><span class="lbl">6.5 Derived Context Validation</span><span class="dots"></span><span class="pg">23</span></div>
+    <div class="toc-row sub"><span class="lbl">6.6 Observed Failure Mode and Remediation</span><span class="dots"></span><span class="pg">24</span></div>
+    <div class="toc-row sub"><span class="lbl">6.7 Threats to Validity</span><span class="dots"></span><span class="pg">25</span></div>
+
+    <div class="toc-row top"><span class="lbl">7. Conclusion and Future Enhancements</span><span class="dots"></span><span class="pg">26</span></div>
+    <div class="toc-row top"><span class="lbl">References</span><span class="dots"></span><span class="pg">27</span></div>
+  </div>
+</section>
+
+
+<!-- =============================================== LIST OF FIG/TABLES === -->
+<section class="sheet">
+  <h1 class="chapter">List of Figures</h1>
+  <div class="toc">
+    <div class="toc-row"><span class="lbl">Fig 4.1 &nbsp; Three-tier system architecture</span><span class="dots"></span><span class="pg">9</span></div>
+    <div class="toc-row"><span class="lbl">Fig 4.2 &nbsp; Use-case diagram</span><span class="dots"></span><span class="pg">10</span></div>
+    <div class="toc-row"><span class="lbl">Fig 4.3 &nbsp; Entity-relationship diagram</span><span class="dots"></span><span class="pg">11</span></div>
+    <div class="toc-row"><span class="lbl">Fig 4.4 &nbsp; Level-1 data-flow diagram</span><span class="dots"></span><span class="pg">12</span></div>
+    <div class="toc-row"><span class="lbl">Fig 4.5 &nbsp; Sequence diagram for the quest lifecycle</span><span class="dots"></span><span class="pg">13</span></div>
+    <div class="toc-row"><span class="lbl">Fig 4.6 &nbsp; Multi-source personalisation pipeline</span><span class="dots"></span><span class="pg">14</span></div>
+    <div class="toc-row"><span class="lbl">Fig 5.1 &nbsp; Derived context refresh cycle and prompt-size behaviour</span><span class="dots"></span><span class="pg">17</span></div>
+    <div class="toc-row"><span class="lbl">Fig 5.2 &nbsp; Adaptive difficulty state transitions</span><span class="dots"></span><span class="pg">19</span></div>
+    <div class="toc-row"><span class="lbl">Fig 5.3 &nbsp; Inference resilience — fallback decision flow</span><span class="dots"></span><span class="pg">20</span></div>
+    <div class="toc-row"><span class="lbl">Fig 6.1 &nbsp; Grader score separation across response quality</span><span class="dots"></span><span class="pg">22</span></div>
+  </div>
+
+  <h1 class="chapter" style="margin-top:30pt;">List of Tables</h1>
+  <div class="toc">
+    <div class="toc-row"><span class="lbl">Table 2.1 &nbsp; Comparison of existing platforms with Knack</span><span class="dots"></span><span class="pg">6</span></div>
+    <div class="toc-row"><span class="lbl">Table 3.1 &nbsp; Hardware and software requirements</span><span class="dots"></span><span class="pg">8</span></div>
+    <div class="toc-row"><span class="lbl">Table 4.1 &nbsp; REST API endpoint specification</span><span class="dots"></span><span class="pg">10</span></div>
+    <div class="toc-row"><span class="lbl">Table 4.2 &nbsp; Database schema summary</span><span class="dots"></span><span class="pg">11</span></div>
+    <div class="toc-row"><span class="lbl">Table 5.1 &nbsp; Stated profile fields and their prompt role</span><span class="dots"></span><span class="pg">16</span></div>
+    <div class="toc-row"><span class="lbl">Table 5.2 &nbsp; Gamification rule set</span><span class="dots"></span><span class="pg">19</span></div>
+    <div class="toc-row"><span class="lbl">Table 6.1 &nbsp; Functional test cases and outcomes</span><span class="dots"></span><span class="pg">21</span></div>
+    <div class="toc-row"><span class="lbl">Table 6.2 &nbsp; Scenario output under substituted profiles</span><span class="dots"></span><span class="pg">23</span></div>
+  </div>
+</section>
+
+
+<!-- ================================================== CH 1 INTRO ======== -->
+<section class="sheet">
+  <h1 class="chapter">Chapter 1<br>Introduction</h1>
+
+  <h2>1.1 Background and Motivation</h2>
+
+  <p>
+    Employability surveys of Indian engineering graduates have for over a decade reported the same
+    finding: the binding constraint on placement outcomes is not technical knowledge but
+    communication, reasoning and professional judgement. A graduate who can implement a balanced
+    binary search tree may still be unable to tell a team lead that an estimate has slipped, to
+    identify that a stated requirement does not match the real need, or to notice that a generated
+    code snippet calls a library function which does not exist.
+  </p>
+
+  <p>
+    These are behavioural competencies. They are acquired the way any skill is acquired — by
+    repeated attempts against realistic situations, followed by specific feedback. Yet the training
+    available to students is overwhelmingly declarative: recorded lectures on “effective
+    communication”, followed by multiple-choice assessments. A student can score full marks on such
+    an assessment without ever having composed a difficult message.
+  </p>
+
+  <p>
+    Two developments make a different approach feasible. First, instruction-tuned large language
+    models can now generate plausible, specific workplace situations and assess free-text responses
+    against a stated rubric with reasonable consistency. Second, several providers expose capable
+    models at zero marginal cost under rate limits, which removes the economic barrier that
+    previously made per-student generative content impractical for a student project.
+  </p>
+
+  <p>
+    The remaining difficulty is that a generic AI tutor is only marginally better than a generic
+    video. If every trainee receives the same scenario distribution, the system is a content library
+    with extra latency. The value appears only when the generated situation resembles the one the
+    trainee will actually walk into — which requires the system to know who the trainee is, what
+    they build, and where they have previously failed.
+  </p>
+
+  <h2>1.2 Problem Statement</h2>
+
+  <div class="box">
+    <p>
+      To design and implement a web-based soft-skill training system that (i) generates workplace
+      scenarios personalised to an individual trainee's academic stage, technical background and
+      demonstrated weaknesses; (ii) assesses free-text responses with a calibrated rubric and
+      returns actionable feedback; (iii) maintains a constant inference cost per interaction
+      irrespective of accumulated user history; and (iv) remains usable when the external inference
+      service is unavailable.
+    </p>
+  </div>
+
+  <p>
+    Requirement (iii) deserves emphasis, because it is the constraint that shapes the architecture.
+    The obvious way to personalise from history is to place previous attempts into the prompt. This
+    is unsustainable: prompt length grows linearly with usage, cost grows with it, and on a
+    small model the additional context measurably degrades output quality. A system that becomes
+    slower, more expensive and worse the more a student uses it is not a training system.
+  </p>
+
+  <h2>1.3 Objectives</h2>
+
+  <ol>
+    <li>
+      <strong>Multi-source personalisation.</strong> Condition scenario generation on three
+      independent signals — a stated profile collected at onboarding, an optional distillation of
+      the trainee's public GitHub repositories, and a derived context inferred from graded attempts.
+    </li>
+    <li>
+      <strong>Bounded context growth.</strong> Compress interaction history into a fixed-length
+      summary regenerated at intervals, so that prompt size is independent of the number of attempts
+      completed.
+    </li>
+    <li>
+      <strong>Calibrated assessment.</strong> Implement a ten-point rubric that separates considered
+      responses from superficial ones, and produces feedback naming specific behaviour rather than
+      generic advice.
+    </li>
+    <li>
+      <strong>Adaptive difficulty.</strong> Scale scenario difficulty from a rolling average of
+      recent scores and its short-term trend, seeded initially from self-rated confidence.
+    </li>
+    <li>
+      <strong>Graceful degradation.</strong> Provide a model fallback chain and a deterministic
+      offline scenario bank so that rate limiting does not render the application unusable.
+    </li>
+    <li>
+      <strong>Habit-oriented gamification.</strong> Implement experience points, levels, daily
+      streaks, per-track skill scores and a composite Professional Readiness Score.
+    </li>
+  </ol>
+</section>
+
+
+<section class="sheet">
+  <h2>1.4 Scope and Limitations</h2>
+
+  <h3>1.4.1 In Scope</h3>
+  <p>
+    The delivered system covers three training tracks (Workplace Communication, Critical Thinking
+    and AI Fluency); email-and-password account creation with server-side session management; an
+    eight-field onboarding profile; optional GitHub linkage; AI-generated scenarios and AI-graded
+    responses; the complete gamification engine; a dashboard, profile page and full attempt history
+    with detail replay; and a responsive interface usable on both desktop and mobile browsers.
+  </p>
+
+  <h3>1.4.2 Out of Scope</h3>
+  <p>
+    The following were deliberately excluded to keep the work defensible within a mini-project
+    timeframe, and are discussed as future enhancements in Chapter 7: peer leaderboards and social
+    comparison; achievement badges; a graphical skill-tree; a fully developed AI
+    hallucination-detection curriculum beyond the AI Fluency track's scenarios; email verification
+    and password recovery; and native mobile applications.
+  </p>
+
+  <h3>1.4.3 Acknowledged Limitations</h3>
+  <p>
+    Three limitations are stated at the outset rather than concealed, and are analysed quantitatively
+    in Section 6.7. First, assessment is performed by a single model instance with no second grader,
+    so inter-rater reliability has not been established. Second, the offline scenario bank contains
+    eighteen hand-written scenarios; during a prolonged outage a frequent user will encounter
+    repetition. Third, the evaluation reported in Chapter 6 uses a small number of synthetic trainee
+    profiles rather than a longitudinal study with real students, and therefore demonstrates that the
+    mechanisms behave as designed rather than that learning outcomes improve.
+  </p>
+
+  <h2>1.5 Organisation of the Report</h2>
+
+  <p>
+    <strong>Chapter 2</strong> surveys existing soft-skill platforms, the use of language models as
+    assessors of free text, and context-management strategies, concluding with the identified gap.
+    <strong>Chapter 3</strong> states the functional and non-functional requirements and the
+    development environment. <strong>Chapter 4</strong> presents the system design: architecture,
+    use-case model, database schema, data-flow and sequence models, and the personalisation
+    pipeline. <strong>Chapter 5</strong> describes the implementation of each module, including the
+    prompt-engineering decisions that proved consequential. <strong>Chapter 6</strong> reports the
+    testing strategy and measured results, including a failure mode that was discovered during
+    testing and the change made in response. <strong>Chapter 7</strong> concludes and identifies
+    future work.
+  </p>
+</section>
+
+
+<!-- ================================================ CH 2 LITERATURE ===== -->
+<section class="sheet">
+  <h1 class="chapter">Chapter 2<br>Literature Survey</h1>
+
+  <h2>2.1 Existing Soft-Skill Training Systems</h2>
+
+  <p>
+    Commercial and institutional soft-skill training divides into three families. <em>Content
+    libraries</em> such as recorded MOOC modules deliver expert instruction at scale but assess
+    through multiple-choice questions, which measure recall of communication theory rather than the
+    ability to communicate. <em>Assessment platforms</em> used in campus placement preparation
+    administer aptitude and situational-judgement tests; these are closer to practice, but the
+    situations are drawn from a fixed bank, are identical for every candidate, and permit the
+    candidate to select a pre-written option rather than compose a response. <em>Human-led
+    workshops</em> — mock interviews and group discussions — provide genuine practice with
+    individualised feedback, and are the most effective of the three, but their cost scales linearly
+    with the number of students and they occur a handful of times per academic year rather than
+    daily.
+  </p>
+
+  <p>
+    The recurring weakness across the first two families is the absence of production. A trainee who
+    never writes the difficult message never practises writing the difficult message. The weakness of
+    the third is frequency: behavioural change requires repetition, and a twice-a-semester workshop
+    provides none.
+  </p>
+
+  <h2>2.2 Large Language Models as Assessors of Free-Text Responses</h2>
+
+  <p>
+    Automated essay scoring has an established literature, historically based on hand-engineered
+    features such as length, lexical diversity and syntactic complexity. Such features are
+    proxies and are trivially gamed: a verbose, well-punctuated but substantively empty answer scores
+    highly. This limitation is directly relevant here, and is the reason the offline heuristic
+    described in Section 5.7 is explicitly capped and labelled rather than presented as equivalent to
+    model grading.
+  </p>
+
+  <p>
+    Instruction-tuned language models changed the position because they can be given a rubric in
+    natural language and asked to apply it, with justification. Reported concerns are that models
+    tend toward leniency, exhibit sensitivity to response length independent of quality, and can
+    reward fluency over correctness. The mitigations adopted in this work follow from those concerns:
+    the rubric enumerates explicit score bands with behavioural descriptors; the prompt states that
+    inflated scores make the training worthless; a hard ceiling is imposed on very short responses;
+    and the grader is instructed to quote or paraphrase what the trainee actually wrote, which
+    discourages generic praise. Section 6.3 reports the separation achieved in practice.
+  </p>
+
+  <h2>2.3 Context Management in Long-Running LLM Applications</h2>
+
+  <p>
+    An application that personalises from accumulated history faces a well-known scaling problem.
+    Three strategies appear in practice. <em>Full-history injection</em> places all prior
+    interactions in the prompt; it is simple and preserves detail, but cost and latency grow without
+    bound and quality degrades as the relevant signal is diluted. <em>Retrieval-augmented
+    generation</em> embeds history in a vector store and retrieves the most similar items; cost is
+    bounded, but it requires embedding infrastructure and retrieves items similar to the query rather
+    than items describing the learner. <em>Recursive summarisation</em> maintains a compact summary
+    that is periodically rewritten from recent interactions plus the previous summary; cost is
+    constant and the summary is explicitly about the learner, at the price of losing detail not
+    carried forward.
+  </p>
+
+  <p>
+    For this application the third strategy is the correct one, because the object of interest is not
+    any individual past attempt but the behavioural pattern across attempts — precisely what a
+    summary encodes and what retrieval does not. The design is described in Section 5.4.
+  </p>
+</section>
+
+
+<section class="sheet">
+  <h2>2.4 Gamification and Habit Formation</h2>
+
+  <p>
+    The gamification literature distinguishes mechanics that support intrinsic motivation from those
+    that substitute for it. Progress feedback, visible competence growth and streak mechanics are
+    associated with sustained engagement; leaderboards and inter-personal comparison are associated
+    with short-term engagement but can reduce intrinsic motivation among lower-ranked participants
+    and encourage metric-gaming.
+  </p>
+
+  <p>
+    This influenced two decisions. Leaderboards were excluded from scope despite being
+    straightforward to implement, because a public ranking of communication ability among classmates
+    would plausibly deter the students who most need the practice. Second, the streak indicator was
+    designed as a passive visual state — the flame dims in the evening if the day's quest is
+    incomplete — rather than as a notification, since intrusive reminders are a common cause of
+    disengagement.
+  </p>
+
+  <h2>2.5 Identified Research Gap</h2>
+
+  <p>
+    Table 2.1 positions Knack against representative alternatives. The gap addressed is the
+    combination of three properties that existing systems provide only individually: free-text
+    production with individualised feedback, personalisation from multiple independent signals
+    including demonstrated weakness, and a bounded inference cost that permits indefinite daily use.
+  </p>
+
+  <table>
+    <caption>Table 2.1 — Comparison of existing platforms with Knack</caption>
+    <thead>
+      <tr>
+        <th style="width:22%">Property</th>
+        <th>MOOC content libraries</th>
+        <th>Placement aptitude platforms</th>
+        <th>Human mock sessions</th>
+        <th>Knack</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Response format</td><td>Multiple choice</td><td>Multiple choice / SJT</td>
+        <td>Free-form spoken</td><td>Free-text written</td>
+      </tr>
+      <tr>
+        <td>Feedback specificity</td><td>Correct / incorrect</td><td>Score only</td>
+        <td>High, individualised</td><td>High, model-generated</td>
+      </tr>
+      <tr>
+        <td>Personalisation</td><td>None</td><td>None</td>
+        <td>Implicit, human</td><td>Profile + portfolio + history</td>
+      </tr>
+      <tr>
+        <td>Adapts to past failures</td><td>No</td><td>No</td><td>Partially</td><td>Yes, explicitly</td>
+      </tr>
+      <tr>
+        <td>Practice frequency</td><td>Self-paced</td><td>Periodic</td>
+        <td>2–4 per year</td><td>Daily, ~5 minutes</td>
+      </tr>
+      <tr>
+        <td>Marginal cost per session</td><td>Near zero</td><td>Near zero</td>
+        <td>High (human time)</td><td>Near zero, bounded</td>
+      </tr>
+      <tr>
+        <td>Available offline</td><td>Partially</td><td>No</td><td>N/A</td>
+        <td>Degraded mode</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+
+<!-- ================================================ CH 3 REQUIREMENTS === -->
+<section class="sheet">
+  <h1 class="chapter">Chapter 3<br>System Requirements and Analysis</h1>
+
+  <h2>3.1 Functional Requirements</h2>
+
+  <p>The system shall satisfy the following functional requirements.</p>
+
+  <h3>FR-1 Account Management</h3>
+  <p>
+    The system shall permit registration with an email address and password of at least eight
+    characters; shall store passwords only in salted, key-derived form; shall establish an
+    authenticated session on successful login; and shall permit explicit termination of that session.
+    Authentication failures shall not disclose whether an email address is registered.
+  </p>
+
+  <h3>FR-2 Profile Capture</h3>
+  <p>
+    The system shall collect an eight-field profile covering academic year, branch, target role,
+    prior team experience, preferred work setting, self-identified difficulties (maximum three) and
+    self-rated confidence for each track. Each field shall be presented individually. The profile
+    shall be editable after onboarding, and edits shall take effect on subsequently generated
+    scenarios.
+  </p>
+
+  <h3>FR-3 Portfolio Linkage</h3>
+  <p>
+    The system shall optionally accept a public GitHub username, retrieve the user's non-forked and
+    non-archived repositories, derive the technologies and problem domains represented, and present
+    the derived summary for inspection. The linkage shall be removable, and its absence shall not
+    prevent any other function.
+  </p>
+
+  <h3>FR-4 Scenario Generation</h3>
+  <p>
+    Given a selected track, the system shall generate a workplace scenario of two to four sentences
+    conditioned on the stated profile, the derived portfolio and the derived learner context, at a
+    difficulty determined by the trainee's rolling score in that track. Consecutively generated
+    scenarios for the same trainee and track shall not be near-duplicates.
+  </p>
+
+  <h3>FR-5 Response Assessment</h3>
+  <p>
+    The system shall accept a free-text response of at least eight words, return an integer score in
+    the range 1–10, and return three feedback components: what worked, what was missing, and one
+    specific improvement. Where a weakness recorded in the derived context recurs, the feedback shall
+    identify it as recurring.
+  </p>
+
+  <h3>FR-6 Progression Tracking</h3>
+  <p>
+    The system shall award experience points as a function of score and streak, maintain level bands,
+    maintain a daily streak that increments once per calendar day and resets after a missed day,
+    maintain a rolling per-track skill score, and compute a composite Professional Readiness Score.
+  </p>
+
+  <h3>FR-7 History and Review</h3>
+  <p>
+    The system shall retain every attempt and permit the trainee to review any past attempt in full,
+    including the original scenario, their response and the feedback received, with filtering by
+    track.
+  </p>
+
+  <h3>FR-8 Degraded Operation</h3>
+  <p>
+    On failure of the primary inference model, the system shall attempt an alternative model. On
+    failure of all models, it shall serve a scenario from a local bank and assess using a
+    deterministic rubric, and shall label such output as offline-generated in the interface.
+  </p>
+</section>
+
+
+<section class="sheet">
+  <h2>3.2 Non-Functional Requirements</h2>
+
+  <table>
+    <caption>Table 3.1 — Non-functional requirements</caption>
+    <thead><tr><th style="width:24%">Attribute</th><th>Requirement</th></tr></thead>
+    <tbody>
+      <tr><td>Cost boundedness</td>
+        <td>Prompt size for scenario generation and assessment shall not grow with the number of attempts completed by the trainee.</td></tr>
+      <tr><td>Availability</td>
+        <td>The core loop shall remain operable when the inference provider returns rate-limit or server errors.</td></tr>
+      <tr><td>Security</td>
+        <td>Passwords shall be stored using a memory-hard key derivation function. Session tokens shall be stored only as digests. Session cookies shall be HTTP-only.</td></tr>
+      <tr><td>Data isolation</td>
+        <td>All progress, history and derived context shall be scoped to the owning account and inaccessible to others.</td></tr>
+      <tr><td>Privacy</td>
+        <td>Only data that materially changes system output shall be collected. Persistence shall be local to the deployment host.</td></tr>
+      <tr><td>Usability</td>
+        <td>Each screen shall present a single primary action. The interface shall be operable one-handed on a mobile viewport.</td></tr>
+      <tr><td>Accessibility</td>
+        <td>All animation shall respect the operating-system reduced-motion preference.</td></tr>
+      <tr><td>Responsiveness</td>
+        <td>Interface state changes shall not require a page reload; progression updates shall be applied optimistically and reconciled against the server.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>3.3 Hardware and Software Requirements</h2>
+
+  <table>
+    <caption>Table 3.2 — Development and deployment environment</caption>
+    <thead><tr><th style="width:26%">Category</th><th style="width:34%">Component</th><th>Specification / Purpose</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3">Hardware</td><td>Processor</td><td>Dual-core x86-64, 2.0 GHz or higher</td></tr>
+      <tr><td>Memory</td><td>4 GB RAM minimum, 8 GB recommended</td></tr>
+      <tr><td>Storage</td><td>500 MB (application, dependencies and database)</td></tr>
+      <tr><td rowspan="2">Platform</td><td>Operating system</td><td>Windows 10/11, Linux or macOS</td></tr>
+      <tr><td>Runtime</td><td>Node.js v24 LTS</td></tr>
+      <tr><td rowspan="5">Frontend</td><td>React 19</td><td>Component model and rendering</td></tr>
+      <tr><td>Vite 7</td><td>Development server and production bundling</td></tr>
+      <tr><td>Tailwind CSS v4</td><td>Utility-first styling with a design-token theme</td></tr>
+      <tr><td>React Router 7</td><td>Client-side routing and route guards</td></tr>
+      <tr><td>Zustand 5</td><td>Global state for session, profile and progression</td></tr>
+      <tr><td rowspan="4">Backend</td><td>Express 5</td><td>REST endpoints and middleware pipeline</td></tr>
+      <tr><td>better-sqlite3 12</td><td>Synchronous SQLite driver with transaction support</td></tr>
+      <tr><td>node:crypto (scrypt)</td><td>Password key derivation and token generation</td></tr>
+      <tr><td>cookie-parser</td><td>Session cookie extraction</td></tr>
+      <tr><td rowspan="2">External services</td><td>OpenRouter API</td><td>Access to Gemma 4 31B (primary) and Gemma 4 26B (fallback)</td></tr>
+      <tr><td>GitHub REST API v3</td><td>Retrieval of public repository metadata</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<!-- =================================================== CH 4 DESIGN ====== -->
+<section class="sheet">
+  <h1 class="chapter">Chapter 4<br>System Design</h1>
+
+  <h2>4.1 Architectural Overview</h2>
+
+  <p>
+    The system follows a three-tier architecture organised as a monorepo. The presentation tier is a
+    single-page application; the application tier is a stateless REST service apart from
+    server-persisted sessions; the data tier is an embedded SQLite database. External inference and
+    repository-metadata services are treated as unreliable dependencies, accessed only through
+    adapter modules that encapsulate retry, fallback and degradation policy.
+  </p>
+
+  <p>
+    A deliberate deployment decision is that the API binds only the loopback interface. During
+    development the frontend dev server is exposed on the local network so the application can be
+    tested on a phone, but requests reach the API only through a server-side proxy. Consequently the
+    database file and the inference credential are never reachable from the network.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 700 300" width="660" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman">
+      <defs>
+        <marker id="ar" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#1f3864"/>
+        </marker>
+      </defs>
+
+      <!-- Presentation -->
+      <rect x="12" y="30" width="186" height="238" rx="5" fill="#eef2f9" stroke="#1f3864" stroke-width="1.4"/>
+      <text x="105" y="52" text-anchor="middle" font-size="13" font-weight="bold">PRESENTATION TIER</text>
+      <text x="105" y="67" text-anchor="middle" font-size="10.5" font-style="italic">Browser — React 19 SPA</text>
+      <rect x="28" y="80" width="154" height="26" rx="3" fill="#fff" stroke="#5b7ba8"/>
+      <text x="105" y="97" text-anchor="middle" font-size="10.5">Pages · Router · Guards</text>
+      <rect x="28" y="112" width="154" height="26" rx="3" fill="#fff" stroke="#5b7ba8"/>
+      <text x="105" y="129" text-anchor="middle" font-size="10.5">Zustand global store</text>
+      <rect x="28" y="144" width="154" height="26" rx="3" fill="#fff" stroke="#5b7ba8"/>
+      <text x="105" y="161" text-anchor="middle" font-size="10.5">Optimistic XP / streak</text>
+      <rect x="28" y="176" width="154" height="26" rx="3" fill="#fff" stroke="#5b7ba8"/>
+      <text x="105" y="193" text-anchor="middle" font-size="10.5">Tailwind v4 · Motion</text>
+      <rect x="28" y="208" width="154" height="26" rx="3" fill="#fff" stroke="#5b7ba8"/>
+      <text x="105" y="225" text-anchor="middle" font-size="10.5">Reduced-motion fallback</text>
+
+      <!-- Application -->
+      <rect x="257" y="30" width="186" height="238" rx="5" fill="#fdf3e3" stroke="#8a5a13" stroke-width="1.4"/>
+      <text x="350" y="52" text-anchor="middle" font-size="13" font-weight="bold">APPLICATION TIER</text>
+      <text x="350" y="67" text-anchor="middle" font-size="10.5" font-style="italic">Express 5 · loopback :5190</text>
+      <rect x="273" y="80" width="154" height="26" rx="3" fill="#fff" stroke="#b08a4a"/>
+      <text x="350" y="97" text-anchor="middle" font-size="10.5">auth.js — scrypt, sessions</text>
+      <rect x="273" y="112" width="154" height="26" rx="3" fill="#fff" stroke="#b08a4a"/>
+      <text x="350" y="129" text-anchor="middle" font-size="10.5">profile.js · github.js</text>
+      <rect x="273" y="144" width="154" height="26" rx="3" fill="#fff" stroke="#b08a4a"/>
+      <text x="350" y="161" text-anchor="middle" font-size="10.5">context.js — summariser</text>
+      <rect x="273" y="176" width="154" height="26" rx="3" fill="#fff" stroke="#b08a4a"/>
+      <text x="350" y="193" text-anchor="middle" font-size="10.5">gamification.js</text>
+      <rect x="273" y="208" width="154" height="26" rx="3" fill="#fff" stroke="#b08a4a"/>
+      <text x="350" y="225" text-anchor="middle" font-size="10.5">prompts.js · ai.js</text>
+
+      <!-- Data + external -->
+      <rect x="502" y="30" width="186" height="112" rx="5" fill="#eaf3ec" stroke="#1e5c33" stroke-width="1.4"/>
+      <text x="595" y="52" text-anchor="middle" font-size="13" font-weight="bold">DATA TIER</text>
+      <rect x="518" y="62" width="154" height="26" rx="3" fill="#fff" stroke="#5d8f70"/>
+      <text x="595" y="79" text-anchor="middle" font-size="10.5">SQLite (WAL mode)</text>
+      <rect x="518" y="94" width="154" height="26" rx="3" fill="#fff" stroke="#5d8f70"/>
+      <text x="595" y="111" text-anchor="middle" font-size="10.5">5 tables · FK enforced</text>
+
+      <rect x="502" y="156" width="186" height="112" rx="5" fill="#f4eef6" stroke="#5b2d6e" stroke-width="1.4"/>
+      <text x="595" y="178" text-anchor="middle" font-size="13" font-weight="bold">EXTERNAL SERVICES</text>
+      <rect x="518" y="188" width="154" height="26" rx="3" fill="#fff" stroke="#8f6ba3"/>
+      <text x="595" y="205" text-anchor="middle" font-size="10.5">OpenRouter — Gemma 4</text>
+      <rect x="518" y="220" width="154" height="26" rx="3" fill="#fff" stroke="#8f6ba3"/>
+      <text x="595" y="237" text-anchor="middle" font-size="10.5">GitHub REST API</text>
+
+      <!-- arrows -->
+      <line x1="200" y1="120" x2="253" y2="120" stroke="#1f3864" stroke-width="1.4" marker-end="url(#ar)"/>
+      <text x="226" y="112" text-anchor="middle" font-size="9.5">HTTPS</text>
+      <text x="226" y="134" text-anchor="middle" font-size="9.5">JSON</text>
+      <line x1="253" y1="176" x2="200" y2="176" stroke="#1f3864" stroke-width="1.4" marker-end="url(#ar)"/>
+
+      <line x1="445" y1="92" x2="498" y2="92" stroke="#1e5c33" stroke-width="1.4" marker-end="url(#ar)"/>
+      <text x="471" y="85" text-anchor="middle" font-size="9.5">SQL</text>
+      <line x1="445" y1="205" x2="498" y2="205" stroke="#5b2d6e" stroke-width="1.4" marker-end="url(#ar)"/>
+      <text x="471" y="198" text-anchor="middle" font-size="9.5">REST</text>
+    </svg>
+    <figcaption>Fig 4.1 — Three-tier system architecture. External services are isolated behind
+    adapter modules that own all retry and degradation policy.</figcaption>
+  </figure>
+
+  <p>
+    The REST interface exposed by the application tier is summarised in Table 4.1. Two guard
+    middlewares are applied: <code>requireAuth</code> rejects unauthenticated requests, and
+    <code>requireOnboarded</code> additionally rejects requests from accounts without a completed
+    profile. The latter is applied to the entire quest router, on the reasoning that scenario quality
+    is the substance of the system and an unpersonalised scenario would misrepresent it.
+  </p>
+</section>
+
+
+<section class="sheet">
+  <table>
+    <caption>Table 4.1 — REST API endpoint specification</caption>
+    <thead>
+      <tr><th style="width:9%">Method</th><th style="width:26%">Endpoint</th><th style="width:15%">Guard</th><th>Function</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>POST</td><td class="mono">/api/auth/signup</td><td>—</td><td>Create account; establish session</td></tr>
+      <tr><td>POST</td><td class="mono">/api/auth/login</td><td>—</td><td>Verify credentials; establish session</td></tr>
+      <tr><td>POST</td><td class="mono">/api/auth/logout</td><td>—</td><td>Destroy session record and clear cookie</td></tr>
+      <tr><td>GET</td><td class="mono">/api/auth/me</td><td>—</td><td>Return current account or null</td></tr>
+      <tr><td>GET</td><td class="mono">/api/auth/onboarding</td><td>—</td><td>Return profile field definitions</td></tr>
+      <tr><td>POST</td><td class="mono">/api/auth/onboarding</td><td>Auth</td><td>Validate and persist stated profile</td></tr>
+      <tr><td>POST</td><td class="mono">/api/auth/github</td><td>Auth</td><td>Fetch, distil and store portfolio summary</td></tr>
+      <tr><td>DELETE</td><td class="mono">/api/auth/github</td><td>Auth</td><td>Remove portfolio linkage</td></tr>
+      <tr><td>POST</td><td class="mono">/api/quest/generate</td><td>Onboarded</td><td>Generate a personalised scenario</td></tr>
+      <tr><td>POST</td><td class="mono">/api/quest/evaluate</td><td>Onboarded</td><td>Grade response; award XP; update streak</td></tr>
+      <tr><td>GET</td><td class="mono">/api/user</td><td>Auth</td><td>Return profile, progression and derived insight</td></tr>
+      <tr><td>PATCH</td><td class="mono">/api/user</td><td>Auth</td><td>Edit profile with identical validation</td></tr>
+      <tr><td>POST</td><td class="mono">/api/user/reset</td><td>Auth</td><td>Clear attempts, progression and context</td></tr>
+      <tr><td>GET</td><td class="mono">/api/history</td><td>Auth</td><td>Paginated attempts, filterable by track</td></tr>
+      <tr><td>GET</td><td class="mono">/api/health</td><td>—</td><td>Service and credential status</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4.2 Use-Case Model</h2>
+
+  <figure>
+    <svg viewBox="0 0 660 330" width="600" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman">
+      <defs>
+        <marker id="ar2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#444"/>
+        </marker>
+      </defs>
+
+      <!-- Trainee actor -->
+      <circle cx="46" cy="120" r="13" fill="none" stroke="#000" stroke-width="1.4"/>
+      <line x1="46" y1="133" x2="46" y2="168" stroke="#000" stroke-width="1.4"/>
+      <line x1="26" y1="146" x2="66" y2="146" stroke="#000" stroke-width="1.4"/>
+      <line x1="46" y1="168" x2="30" y2="194" stroke="#000" stroke-width="1.4"/>
+      <line x1="46" y1="168" x2="62" y2="194" stroke="#000" stroke-width="1.4"/>
+      <text x="46" y="212" text-anchor="middle" font-size="11.5" font-weight="bold">Trainee</text>
+
+      <!-- System boundary -->
+      <rect x="112" y="14" width="386" height="302" fill="none" stroke="#1f3864" stroke-width="1.3"/>
+      <text x="305" y="32" text-anchor="middle" font-size="12" font-weight="bold">Knack System</text>
+
+      <g font-size="10.5">
+        <ellipse cx="212" cy="58" rx="76" ry="17" fill="#eef2f9" stroke="#1f3864"/><text x="212" y="62" text-anchor="middle">Register / Log in</text>
+        <ellipse cx="212" cy="99" rx="76" ry="17" fill="#eef2f9" stroke="#1f3864"/><text x="212" y="103" text-anchor="middle">Complete profile</text>
+        <ellipse cx="212" cy="140" rx="76" ry="17" fill="#eef2f9" stroke="#1f3864"/><text x="212" y="144" text-anchor="middle">Link GitHub</text>
+        <ellipse cx="212" cy="181" rx="76" ry="17" fill="#fdf3e3" stroke="#8a5a13"/><text x="212" y="185" text-anchor="middle">Request scenario</text>
+        <ellipse cx="212" cy="222" rx="76" ry="17" fill="#fdf3e3" stroke="#8a5a13"/><text x="212" y="226" text-anchor="middle">Submit response</text>
+        <ellipse cx="212" cy="263" rx="76" ry="17" fill="#eef2f9" stroke="#1f3864"/><text x="212" y="267" text-anchor="middle">Review history</text>
+        <ellipse cx="212" cy="299" rx="76" ry="15" fill="#eef2f9" stroke="#1f3864"/><text x="212" y="303" text-anchor="middle">Reset progress</text>
+
+        <ellipse cx="412" cy="140" rx="70" ry="17" fill="#eaf3ec" stroke="#1e5c33"/><text x="412" y="144" text-anchor="middle">Distil portfolio</text>
+        <ellipse cx="412" cy="181" rx="70" ry="17" fill="#eaf3ec" stroke="#1e5c33"/><text x="412" y="185" text-anchor="middle">Compose prompt</text>
+        <ellipse cx="412" cy="222" rx="70" ry="17" fill="#eaf3ec" stroke="#1e5c33"/><text x="412" y="226" text-anchor="middle">Grade &amp; award XP</text>
+        <ellipse cx="412" cy="263" rx="70" ry="17" fill="#eaf3ec" stroke="#1e5c33"/><text x="412" y="267" text-anchor="middle">Refresh context</text>
+      </g>
+
+      <g stroke="#444" stroke-width="0.9">
+        <line x1="66" y1="126" x2="134" y2="62"/>
+        <line x1="66" y1="128" x2="134" y2="101"/>
+        <line x1="68" y1="135" x2="134" y2="140"/>
+        <line x1="68" y1="146" x2="134" y2="181"/>
+        <line x1="66" y1="156" x2="134" y2="222"/>
+        <line x1="60" y1="176" x2="134" y2="263"/>
+        <line x1="56" y1="188" x2="134" y2="297"/>
+      </g>
+
+      <g stroke="#666" stroke-width="0.9" stroke-dasharray="4 3" marker-end="url(#ar2)">
+        <line x1="288" y1="140" x2="340" y2="140"/>
+        <line x1="288" y1="181" x2="340" y2="181"/>
+        <line x1="288" y1="222" x2="340" y2="222"/>
+        <line x1="288" y1="230" x2="340" y2="258"/>
+      </g>
+      <text x="314" y="134" text-anchor="middle" font-size="8.5" font-style="italic">«include»</text>
+      <text x="314" y="175" text-anchor="middle" font-size="8.5" font-style="italic">«include»</text>
+      <text x="314" y="216" text-anchor="middle" font-size="8.5" font-style="italic">«include»</text>
+      <text x="330" y="252" text-anchor="middle" font-size="8.5" font-style="italic">«extend»</text>
+    </svg>
+    <figcaption>Fig 4.2 — Use-case diagram. Context refresh is modelled as an
+    <em>«extend»</em> relationship because it executes conditionally, only when three attempts have
+    accumulated since the previous refresh.</figcaption>
+  </figure>
+</section>
+
+
+<section class="sheet">
+  <h2>4.3 Database Design</h2>
+
+  <p>
+    Persistence uses five relations. SQLite operates in write-ahead logging mode, which permits
+    concurrent readers alongside a writer and improves throughput for the read-dominant access
+    pattern of the dashboard. Foreign-key enforcement is enabled explicitly, as SQLite disables it by
+    default. Schema evolution is handled by an additive migration routine that inspects
+    <code>PRAGMA table_info</code> and appends missing columns, so that upgrading an installation
+    never discards existing attempts.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 690 330" width="640" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman">
+      <defs>
+        <marker id="crow" markerWidth="12" markerHeight="10" refX="1" refY="5" orient="auto">
+          <path d="M11,0 L1,5 L11,10" fill="none" stroke="#1f3864" stroke-width="1.2"/>
+        </marker>
+      </defs>
+
+      <!-- users -->
+      <rect x="238" y="14" width="214" height="128" fill="#eef2f9" stroke="#1f3864" stroke-width="1.4"/>
+      <rect x="238" y="14" width="214" height="20" fill="#1f3864"/>
+      <text x="345" y="28" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#fff">users</text>
+      <g font-size="9.5">
+        <text x="246" y="47">PK  id</text>
+        <text x="246" y="60">UQ  email · passwordHash · name</text>
+        <text x="246" y="73">yearOfStudy · branch · targetRole</text>
+        <text x="246" y="86">experience · workSetting</text>
+        <text x="246" y="99">confidence · focusAreas (JSON)</text>
+        <text x="246" y="112">githubUsername · githubStack (JSON)</text>
+        <text x="246" y="125">xp · streak · longestStreak</text>
+        <text x="246" y="138">lastActiveDate · onboardedAt</text>
+      </g>
+
+      <!-- sessions -->
+      <rect x="14" y="196" width="176" height="76" fill="#fdf3e3" stroke="#8a5a13" stroke-width="1.4"/>
+      <rect x="14" y="196" width="176" height="20" fill="#8a5a13"/>
+      <text x="102" y="210" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#fff">sessions</text>
+      <g font-size="9.5">
+        <text x="22" y="229">PK  tokenHash (SHA-256)</text>
+        <text x="22" y="242">FK  userId</text>
+        <text x="22" y="255">createdAt · expiresAt</text>
+      </g>
+
+      <!-- learner_context -->
+      <rect x="252" y="196" width="186" height="90" fill="#eaf3ec" stroke="#1e5c33" stroke-width="1.4"/>
+      <rect x="252" y="196" width="186" height="20" fill="#1e5c33"/>
+      <text x="345" y="210" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#fff">learner_context</text>
+      <g font-size="9.5">
+        <text x="260" y="229">PK,FK  userId</text>
+        <text x="260" y="242">summary · pushNext</text>
+        <text x="260" y="255">recurringGaps (JSON)</text>
+        <text x="260" y="268">attemptsAtUpdate · updatedAt</text>
+      </g>
+
+      <!-- attempts -->
+      <rect x="486" y="180" width="190" height="122" fill="#f4eef6" stroke="#5b2d6e" stroke-width="1.4"/>
+      <rect x="486" y="180" width="190" height="20" fill="#5b2d6e"/>
+      <text x="581" y="194" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#fff">attempts</text>
+      <g font-size="9.5">
+        <text x="494" y="213">PK  id</text>
+        <text x="494" y="226">FK  userId · trackId</text>
+        <text x="494" y="239">difficulty · scenarioText</text>
+        <text x="494" y="252">userResponse · score</text>
+        <text x="494" y="265">strengths · gaps · suggestion</text>
+        <text x="494" y="278">xpAwarded · source</text>
+        <text x="494" y="291">timestamp · localDate</text>
+      </g>
+
+      <!-- tracks -->
+      <rect x="500" y="26" width="162" height="76" fill="#f2f2f2" stroke="#444" stroke-width="1.4"/>
+      <rect x="500" y="26" width="162" height="20" fill="#444"/>
+      <text x="581" y="40" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#fff">tracks</text>
+      <g font-size="9.5">
+        <text x="508" y="59">PK  id</text>
+        <text x="508" y="72">name · description</text>
+        <text x="508" y="85">blurb · sortOrder</text>
+      </g>
+
+      <!-- relationships -->
+      <g stroke="#1f3864" stroke-width="1.3" fill="none">
+        <path d="M262,142 L150,142 L150,192" marker-end="url(#crow)"/>
+        <path d="M345,146 L345,192" marker-end="url(#crow)"/>
+        <path d="M452,110 L560,110 L560,176" marker-end="url(#crow)"/>
+        <path d="M600,106 L600,176" marker-end="url(#crow)"/>
+      </g>
+      <text x="160" y="176" font-size="9" font-style="italic">1 : N</text>
+      <text x="352" y="176" font-size="9" font-style="italic">1 : 1</text>
+      <text x="512" y="140" font-size="9" font-style="italic">1 : N</text>
+      <text x="606" y="146" font-size="9" font-style="italic">1 : N</text>
+    </svg>
+    <figcaption>Fig 4.3 — Entity-relationship diagram. The one-to-one cardinality between
+    <span class="mono">users</span> and <span class="mono">learner_context</span> reflects the design
+    decision that history is compressed into a single evolving record rather than accumulated.</figcaption>
+  </figure>
+
+  <table>
+    <caption>Table 4.2 — Database schema summary</caption>
+    <thead><tr><th style="width:20%">Relation</th><th style="width:14%">Cardinality</th><th>Design rationale</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">users</td><td>—</td><td>Merges credentials, stated profile, distilled portfolio and progression. Kept in one relation because every field is read together on dashboard load.</td></tr>
+      <tr><td class="mono">sessions</td><td>N per user</td><td>Server-side session records permit immediate revocation on logout, which a self-contained signed token would not.</td></tr>
+      <tr><td class="mono">tracks</td><td>3 rows, seeded</td><td>Normalised rather than enumerated in code so that track metadata is queryable and joinable.</td></tr>
+      <tr><td class="mono">attempts</td><td>N per user</td><td>Immutable append-only log. Retains the full scenario and response to permit later review and context regeneration.</td></tr>
+      <tr><td class="mono">learner_context</td><td>1 per user</td><td>Single mutable summary. Its size is bounded by construction, which is what makes prompt cost constant.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<section class="sheet">
+  <h2>4.4 Data-Flow Design</h2>
+
+  <figure>
+    <svg viewBox="0 0 680 300" width="640" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman">
+      <defs>
+        <marker id="ar3" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#333"/>
+        </marker>
+      </defs>
+
+      <rect x="10" y="120" width="86" height="46" fill="#f2f2f2" stroke="#000" stroke-width="1.3"/>
+      <text x="53" y="140" text-anchor="middle" font-size="10.5" font-weight="bold">Trainee</text>
+      <text x="53" y="155" text-anchor="middle" font-size="9">(external)</text>
+
+      <circle cx="196" cy="72" r="40" fill="#eef2f9" stroke="#1f3864" stroke-width="1.3"/>
+      <text x="196" y="68" text-anchor="middle" font-size="10">1.0 Manage</text>
+      <text x="196" y="81" text-anchor="middle" font-size="10">identity</text>
+
+      <circle cx="196" cy="196" r="40" fill="#fdf3e3" stroke="#8a5a13" stroke-width="1.3"/>
+      <text x="196" y="192" text-anchor="middle" font-size="10">2.0 Generate</text>
+      <text x="196" y="205" text-anchor="middle" font-size="10">scenario</text>
+
+      <circle cx="366" cy="196" r="40" fill="#fdf3e3" stroke="#8a5a13" stroke-width="1.3"/>
+      <text x="366" y="192" text-anchor="middle" font-size="10">3.0 Grade</text>
+      <text x="366" y="205" text-anchor="middle" font-size="10">response</text>
+
+      <circle cx="366" cy="72" r="40" fill="#eaf3ec" stroke="#1e5c33" stroke-width="1.3"/>
+      <text x="366" y="68" text-anchor="middle" font-size="10">4.0 Update</text>
+      <text x="366" y="81" text-anchor="middle" font-size="10">progression</text>
+
+      <circle cx="540" cy="134" r="42" fill="#f4eef6" stroke="#5b2d6e" stroke-width="1.3"/>
+      <text x="540" y="124" text-anchor="middle" font-size="10">5.0 Refresh</text>
+      <text x="540" y="137" text-anchor="middle" font-size="10">derived</text>
+      <text x="540" y="150" text-anchor="middle" font-size="10">context</text>
+
+      <!-- data stores -->
+      <g font-size="9.5">
+        <line x1="120" y1="258" x2="300" y2="258" stroke="#000" stroke-width="1.2"/>
+        <line x1="120" y1="280" x2="300" y2="280" stroke="#000" stroke-width="1.2"/>
+        <line x1="120" y1="258" x2="120" y2="280" stroke="#000" stroke-width="1.2"/>
+        <text x="128" y="273" font-size="9.5">D1 &nbsp;| &nbsp;users · sessions</text>
+
+        <line x1="360" y1="258" x2="560" y2="258" stroke="#000" stroke-width="1.2"/>
+        <line x1="360" y1="280" x2="560" y2="280" stroke="#000" stroke-width="1.2"/>
+        <line x1="360" y1="258" x2="360" y2="280" stroke="#000" stroke-width="1.2"/>
+        <text x="368" y="273" font-size="9.5">D2 &nbsp;| &nbsp;attempts · learner_context</text>
+      </g>
+
+      <g stroke="#333" stroke-width="1.1" marker-end="url(#ar3)" fill="none">
+        <path d="M96,132 L150,90"/>
+        <path d="M96,152 L152,182"/>
+        <path d="M236,196 L322,196"/>
+        <path d="M366,156 L366,116"/>
+        <path d="M404,168 L512,150"/>
+        <path d="M196,236 L196,254"/>
+        <path d="M366,236 L400,254"/>
+        <path d="M540,176 L500,254"/>
+        <path d="M330,60 L100,124"/>
+      </g>
+
+      <g font-size="8.5" font-style="italic" fill="#333">
+        <text x="112" y="100">credentials</text>
+        <text x="106" y="178">track</text>
+        <text x="252" y="190">response</text>
+        <text x="372" y="140">score</text>
+        <text x="440" y="150">attempt</text>
+        <text x="200" y="250">profile</text>
+        <text x="376" y="250">log</text>
+        <text x="510" y="220">summary</text>
+        <text x="196" y="42">XP · streak · feedback</text>
+      </g>
+    </svg>
+    <figcaption>Fig 4.4 — Level-1 data-flow diagram. Process 5.0 is asynchronous with respect to the
+    request path: it is triggered after the response has been returned to the trainee.</figcaption>
+  </figure>
+
+  <p>
+    The separation of process 5.0 from the request path is a deliberate performance decision. Context
+    regeneration requires an additional model call of comparable latency to grading itself. Executing
+    it synchronously would approximately double the perceived wait after every third submission. As
+    the summary is used only to condition <em>subsequent</em> generations, a summary that is one
+    cycle stale is harmless, whereas a doubled wait is directly felt. The refresh is therefore
+    dispatched after the HTTP response is written, and its failure is logged without affecting the
+    user-visible outcome.
+  </p>
+</section>
+
+
+<section class="sheet">
+  <h2>4.5 Quest Lifecycle — Sequence Design</h2>
+
+  <figure>
+    <svg viewBox="0 0 690 360" width="650" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman">
+      <defs>
+        <marker id="sa" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#1f3864"/>
+        </marker>
+        <marker id="sd" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#777"/>
+        </marker>
+      </defs>
+
+      <g font-size="10.5" font-weight="bold">
+        <rect x="14" y="12" width="88" height="26" fill="#eef2f9" stroke="#1f3864"/><text x="58" y="29" text-anchor="middle">Trainee</text>
+        <rect x="140" y="12" width="88" height="26" fill="#eef2f9" stroke="#1f3864"/><text x="184" y="29" text-anchor="middle">SPA</text>
+        <rect x="266" y="12" width="98" height="26" fill="#fdf3e3" stroke="#8a5a13"/><text x="315" y="29" text-anchor="middle">Express API</text>
+        <rect x="402" y="12" width="88" height="26" fill="#eaf3ec" stroke="#1e5c33"/><text x="446" y="29" text-anchor="middle">SQLite</text>
+        <rect x="528" y="12" width="140" height="26" fill="#f4eef6" stroke="#5b2d6e"/><text x="598" y="29" text-anchor="middle">Gemma 4 (OpenRouter)</text>
+      </g>
+
+      <g stroke="#999" stroke-width="0.9" stroke-dasharray="4 4">
+        <line x1="58" y1="38" x2="58" y2="352"/>
+        <line x1="184" y1="38" x2="184" y2="352"/>
+        <line x1="315" y1="38" x2="315" y2="352"/>
+        <line x1="446" y1="38" x2="446" y2="352"/>
+        <line x1="598" y1="38" x2="598" y2="352"/>
+      </g>
+
+      <g font-size="9" fill="#111">
+        <line x1="58" y1="58" x2="180" y2="58" stroke="#1f3864" stroke-width="1.1" marker-end="url(#sa)"/>
+        <text x="62" y="53">1. select track</text>
+
+        <line x1="184" y1="78" x2="311" y2="78" stroke="#1f3864" stroke-width="1.1" marker-end="url(#sa)"/>
+        <text x="188" y="73">2. POST /quest/generate</text>
+
+        <line x1="315" y1="98" x2="442" y2="98" stroke="#1f3864" stroke-width="1.1" marker-end="url(#sa)"/>
+        <text x="319" y="93">3. load profile, context, skill</text>
+
+        <line x1="442" y1="116" x2="319" y2="116" stroke="#777" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#sd)"/>
+
+        <line x1="315" y1="136" x2="594" y2="136" stroke="#1f3864" stroke-width="1.1" marker-end="url(#sa)"/>
+        <text x="319" y="131">4. composed prompt (bounded size)</text>
+
+        <line x1="594" y1="154" x2="319" y2="154" stroke="#777" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#sd)"/>
+        <text x="440" y="149" font-size="8.5" font-style="italic">scenario JSON</text>
+
+        <line x1="311" y1="174" x2="188" y2="174" stroke="#777" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#sd)"/>
+        <line x1="180" y1="192" x2="62" y2="192" stroke="#777" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#sd)"/>
+        <text x="66" y="187">5. render mission brief</text>
+
+        <line x1="58" y1="212" x2="180" y2="212" stroke="#1f3864" stroke-width="1.1" marker-end="url(#sa)"/>
+        <text x="62" y="207">6. submit written response</text>
+
+        <line x1="184" y1="232" x2="311" y2="232" stroke="#1f3864" stroke-width="1.1" marker-end="url(#sa)"/>
+        <text x="188" y="227">7. POST /quest/evaluate</text>
+
+        <line x1="315" y1="252" x2="594" y2="252" stroke="#1f3864" stroke-width="1.1" marker-end="url(#sa)"/>
+        <text x="319" y="247">8. rubric + response + context</text>
+
+        <line x1="594" y1="270" x2="319" y2="270" stroke="#777" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#sd)"/>
+        <text x="424" y="265" font-size="8.5" font-style="italic">score, strengths, gaps</text>
+
+        <line x1="315" y1="290" x2="442" y2="290" stroke="#1f3864" stroke-width="1.1" marker-end="url(#sa)"/>
+        <text x="319" y="285">9. persist attempt; update XP, streak (txn)</text>
+
+        <line x1="311" y1="310" x2="188" y2="310" stroke="#777" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#sd)"/>
+        <text x="192" y="305">10. result — UI animates optimistically</text>
+
+        <line x1="315" y1="336" x2="594" y2="336" stroke="#5b2d6e" stroke-width="1.1" stroke-dasharray="5 3" marker-end="url(#sa)"/>
+        <text x="319" y="331" fill="#5b2d6e">11. async: refresh context (every 3rd attempt)</text>
+      </g>
+    </svg>
+    <figcaption>Fig 4.5 — Sequence diagram for the quest lifecycle. Step 11 occurs after the
+    response of step 10 has been written, and is therefore outside the trainee's perceived latency.</figcaption>
+  </figure>
+
+  <p>
+    Step 9 executes inside a single SQLite transaction covering both the insertion of the attempt and
+    the mutation of the user's experience points, streak and longest-streak record. Were these
+    separate statements, an interruption between them could award experience without recording the
+    attempt that justified it, permanently corrupting the relationship between the attempt log and
+    the progression state.
+  </p>
+</section>
+
+
+<section class="sheet">
+  <h2>4.6 Personalisation Pipeline</h2>
+
+  <p>
+    Figure 4.6 shows the composition of the three personalisation signals. The essential property is
+    that each signal enters the prompt in a <em>bounded</em> form. The stated profile is a fixed
+    number of enumerated fields; the portfolio contributes at most six technologies and three
+    domains; the derived context is a summary constrained to sixty words with at most three
+    recurring-gap phrases. No component grows with usage.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 690 360" width="640" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman">
+      <defs>
+        <marker id="pa" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#1f3864"/>
+        </marker>
+      </defs>
+
+      <!-- sources -->
+      <rect x="10" y="16" width="176" height="82" rx="4" fill="#eef2f9" stroke="#1f3864" stroke-width="1.3"/>
+      <text x="98" y="34" text-anchor="middle" font-size="11" font-weight="bold">1. STATED PROFILE</text>
+      <text x="98" y="49" text-anchor="middle" font-size="9">8 fields · onboarding</text>
+      <text x="98" y="63" text-anchor="middle" font-size="9">year · branch · role · setting</text>
+      <text x="98" y="77" text-anchor="middle" font-size="9">experience · focus · confidence</text>
+      <text x="98" y="92" text-anchor="middle" font-size="8.5" font-style="italic">bounded: enumerated</text>
+
+      <rect x="10" y="120" width="176" height="82" rx="4" fill="#eaf3ec" stroke="#1e5c33" stroke-width="1.3"/>
+      <text x="98" y="138" text-anchor="middle" font-size="11" font-weight="bold">2. GITHUB PORTFOLIO</text>
+      <text x="98" y="153" text-anchor="middle" font-size="9">≤10 repos · forks excluded</text>
+      <text x="98" y="167" text-anchor="middle" font-size="9">≤5 READMEs · 1500 chars</text>
+      <text x="98" y="181" text-anchor="middle" font-size="9">→ stack (≤6) + domains (≤3)</text>
+      <text x="98" y="196" text-anchor="middle" font-size="8.5" font-style="italic">bounded: list length</text>
+
+      <rect x="10" y="224" width="176" height="94" rx="4" fill="#f4eef6" stroke="#5b2d6e" stroke-width="1.3"/>
+      <text x="98" y="242" text-anchor="middle" font-size="11" font-weight="bold">3. DERIVED CONTEXT</text>
+      <text x="98" y="257" text-anchor="middle" font-size="9">rewritten every 3 attempts</text>
+      <text x="98" y="271" text-anchor="middle" font-size="9">from a 6-attempt window</text>
+      <text x="98" y="285" text-anchor="middle" font-size="9">summary ≤60 words</text>
+      <text x="98" y="299" text-anchor="middle" font-size="9">+ ≤3 recurring gaps</text>
+      <text x="98" y="313" text-anchor="middle" font-size="8.5" font-style="italic">bounded: rewritten, not appended</text>
+
+      <!-- composer -->
+      <rect x="248" y="96" width="164" height="146" rx="4" fill="#fdf3e3" stroke="#8a5a13" stroke-width="1.5"/>
+      <text x="330" y="118" text-anchor="middle" font-size="11.5" font-weight="bold">PROMPT COMPOSER</text>
+      <text x="330" y="134" text-anchor="middle" font-size="9.5">prompts.js</text>
+      <line x1="262" y1="142" x2="398" y2="142" stroke="#8a5a13" stroke-width="0.8"/>
+      <text x="330" y="158" text-anchor="middle" font-size="9">track brief + difficulty band</text>
+      <text x="330" y="172" text-anchor="middle" font-size="9">+ background block</text>
+      <text x="330" y="186" text-anchor="middle" font-size="9">+ de-duplication list</text>
+      <text x="330" y="200" text-anchor="middle" font-size="9">+ anti-recitation rules</text>
+      <text x="330" y="220" text-anchor="middle" font-size="9" font-weight="bold">constant size</text>
+      <text x="330" y="233" text-anchor="middle" font-size="8.5" font-style="italic">independent of history</text>
+
+      <!-- model -->
+      <rect x="470" y="120" width="150" height="60" rx="4" fill="#f2f2f2" stroke="#333" stroke-width="1.3"/>
+      <text x="545" y="142" text-anchor="middle" font-size="11" font-weight="bold">Gemma 4 31B</text>
+      <text x="545" y="158" text-anchor="middle" font-size="9">via OpenRouter</text>
+      <text x="545" y="172" text-anchor="middle" font-size="8.5" font-style="italic">fallback: 26B</text>
+
+      <rect x="470" y="212" width="150" height="52" rx="4" fill="#fff" stroke="#333" stroke-width="1.3"/>
+      <text x="545" y="233" text-anchor="middle" font-size="10.5" font-weight="bold">Personalised scenario</text>
+      <text x="545" y="249" text-anchor="middle" font-size="9">2–4 sentences</text>
+
+      <!-- excluded -->
+      <rect x="248" y="272" width="372" height="46" rx="4" fill="#fff" stroke="#a33" stroke-width="1.3" stroke-dasharray="6 3"/>
+      <text x="434" y="290" text-anchor="middle" font-size="10" font-weight="bold" fill="#a33">EXCLUDED FROM PROMPT — free-text portfolio brief</text>
+      <text x="434" y="306" text-anchor="middle" font-size="9" fill="#a33">caused single-project anchoring (Section 6.6); retained for display only</text>
+
+      <g stroke="#1f3864" stroke-width="1.3" marker-end="url(#pa)" fill="none">
+        <path d="M188,57 L222,57 L222,140 L244,140"/>
+        <path d="M188,161 L244,161"/>
+        <path d="M188,268 L222,268 L222,186 L244,186"/>
+        <path d="M414,152 L466,150"/>
+        <path d="M545,182 L545,208"/>
+      </g>
+      <line x1="164" y1="204" x2="330" y2="270" stroke="#a33" stroke-width="1.1" stroke-dasharray="5 3"/>
+      <text x="228" y="248" font-size="8.5" font-style="italic" fill="#a33" transform="rotate(21 228 248)">brief only</text>
+    </svg>
+    <figcaption>Fig 4.6 — Multi-source personalisation pipeline. Each signal is bounded by
+    construction; the free-text portfolio brief is deliberately excluded from prompt input for the
+    reason established in Section 6.6.</figcaption>
+  </figure>
+</section>
+
+
+<!-- ============================================ CH 5 IMPLEMENTATION ===== -->
+<section class="sheet">
+  <h1 class="chapter">Chapter 5<br>Implementation</h1>
+
+  <h2>5.1 Authentication and Session Management</h2>
+
+  <p>
+    Passwords are protected using scrypt from the Node.js standard <code>crypto</code> module, with
+    parameters N = 16384, r = 8, p = 1 and a 64-byte derived key, each password receiving an
+    independent 16-byte random salt. Scrypt was selected over bcrypt for two reasons: it is
+    memory-hard, which raises the cost of parallel hardware attack more effectively than bcrypt's
+    purely CPU-bound work factor, and it is available in the platform standard library, which avoids
+    introducing a second native compilation step into a project that already required one for the
+    database driver. Comparison of the derived key against the stored value uses a constant-time
+    routine, preventing timing-based recovery.
+  </p>
+
+  <pre class="code">const SCRYPT = { N: 16384, r: 8, p: 1, keylen: 64 }
+
+export async function hashPassword(password) {
+  const salt = randomBytes(16)
+  const key  = await scryptAsync(password, salt, SCRYPT.keylen, SCRYPT)
+  return `scrypt$${SCRYPT.N}$${SCRYPT.r}$${SCRYPT.p}$` +
+         `${salt.toString('base64')}$${key.toString('base64')}`
+}</pre>
+
+  <p>
+    Storing the parameters alongside the digest means that the work factor can be raised in future
+    without invalidating existing credentials, since verification reads the parameters from the
+    stored record rather than assuming current constants.
+  </p>
+
+  <p>
+    Sessions use 32 bytes of cryptographically secure random data, transmitted in an HTTP-only cookie
+    with <code>SameSite=Lax</code> and a thirty-day expiry. Only the SHA-256 digest of the token is
+    persisted. This means that a disclosure of the database does not yield usable session tokens — an
+    attacker obtains digests from which the originals cannot be recovered. Expired records are purged
+    at process start. Login returns an identical error message and performs comparable work whether
+    or not the supplied email exists, so the endpoint cannot be used to enumerate registered
+    addresses.
+  </p>
+
+  <h2>5.2 Stated Profile Module</h2>
+
+  <p>
+    The eight profile fields are defined once, on the server, in <code>profile.js</code>. The client
+    retrieves these definitions at runtime rather than duplicating them. This eliminates a common
+    defect class in which validation rules and interface options diverge after a change. Each option
+    carries two strings: a <code>label</code> shown to the trainee, and a <code>prompt</code> phrase
+    used when constructing the model input. Separating them allows the interface to read naturally
+    while the model receives phrasing suited to generation.
+  </p>
+
+  <table>
+    <caption>Table 5.1 — Stated profile fields and their role in generation</caption>
+    <thead><tr><th style="width:22%">Field</th><th style="width:30%">Values</th><th>Effect on generated scenario</th></tr></thead>
+    <tbody>
+      <tr><td>Academic year</td><td>1st–2nd / 3rd / final / graduated</td><td>How much workplace familiarity the scenario may assume</td></tr>
+      <tr><td>Branch</td><td>CSE, ISE, ECE, EEE, Mechanical, Civil, other</td><td>Technical texture of the situation</td></tr>
+      <tr><td>Target role</td><td>SWE, Data/ML, Product, QA/DevOps, Core, undecided</td><td>Job family the situation is drawn from</td></tr>
+      <tr><td>Team experience</td><td>Projects only / internship / full-time</td><td>Whether team rituals may be assumed known</td></tr>
+      <tr><td>Work setting</td><td>Startup / product / service / any</td><td>Stakes, hierarchy and who is present</td></tr>
+      <tr><td>Difficulties</td><td>≤3 of 8 predefined</td><td>Weighted selection of situation type</td></tr>
+      <tr><td>Confidence</td><td>1–5 per track</td><td>Opening difficulty only; never affects score</td></tr>
+      <tr><td>Display name</td><td>Free text</td><td>Interface personalisation only</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    The final row of Table 5.1 records a deliberate constraint. Self-rated confidence influences only
+    the difficulty of the first scenario in a track, before any performance evidence exists. It is
+    never incorporated into the skill score or the Professional Readiness Score, because a
+    self-assessment is not a measurement, and permitting it to inflate a displayed competence figure
+    would undermine the metric.
+  </p>
+
+  <p>
+    Age is not collected. Academic year conveys everything age would convey for the purpose of
+    calibrating scenario difficulty, and personal data that does not alter system output is not
+    retained.
+  </p>
+</section>
+
+
+<section class="sheet">
+  <h2>5.3 GitHub Portfolio Distiller</h2>
+
+  <p>
+    The distiller retrieves the account profile and repository listing, filters to owned repositories
+    that are neither forks nor archived, orders by star count and recency, and retains at most ten.
+    For the five strongest it additionally retrieves the README, strips fenced code blocks, badge
+    images and HTML markup, and truncates to 1500 characters. The resulting corpus is passed once to
+    the model, which returns a short brief, a technology list of at most six entries, a domain list of
+    at most three, and a coarse level estimate.
+  </p>
+
+  <p>
+    Two filtering decisions warrant justification. <strong>Forks are excluded</strong> because a
+    forked tutorial repository is not evidence of authorship; including forks would characterise many
+    students by material they did not write. <strong>READMEs are treated as enrichment rather than as
+    the primary signal</strong>, with automatically generated scaffolding readmes detected and
+    discarded. This is contrary to the intuitive approach of reading documentation first, and follows
+    from an observation about the target population: a large proportion of student repositories
+    contain either a single-line README or an unmodified framework template. Repository language,
+    description, topics and recency are almost always present, and therefore lead. A README-first
+    design would perform well on a well-documented account and return nothing usable on a typical
+    one.
+  </p>
+
+  <p>
+    Failure conditions are distinguished rather than collapsed: a malformed username is rejected
+    before any network call; a non-existent account, an account with no owned public repositories,
+    and API rate limiting each produce a distinct message. Should the distillation model call fail,
+    the linkage is <em>not</em> persisted — an unlinked account is preferable to a stored portfolio
+    that was never actually derived.
+  </p>
+
+  <h2>5.4 Derived Learner Context</h2>
+
+  <p>
+    The derived context is the mechanism by which the system improves with use. Rather than
+    accumulating attempts, the model is periodically asked to rewrite a description of the trainee
+    from a recent window plus the previous description. Refresh occurs when three attempts have
+    accumulated since the last update; the window is the six most recent attempts. The output is
+    constrained to a summary of at most sixty words, at most three recurring-gap phrases of at most
+    eight words each, and a single clause identifying what the next scenario should force the trainee
+    to confront.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 660 250" width="620" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman">
+      <defs>
+        <marker id="ca" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#5b2d6e"/>
+        </marker>
+      </defs>
+
+      <!-- axis -->
+      <line x1="52" y1="196" x2="632" y2="196" stroke="#000" stroke-width="1.2"/>
+      <line x1="52" y1="196" x2="52" y2="34" stroke="#000" stroke-width="1.2"/>
+      <text x="342" y="228" text-anchor="middle" font-size="10.5">Attempts completed</text>
+      <text x="20" y="118" text-anchor="middle" font-size="10.5" transform="rotate(-90 20 118)">Prompt tokens</text>
+
+      <!-- naive growth -->
+      <path d="M52,190 L632,48" fill="none" stroke="#a33" stroke-width="1.8" stroke-dasharray="7 4"/>
+      <text x="512" y="66" font-size="10" fill="#a33" font-weight="bold">Full-history injection</text>
+      <text x="512" y="80" font-size="9" fill="#a33">grows without bound</text>
+
+      <!-- bounded -->
+      <path d="M52,158 L632,158" fill="none" stroke="#1e5c33" stroke-width="2"/>
+      <text x="470" y="150" font-size="10" fill="#1e5c33" font-weight="bold">Knack — rewritten summary</text>
+      <text x="470" y="176" font-size="9" fill="#1e5c33">constant, independent of history</text>
+
+      <!-- refresh ticks -->
+      <g stroke="#5b2d6e" stroke-width="1.2" marker-end="url(#ca)">
+        <line x1="140" y1="188" x2="140" y2="164"/>
+        <line x1="228" y1="188" x2="228" y2="164"/>
+        <line x1="316" y1="188" x2="316" y2="164"/>
+        <line x1="404" y1="188" x2="404" y2="164"/>
+        <line x1="492" y1="188" x2="492" y2="164"/>
+        <line x1="580" y1="188" x2="580" y2="164"/>
+      </g>
+      <g font-size="9" fill="#5b2d6e" text-anchor="middle">
+        <text x="140" y="210">3</text><text x="228" y="210">6</text><text x="316" y="210">9</text>
+        <text x="404" y="210">12</text><text x="492" y="210">15</text><text x="580" y="210">18</text>
+      </g>
+      <text x="342" y="42" text-anchor="middle" font-size="9.5" font-style="italic" fill="#5b2d6e">
+        ↑ summary rewritten from the trailing 6-attempt window
+      </text>
+    </svg>
+    <figcaption>Fig 5.1 — Derived context refresh cycle. Prompt size remains constant because the
+    summary is rewritten in place rather than appended to.</figcaption>
+  </figure>
+
+  <p>
+    The summarisation prompt requires behavioural specificity, instructing that “gives timelines but
+    never explains the cause of a delay” is useful whereas “needs improvement” is not, and that only
+    patterns occurring more than once may be reported as recurring. The resulting summary is injected
+    into both scenario generation and grading. In grading it enables the model to identify repetition
+    explicitly; the prompt states that where a previously flagged weakness recurs, saying so plainly
+    is more useful than treating it as novel, and equally that a corrected weakness should be
+    acknowledged. Section 6.5 reports the observed behaviour.
+  </p>
+</section>
+
+
+<section class="sheet">
+  <h2>5.5 Prompt Engineering and Anti-Recitation</h2>
+
+  <p>
+    Personalisation introduces a failure mode that does not arise in unpersonalised generation. When
+    a model is supplied with a description of the reader, it tends to restate that description in its
+    output. Early scenarios began “As a final-year Computer Science student aiming for a software
+    role, you…”, which is both unnatural and pedagogically useless: the trainee is placed outside the
+    situation and asked to observe themselves rather than to act.
+  </p>
+
+  <p>
+    The mitigation is an explicit statement of the role the background plays, positioned after the
+    generation rules where the model's attention is nearest to output:
+  </p>
+
+  <pre class="code">CRITICAL — how to use the background above:
+It decides the SETTING, who else is in the room, how senior they are, and what
+is at stake. It is NOT part of the scenario. Never state or hint at the
+trainee's year of study, branch, career goal, confidence, or past performance.
+Do not open with "As a final-year student" or anything like it. Write the
+situation as it would actually be experienced, from inside it.</pre>
+
+  <p>
+    A second constraint governs technology. The model may use one technology from the derived stack
+    to make the situation concrete, must vary which one it selects across generations, and must
+    invent a fresh product or feature each time. It is forbidden from naming the trainee's
+    repositories or describing their personal projects back to them. The final clause is a
+    proportionality instruction — the track concerns a human problem, and technology is texture
+    rather than substance.
+  </p>
+
+  <p>
+    De-duplication operates on two lists. Completed attempts for the track are read from the database,
+    and scenarios that were generated but never answered are held in a bounded in-memory structure of
+    six entries per trainee and track. The second list exists because a trainee who repeatedly
+    requests a different scenario generates nothing persistent; without it, the de-duplication input
+    is empty and near-identical scenarios are returned. The structure is intentionally not persisted,
+    as it is a generation hint rather than data of record, and the map itself is capped to prevent
+    unbounded growth in a long-running process.
+  </p>
+
+  <h2>5.6 Gamification Engine</h2>
+
+  <table>
+    <caption>Table 5.2 — Gamification rule set</caption>
+    <thead><tr><th style="width:26%">Mechanic</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td>Experience points</td><td>score × 10, plus 5 bonus at a streak of 3 or more days, or 10 at 7 or more</td></tr>
+      <tr><td>Levels</td><td>Novice 0–150 · Intermediate 150–400 · Advanced 400–800 · Expert 800+</td></tr>
+      <tr><td>Daily streak</td><td>Increments once per calendar day on which at least one quest is completed; resets to zero after a full missed day</td></tr>
+      <tr><td>Streak at risk</td><td>Displayed after 18:00 local time when the day's quest is incomplete; a passive visual state, not a notification</td></tr>
+      <tr><td>Per-track skill</td><td>Mean of the five most recent scores in that track, scaled to 0–100</td></tr>
+      <tr><td>Trend</td><td>Mean of the newer half of the window minus the mean of the older half</td></tr>
+      <tr><td>Difficulty</td><td>Below 45 easy · 45–74 medium · 75 and above hard; adjusted one band by trend magnitude of 1.0 or more</td></tr>
+      <tr><td>Readiness score</td><td>Arithmetic mean of the three track scores; an untouched track contributes zero</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    The readiness definition is deliberately unforgiving. A trainee with a score of 90 in one track
+    and no attempts in the others receives a readiness of 30. This is intended: professional
+    readiness is a claim about breadth, and a metric that could be maximised by repeating the most
+    comfortable track would reward avoidance of the trainee's actual weaknesses.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 620 168" width="580" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman">
+      <defs>
+        <marker id="da" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#8a5a13"/>
+        </marker>
+      </defs>
+      <rect x="34" y="58" width="120" height="52" rx="26" fill="#eaf3ec" stroke="#1e5c33" stroke-width="1.5"/>
+      <text x="94" y="80" text-anchor="middle" font-size="12" font-weight="bold">EASY</text>
+      <text x="94" y="96" text-anchor="middle" font-size="9">skill &lt; 45</text>
+
+      <rect x="246" y="58" width="128" height="52" rx="26" fill="#fdf3e3" stroke="#8a5a13" stroke-width="1.5"/>
+      <text x="310" y="80" text-anchor="middle" font-size="12" font-weight="bold">MEDIUM</text>
+      <text x="310" y="96" text-anchor="middle" font-size="9">45 ≤ skill &lt; 75</text>
+
+      <rect x="466" y="58" width="120" height="52" rx="26" fill="#f4eef6" stroke="#5b2d6e" stroke-width="1.5"/>
+      <text x="526" y="80" text-anchor="middle" font-size="12" font-weight="bold">HARD</text>
+      <text x="526" y="96" text-anchor="middle" font-size="9">skill ≥ 75</text>
+
+      <g stroke="#8a5a13" stroke-width="1.4" fill="none" marker-end="url(#da)">
+        <path d="M156,74 L242,74"/>
+        <path d="M376,74 L462,74"/>
+        <path d="M462,96 L376,96"/>
+        <path d="M242,96 L158,96"/>
+      </g>
+      <text x="199" y="66" text-anchor="middle" font-size="9">trend ≥ +1.0</text>
+      <text x="419" y="66" text-anchor="middle" font-size="9">trend ≥ +1.0</text>
+      <text x="419" y="112" text-anchor="middle" font-size="9">trend ≤ −1.0</text>
+      <text x="199" y="112" text-anchor="middle" font-size="9">trend ≤ −1.0</text>
+
+      <text x="310" y="30" text-anchor="middle" font-size="10" font-style="italic">
+        Entry band on a fresh track is seeded by self-rated confidence (≥4 → medium, otherwise easy)
+      </text>
+      <text x="310" y="146" text-anchor="middle" font-size="10" font-style="italic">
+        Band is recomputed on every generation from the rolling window; transitions are single-step
+      </text>
+    </svg>
+    <figcaption>Fig 5.2 — Adaptive difficulty state transitions. Single-step movement prevents
+    oscillation between extremes after one unrepresentative score.</figcaption>
+  </figure>
+</section>
+
+
+<section class="sheet">
+  <h2>5.7 Resilience: Fallback Chain and Offline Bank</h2>
+
+  <p>
+    The free inference tier is served from a shared upstream pool and returns HTTP 429 under load;
+    this was observed repeatedly during development and is a normal operating condition rather than
+    an exceptional one. Three mechanisms are layered in response.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 660 292" width="610" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman">
+      <defs>
+        <marker id="fa" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#333"/>
+        </marker>
+      </defs>
+
+      <rect x="238" y="10" width="176" height="34" rx="4" fill="#f2f2f2" stroke="#333" stroke-width="1.3"/>
+      <text x="326" y="32" text-anchor="middle" font-size="10.5" font-weight="bold">Request scenario / grading</text>
+
+      <polygon points="326,60 452,96 326,132 200,96" fill="#eef2f9" stroke="#1f3864" stroke-width="1.3"/>
+      <text x="326" y="92" text-anchor="middle" font-size="10">Primary model 31B</text>
+      <text x="326" y="106" text-anchor="middle" font-size="9.5">succeeds?</text>
+
+      <polygon points="326,148 452,184 326,220 200,184" fill="#fdf3e3" stroke="#8a5a13" stroke-width="1.3"/>
+      <text x="326" y="180" text-anchor="middle" font-size="10">Fallback model 26B</text>
+      <text x="326" y="194" text-anchor="middle" font-size="9.5">succeeds?</text>
+
+      <rect x="238" y="240" width="176" height="42" rx="4" fill="#f4eef6" stroke="#5b2d6e" stroke-width="1.3"/>
+      <text x="326" y="258" text-anchor="middle" font-size="10">Offline bank + rubric</text>
+      <text x="326" y="273" text-anchor="middle" font-size="9">labelled in the interface</text>
+
+      <rect x="492" y="76" width="150" height="42" rx="4" fill="#eaf3ec" stroke="#1e5c33" stroke-width="1.3"/>
+      <text x="567" y="94" text-anchor="middle" font-size="10">Return, tagged</text>
+      <text x="567" y="109" text-anchor="middle" font-size="9.5" font-style="italic">source: "ai"</text>
+
+      <rect x="492" y="164" width="150" height="42" rx="4" fill="#eaf3ec" stroke="#1e5c33" stroke-width="1.3"/>
+      <text x="567" y="182" text-anchor="middle" font-size="10">Return, tagged</text>
+      <text x="567" y="197" text-anchor="middle" font-size="9.5" font-style="italic">source: "ai"</text>
+
+      <rect x="22" y="76" width="150" height="56" rx="4" fill="#fff" stroke="#666" stroke-width="1.1" stroke-dasharray="5 3"/>
+      <text x="97" y="94" text-anchor="middle" font-size="9.5">3 attempts</text>
+      <text x="97" y="108" text-anchor="middle" font-size="9.5">exponential backoff</text>
+      <text x="97" y="122" text-anchor="middle" font-size="9.5">on 408/429/5xx</text>
+
+      <g stroke="#333" stroke-width="1.2" fill="none" marker-end="url(#fa)">
+        <path d="M326,44 L326,58"/>
+        <path d="M452,96 L488,96"/>
+        <path d="M326,132 L326,146"/>
+        <path d="M452,184 L488,184"/>
+        <path d="M326,220 L326,236"/>
+        <path d="M200,96 L176,100"/>
+      </g>
+      <text x="466" y="90" font-size="9">yes</text>
+      <text x="336" y="143" font-size="9">no</text>
+      <text x="466" y="178" font-size="9">yes</text>
+      <text x="336" y="233" font-size="9">no</text>
+    </svg>
+    <figcaption>Fig 5.3 — Inference resilience. Every returned artefact carries a
+    <span class="mono">source</span> tag so that degraded output is never presented as model output.</figcaption>
+  </figure>
+
+  <p>
+    First, transient status codes (408, 429 and 5xx) trigger up to three retries with increasing
+    delay. Second, exhausting retries advances to the next model in a configured chain. Third, if all
+    models fail, a local bank of eighteen hand-written scenarios — three tracks by three difficulty
+    bands, two scenarios each — supplies content, and a deterministic rubric supplies a score.
+  </p>
+
+  <p>
+    The deterministic rubric is bounded above at seven, and its response text states plainly that the
+    model was unreachable and the score should be treated as approximate. This honesty is deliberate.
+    The rubric rewards length, the presence of a concrete detail such as a number or date, evidence of
+    a verification step, and use of first-person commitment language. These are proxies, and, as noted
+    in Section 2.2, proxies of exactly the kind that a verbose but empty response can exploit.
+    Presenting such a score as equivalent to model assessment would misrepresent it, so the interface
+    labels every offline result explicitly.
+  </p>
+
+  <div class="box">
+    <p>
+      <strong>Honest scope of the resilience claim.</strong> The system degrades gracefully; it does
+      not achieve full independence from the inference provider. With eighteen stored scenarios, a
+      trainee who continues through an extended outage will encounter repetition, and the offline
+      score is a heuristic rather than an assessment. The claim supported by the implementation is
+      that a rate-limit event does not interrupt a session — not that the system is equivalent when
+      offline.
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================== CH 6 TESTING ========== -->
+<section class="sheet">
+  <h1 class="chapter">Chapter 6<br>Testing and Results</h1>
+
+  <h2>6.1 Test Strategy</h2>
+
+  <p>
+    Testing addressed four questions. Does each functional requirement behave as specified? Does the
+    grader distinguish response quality, or does it reward any plausible-looking text? Does
+    substituting the personalisation inputs materially change generated output? Does the derived
+    context identify a genuine behavioural pattern and act on it? Functional behaviour was verified
+    against the running service through its HTTP interface; the remaining three were assessed by
+    constructing controlled trainee profiles and comparing outputs.
+  </p>
+
+  <h2>6.2 Functional Test Cases</h2>
+
+  <table>
+    <caption>Table 6.1 — Functional test cases and observed outcomes</caption>
+    <thead>
+      <tr><th style="width:8%" class="num">ID</th><th style="width:32%">Test condition</th><th style="width:28%">Expected</th><th style="width:22%">Observed</th><th style="width:10%" class="num">Result</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="num">T-01</td><td>Access protected resource without session</td><td>HTTP 401</td><td>HTTP 401</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-02</td><td>Register with a 5-character password</td><td>Rejected with reason</td><td>“Password must be at least 8 characters.”</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-03</td><td>Register with an existing email</td><td>HTTP 409</td><td>“An account with that email already exists.”</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-04</td><td>Request a quest before onboarding</td><td>HTTP 403</td><td>“Finish onboarding first.”</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-05</td><td>Submit an out-of-range profile value</td><td>Rejected by validation</td><td>Field-specific error returned</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-06</td><td>Log out, then reuse the session cookie</td><td>HTTP 401</td><td>HTTP 401</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-07</td><td>Log in with an incorrect password</td><td>HTTP 401, no disclosure</td><td>Identical message to unknown email</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-08</td><td>Account B reads data while account A has attempts</td><td>Zero attempts visible</td><td>B: 0 quests; A: 4 quests</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-09</td><td>Second quest completed on the same day</td><td>Streak held, not doubled</td><td>Streak 1, event “held”</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-10</td><td>Cross a level threshold</td><td>Level-up returned</td><td>145 → 205 XP; “Intermediate” returned</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-11</td><td>Link a non-existent GitHub account</td><td>Distinct error</td><td>“No GitHub account with that username.”</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-12</td><td>Link a malformed username</td><td>Rejected before network call</td><td>Format error returned</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-13</td><td>Primary model returns HTTP 429</td><td>Fallback model used</td><td>Served by 26B, tagged <span class="mono">source: ai</span></td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-14</td><td>All models unreachable</td><td>Offline bank, labelled</td><td>Tagged <span class="mono">source: offline</span>; UI labelled</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-15</td><td>Session established over a LAN address</td><td>Cookie persists</td><td>Session retained across requests</td><td class="num">Pass</td></tr>
+      <tr><td class="num">T-16</td><td>Three successive regeneration requests</td><td>No near-duplicates</td><td>Three distinct situations</td><td class="num">Pass</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<section class="sheet">
+  <h2>6.3 Grader Calibration</h2>
+
+  <p>
+    Calibration was assessed by submitting responses of deliberately differing quality to comparable
+    scenarios. A considered response — one that acknowledged the constraint, proposed a specific
+    alternative with a named date, and offered the recipient a choice — received 9/10. A dismissive
+    single sentence (“I would just fix it and tell them it is done.”) received 1/10 against a
+    comparable scenario. A superficially courteous but substantively empty response, asserting the
+    importance of communication without committing to any action, received 2–3/10 and was described
+    as “describing your intent to communicate rather than providing the actual technical
+    justification”.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 600 210" width="540" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman">
+      <line x1="130" y1="176" x2="560" y2="176" stroke="#000" stroke-width="1.2"/>
+      <line x1="130" y1="176" x2="130" y2="24" stroke="#000" stroke-width="1.2"/>
+      <g font-size="9" text-anchor="end" fill="#333">
+        <text x="125" y="180">0</text><text x="125" y="149">2</text><text x="125" y="118">4</text>
+        <text x="125" y="87">6</text><text x="125" y="56">8</text><text x="125" y="30">10</text>
+      </g>
+      <g stroke="#ddd" stroke-width="0.6">
+        <line x1="130" y1="145" x2="560" y2="145"/><line x1="130" y1="114" x2="560" y2="114"/>
+        <line x1="130" y1="83" x2="560" y2="83"/><line x1="130" y1="52" x2="560" y2="52"/>
+      </g>
+
+      <rect x="168" y="161" width="72" height="15" fill="#c0504d" stroke="#7d3330"/>
+      <text x="204" y="156" text-anchor="middle" font-size="10" font-weight="bold">1</text>
+      <text x="204" y="192" text-anchor="middle" font-size="9">Dismissive</text>
+      <text x="204" y="203" text-anchor="middle" font-size="9">one-liner</text>
+
+      <rect x="272" y="145" width="72" height="31" fill="#d99694" stroke="#7d3330"/>
+      <text x="308" y="140" text-anchor="middle" font-size="10" font-weight="bold">2</text>
+      <text x="308" y="192" text-anchor="middle" font-size="9">Polite but</text>
+      <text x="308" y="203" text-anchor="middle" font-size="9">non-committal</text>
+
+      <rect x="376" y="83" width="72" height="93" fill="#9bbb59" stroke="#4f6228"/>
+      <text x="412" y="78" text-anchor="middle" font-size="10" font-weight="bold">6</text>
+      <text x="412" y="192" text-anchor="middle" font-size="9">Reasonable,</text>
+      <text x="412" y="203" text-anchor="middle" font-size="9">some specifics</text>
+
+      <rect x="480" y="37" width="72" height="139" fill="#4f81bd" stroke="#1f3864"/>
+      <text x="516" y="32" text-anchor="middle" font-size="10" font-weight="bold">9</text>
+      <text x="516" y="192" text-anchor="middle" font-size="9">Specific, offers</text>
+      <text x="516" y="203" text-anchor="middle" font-size="9">a real choice</text>
+
+      <text x="24" y="100" font-size="10" transform="rotate(-90 24 100)" text-anchor="middle">Score awarded (1–10)</text>
+    </svg>
+    <figcaption>Fig 6.1 — Grader score separation across four response qualities submitted to
+    comparable scenarios. The eight-point spread indicates the rubric is discriminating rather than
+    uniformly lenient.</figcaption>
+  </figure>
+
+  <p>
+    The eight-point spread between the strongest and weakest response is the material result. A
+    grader that clustered all responses between 6 and 8 would render the skill score meaningless and
+    the adaptive difficulty inoperative, since both derive from score variance.
+  </p>
+
+  <h2>6.4 Personalisation Effectiveness</h2>
+
+  <p>
+    Two synthetic profiles were constructed differing in every stated field, and the same track was
+    requested from each. Table 6.2 reproduces the outputs.
+  </p>
+
+  <table>
+    <caption>Table 6.2 — Scenario output under substituted profiles, same track</caption>
+    <thead><tr><th style="width:20%">Profile</th><th>Generated scenario (abridged)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Final year · CSE · software engineering · startup · struggles with disagreeing with seniors</td>
+        <td>“Your senior developer, Rohan, just reviewed your pull request for the <strong>payment gateway integration</strong> and left comments suggesting a complete rewrite of your error-handling logic. He is sitting at the desk next to you and asks if you think his approach is better.”</td>
+      </tr>
+      <tr>
+        <td>First year · ECE · core engineering · service company · struggles with speaking up</td>
+        <td>“Your team lead, Rajesh, points out a calculation error in your <strong>PCB layout for the NexGen sensor project</strong> during a sprint review. He mentions that this error could delay the prototype fabrication by three days.”</td>
+      </tr>
+      <tr>
+        <td>As above, with GitHub linked (embedded / computer-vision repositories)</td>
+        <td>“Your team lead, Rohan, wants to bypass the unit tests for the new <strong>TensorFlow Lite model deployment</strong> to meet tomorrow's release deadline. You noticed the recent latency metrics show a significant performance drop on low-power hardware.”</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Three observations follow. The work setting is reflected structurally, not merely lexically: the
+    startup profile places the senior colleague at an adjacent desk, consistent with the prompt
+    phrasing that describes a small organisation where everyone is reachable, whereas the service
+    profile places the exchange in a formal sprint review. The branch and target role determine the
+    technical domain, producing a hardware defect for the electronics profile and a code review for
+    the software profile. The stated difficulty is honoured — the first profile, which reported
+    difficulty disagreeing with seniors, received a scenario whose entire tension is a senior asking
+    for agreement. In all cases the recitation check passed: no scenario referenced the trainee's
+    year, branch or stated goals.
+  </p>
+</section>
+
+
+<section class="sheet">
+  <h2>6.5 Derived Context Validation</h2>
+
+  <p>
+    The derived context was validated by planting a deliberate behavioural pattern. Three consecutive
+    attempts across two tracks were answered with variations of the same evasive response, asserting
+    the value of communication without committing to any concrete action. After the third attempt the
+    refresh cycle produced:
+  </p>
+
+  <div class="box">
+    <p>
+      <em>Summary:</em> “The trainee demonstrates a positive attitude toward teamwork and
+      communication. However, they consistently provide vague, non-committal responses that avoid
+      addressing specific technical conflicts or underlying risks. They tend to describe their intent
+      to communicate rather than providing concrete actions, technical justifications, or specific
+      dialogue to resolve issues.”
+    </p>
+    <p>
+      <em>Recurring gaps:</em> [“avoids addressing technical conflicts”, “provides vague
+      non-committal responses”]
+    </p>
+    <p>
+      <em>Push next:</em> “provide specific technical justifications and concrete action steps”
+    </p>
+  </div>
+
+  <p>
+    The summary correctly identifies the planted pattern and distinguishes it from a superficial
+    reading — it notes the positive intent while naming the behavioural deficiency precisely. The
+    subsequent test submitted the same evasive response a fourth time. The grader responded:
+  </p>
+
+  <div class="box">
+    <p>
+      “<strong>This is the same gap as last time</strong>; you are describing your intent to
+      communicate rather than providing the actual technical justification or concrete next steps
+      required to resolve the conflict.”
+    </p>
+  </div>
+
+  <p>
+    This completes the intended loop. The system observed a pattern across attempts, compressed it
+    into a bounded representation, carried it forward, and used it to produce feedback that a
+    stateless grader could not have produced. It is the behaviour that distinguishes the system from
+    one which merely adjusts a difficulty parameter.
+  </p>
+
+  <h2>6.6 Observed Failure Mode and Remediation</h2>
+
+  <p>
+    Testing of the GitHub feature revealed a defect that had not been anticipated. With a portfolio
+    linked, two independently generated scenarios for the same track were returned:
+  </p>
+
+  <div class="box">
+    <p>
+      (a) “…bypass the sensor calibration tests to meet the <strong>Friday deployment deadline</strong>
+      for the <strong>waste management</strong> prototype…”
+    </p>
+    <p>
+      (b) “…bypass the TensorFlow Lite optimisation phase to meet the <strong>Friday deployment
+      deadline</strong> for the <strong>waste management</strong> sensor…”
+    </p>
+  </div>
+
+  <p>
+    The two are near-identical in subject, deadline and structure. The cause was traced to the
+    free-text portfolio brief, which named a specific project — an edge-AI waste management system —
+    and which was being supplied to the generation prompt. Given a single concrete subject, the model
+    anchored on it and produced variations of one situation rather than exploring the space.
+  </p>
+
+  <p>
+    The remediation separates the brief by purpose. It is retained for display, where naming a real
+    project is precisely what makes the derived portfolio legible and verifiable to the trainee. It
+    is removed from prompt input, which now receives only the bounded technology and domain lists.
+    These provide equivalent technical concreteness while offering no single subject on which to
+    fixate. An instruction to vary the technology selected and invent a fresh product each time was
+    added in the same change. Three subsequent generations produced distinct situations — a
+    TensorFlow Lite unit-test dispute, an Arduino IoT gateway threshold argument, and a TypeScript
+    schema shortcut on an Astro dashboard — with different colleagues and different seniority in
+    each.
+  </p>
+
+  <p>
+    The episode is reported rather than omitted because it illustrates a general property of
+    prompt-conditioned personalisation: the value of a signal to a human reader and its suitability
+    as model input are independent questions. The most informative summary for a person was the most
+    harmful input for the generator.
+  </p>
+</section>
+
+
+<section class="sheet">
+  <h2>6.7 Threats to Validity</h2>
+
+  <p>
+    The results above establish that the implemented mechanisms behave as designed. They do not
+    establish that the system improves soft-skill competence, and the following constraints on
+    interpretation are stated explicitly.
+  </p>
+
+  <h3>6.7.1 Construct Validity</h3>
+  <p>
+    Assessment is performed by a single model instance with no independent second grader. Agreement
+    with expert human raters has not been measured, so it cannot be asserted that a score of 7
+    corresponds to what an experienced engineering manager would assign. The demonstrated property is
+    <em>discrimination</em> — that clearly different response qualities receive clearly different
+    scores — which is weaker than validity but is the necessary precondition for it.
+  </p>
+
+  <h3>6.7.2 Internal Validity</h3>
+  <p>
+    Generation is stochastic. The scenario comparisons in Table 6.2 are single samples per condition,
+    and some differences between them may reflect sampling variation rather than the profile
+    substitution. The differences observed are large and systematic — a hardware defect against a
+    code review — which makes chance an unlikely explanation, but a controlled study would require
+    repeated sampling per condition and blind classification of outputs.
+  </p>
+
+  <h3>6.7.3 External Validity</h3>
+  <p>
+    Profiles used in testing were synthetic and constructed by the authors. Real trainees may report
+    profiles inconsistently, may not possess a GitHub account with usable content, or may produce
+    responses in registers not represented in testing. No longitudinal deployment was conducted, so
+    retention and learning outcomes are unmeasured.
+  </p>
+
+  <h3>6.7.4 Operational Constraints</h3>
+  <p>
+    Three implementation constraints bound the deployment claim. Streak computation uses the server's
+    local calendar date, which is correct for the intended single-host deployment but would require
+    per-user timezone handling in a hosted multi-region deployment. The unauthenticated GitHub API
+    permits sixty requests per hour and a single profile synchronisation consumes approximately
+    seven, which is adequate for individual use but not for concurrent classroom use without a
+    configured access token. Finally, the offline bank's eighteen scenarios bound the duration of an
+    outage that can be absorbed without repetition.
+  </p>
+</section>
+
+
+<!-- ============================================== CH 7 CONCLUSION ======= -->
+<section class="sheet">
+  <h1 class="chapter">Chapter 7<br>Conclusion and Future Enhancements</h1>
+
+  <h2>7.1 Conclusion</h2>
+
+  <p>
+    This work set out to determine whether soft-skill training could be made genuinely individual
+    rather than merely automated, and whether that individualisation could be sustained without the
+    inference cost growing with use. Both questions are answered affirmatively by the delivered
+    system.
+  </p>
+
+  <p>
+    Personalisation was achieved by combining three independent signals — a stated profile, a
+    distilled public code portfolio, and a derived behavioural context — each represented in a form
+    whose size is fixed by construction. Substituting these inputs produces materially different
+    scenarios: an electronics student targeting core engineering receives a printed-circuit-board
+    defect raised in a sprint review, while a computer science student targeting a startup receives a
+    pull-request disagreement with a colleague at the adjacent desk. The grader discriminates across
+    an eight-point range between considered and evasive responses, which is the precondition for the
+    skill score and adaptive difficulty to carry information.
+  </p>
+
+  <p>
+    The most substantive contribution is the derived context mechanism. By rewriting a bounded
+    summary every three attempts rather than accumulating history, the system carries forward what it
+    has learned about a trainee at constant cost. Its effect is directly observable: after a
+    deliberately planted pattern of evasive responses, the system identified the behaviour, recorded
+    it, and produced feedback that opened “this is the same gap as last time”. A stateless
+    implementation cannot produce that sentence, and it is the sentence a human mentor would say.
+  </p>
+
+  <p>
+    Equally instructive was a defect encountered during evaluation. Supplying the model with a
+    free-text summary naming a specific project caused it to anchor, generating variations of one
+    situation. The resolution — retaining the summary for human display while restricting model input
+    to bounded category lists — reflects a principle worth carrying forward: the representation best
+    suited to informing a person is not necessarily the representation best suited to conditioning a
+    generator, and conflating the two degrades output in ways that are not obvious until measured.
+  </p>
+
+  <p>
+    The system's limitations are known and documented. Assessment rests on a single unvalidated
+    grader; evaluation used synthetic profiles rather than a student cohort; and the offline mode
+    degrades gracefully without being equivalent. These bound what may be claimed, and are stated so
+    that the claims made are defensible.
+  </p>
+
+  <h2>7.2 Future Enhancements</h2>
+
+  <ol>
+    <li>
+      <strong>Grader validation against human raters.</strong> The highest-value next step. Collecting
+      expert ratings for a corpus of responses and measuring agreement would convert the
+      discrimination result of Section 6.3 into a validity claim, and would identify systematic bias
+      in specific score bands.
+    </li>
+    <li>
+      <strong>Second-opinion grading.</strong> Sampling two independent gradings and reconciling
+      divergence beyond a threshold would reduce variance, at roughly double the inference cost per
+      submission.
+    </li>
+    <li>
+      <strong>Spoken-response track.</strong> Group discussions and interviews are spoken. Adding
+      speech capture with transcription would extend the system to the modality in which placement
+      assessment actually occurs.
+    </li>
+    <li>
+      <strong>Expanded offline bank with procedural variation.</strong> Parameterising the stored
+      scenarios over names, technologies and deadlines would raise the effective offline capacity
+      substantially without proportionate authoring effort.
+    </li>
+    <li>
+      <strong>Achievement badges and a skill-tree visualisation.</strong> Deferred from the present
+      scope; both are compatible with the existing progression model. Leaderboards remain
+      deliberately excluded for the reason given in Section 2.4.
+    </li>
+    <li>
+      <strong>Instructor view.</strong> An aggregate, anonymised view of common weaknesses across a
+      class would let a department identify which competencies to address in teaching, converting
+      individual practice data into curricular signal.
+    </li>
+    <li>
+      <strong>Account recovery and native mobile clients.</strong> Email verification and password
+      reset are prerequisites for deployment beyond a controlled setting; the interface is already
+      responsive, so a wrapped or native mobile client is an incremental rather than architectural
+      change.
+    </li>
+  </ol>
+</section>
+
+
+<!-- ================================================== REFERENCES ======== -->
+<section class="sheet">
+  <h1 class="chapter">References</h1>
+
+  <ol style="font-size:11.5pt; line-height:1.5;">
+    <li>
+      Team Gemma, “Gemma 3 Technical Report,” Google DeepMind, 2025.
+      [Online]. Available: https://storage.googleapis.com/deepmind-media/gemma/Gemma3Report.pdf
+    </li>
+    <li>
+      OpenRouter, “API Reference and Model Routing Documentation,” 2026.
+      [Online]. Available: https://openrouter.ai/docs
+    </li>
+    <li>
+      C. Percival and S. Josefsson, “The scrypt Password-Based Key Derivation Function,”
+      RFC 7914, Internet Engineering Task Force, Aug. 2016.
+    </li>
+    <li>
+      Open Worldwide Application Security Project, “Password Storage Cheat Sheet,” OWASP Cheat Sheet
+      Series, 2025. [Online]. Available: https://cheatsheetseries.owasp.org
+    </li>
+    <li>
+      S. Deterding, D. Dixon, R. Khaled and L. Nacke, “From Game Design Elements to Gamefulness:
+      Defining Gamification,” in <em>Proc. 15th Int. Academic MindTrek Conf.</em>, 2011, pp. 9–15.
+    </li>
+    <li>
+      E. L. Deci, R. Koestner and R. M. Ryan, “A Meta-Analytic Review of Experiments Examining the
+      Effects of Extrinsic Rewards on Intrinsic Motivation,” <em>Psychological Bulletin</em>,
+      vol. 125, no. 6, pp. 627–668, 1999.
+    </li>
+    <li>
+      B. J. Fogg, “A Behavior Model for Persuasive Design,” in <em>Proc. 4th Int. Conf. on
+      Persuasive Technology</em>, 2009, Art. 40.
+    </li>
+    <li>
+      L. Zheng et al., “Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena,” in
+      <em>Advances in Neural Information Processing Systems 36</em>, 2023.
+    </li>
+    <li>
+      M. Shermis and J. Burstein, Eds., <em>Handbook of Automated Essay Evaluation: Current
+      Applications and New Directions</em>. New York: Routledge, 2013.
+    </li>
+    <li>
+      P. Lewis et al., “Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks,” in
+      <em>Advances in Neural Information Processing Systems 33</em>, 2020, pp. 9459–9474.
+    </li>
+    <li>
+      GitHub, “REST API Documentation — Repositories and Contents,” 2026.
+      [Online]. Available: https://docs.github.com/en/rest
+    </li>
+    <li>
+      SQLite Consortium, “Write-Ahead Logging,” SQLite Documentation, 2025.
+      [Online]. Available: https://www.sqlite.org/wal.html
+    </li>
+    <li>
+      Meta Open Source, “React 19 Documentation,” 2025.
+      [Online]. Available: https://react.dev
+    </li>
+    <li>
+      OpenJS Foundation, “Express 5.x API Reference,” 2025.
+      [Online]. Available: https://expressjs.com/en/5x/api.html
+    </li>
+    <li>
+      World Wide Web Consortium, “Web Content Accessibility Guidelines (WCAG) 2.2,”
+      W3C Recommendation, Oct. 2023.
+    </li>
+  </ol>
+
+  <div style="margin-top:34pt; border-top:1px solid #000; padding-top:10pt; font-size:11pt;">
+    <p style="margin-bottom:4pt;"><strong>Project source repository</strong></p>
+    <p style="margin:0;" class="mono">https://github.com/ishaaqdev/Knack</p>
+  </div>
+</section>
+
+</body>
+</html>
