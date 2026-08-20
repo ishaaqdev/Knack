@@ -12,7 +12,7 @@ import { authRouter } from './routes/auth.js'
 import { questRouter } from './routes/quest.js'
 import { userRouter } from './routes/user.js'
 import { historyRouter } from './routes/history.js'
-import { health } from './ai.js'
+import { health, rateLimitStatus } from './ai.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -31,7 +31,9 @@ app.use('/api/auth', authRouter)
 app.use('/api/quest', questRouter)
 app.use('/api/user', userRouter)
 app.use('/api/history', historyRouter)
-app.get('/api/health', async (_req, res) => res.json({ ok: true, ai: await health() }))
+app.get('/api/health', async (_req, res) =>
+  res.json({ ok: true, ai: await health(), rateLimit: rateLimitStatus() })
+)
 
 // Production single-port mode: `npm run build` then `npm start` serves the SPA
 // and the API from http://localhost:5174.

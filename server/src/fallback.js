@@ -1,137 +1,159 @@
 /**
  * Offline safety net.
  *
- * Free-tier Gemma is served from a shared upstream pool and does return 429s
- * under load. Rather than let a demo die mid-viva, the app degrades to a local
- * scenario bank and a deterministic rubric. Anything produced here is tagged
- * `source: "offline"` and the UI labels it — it is never passed off as AI output.
+ * The free tier enforces an account-wide 20-requests-per-minute cap, so the
+ * offline path is not a rare edge case — during a demo it may serve a large
+ * share of scenarios. The original bank held eighteen fixed strings, two per
+ * (track, difficulty), which produced visible verbatim repeats after the second
+ * request in a band.
+ *
+ * It is now procedural: templates are combined with the same shape axes the AI
+ * path uses, so the offline mode inherits the same variety instead of cycling.
  */
 
-const BANK = {
-  'workplace-communication': {
-    easy: [
-      {
-        scenario:
-          'Your teammate Rahul asked you to review his pull request three days ago and you still have not opened it. He just pinged you again on Slack, this time with a "?" and nothing else. Standup is in twenty minutes.',
-        prompt: 'Write the Slack reply you would send Rahul.',
-      },
-      {
-        scenario:
-          'You are two days into a five-day task and you have realised the API you were told to use does not support bulk uploads. Your lead, Sneha, is about to leave for a client call. You catch her at her desk.',
-        prompt: 'Write what you say to Sneha in that moment.',
-      },
-    ],
-    medium: [
-      {
-        scenario:
-          'In sprint planning, a senior developer named Arun dismisses your suggestion to add retry logic with "we have never needed it in four years." You have seen three timeout errors in the logs this week. Four other people are in the room.',
-        prompt: 'Write how you respond to Arun.',
-      },
-      {
-        scenario:
-          'A product manager, Divya, asks in a group channel why the login fix is not deployed yet. The real reason is that a teammate pushed a broken migration and is still fixing it. Naming him publicly would not go down well.',
-        prompt: 'Write your reply in the channel.',
-      },
-    ],
-    hard: [
-      {
-        scenario:
-          'A client on a video call says your team promised a feature by Friday. You were never told about that commitment, and building it properly needs two weeks. Your manager is on the call and has just gone quiet. The client is waiting for you specifically.',
-        prompt: 'Write what you say next on that call.',
-      },
-      {
-        scenario:
-          'Your teammate Karthik has been quietly shipping code you know he does not understand — he cannot explain it in review. He is on probation and a bad report would likely end his contract. Your lead asks you directly: "Is Karthik ready to own the payments module?"',
-        prompt: 'Write your answer to your lead.',
-      },
-    ],
-  },
-  'critical-thinking': {
-    easy: [
-      {
-        scenario:
-          'A user reports the dashboard is "loading slowly." Your monitoring shows the average page load is 400ms, which is well within target. The user is a paying customer and your lead has forwarded you the ticket.',
-        prompt: 'Write how you would approach this.',
-      },
-      {
-        scenario:
-          'A stakeholder asks for a CSV export button on the reports page. When you check the analytics, the reports page had eleven visits last month, all from the same internal account.',
-        prompt: 'Write what you would do before building it.',
-      },
-    ],
-    medium: [
-      {
-        scenario:
-          'Two dashboards disagree: the analytics tool says signups grew 22% last month, the database query you wrote says they fell 4%. Marketing has already put the 22% figure in a deck for tomorrow morning.',
-        prompt: 'Write how you would resolve this before tomorrow.',
-      },
-      {
-        scenario:
-          'Your team is choosing between two caching approaches. The benchmark favouring option A was run by the engineer who proposed it, on his own laptop, with a dataset one-tenth of production size. Nobody has questioned it.',
-        prompt: 'Write what you raise and how.',
-      },
-    ],
-    hard: [
-      {
-        scenario:
-          'Checkout failures rose from 0.2% to 1.1% after a release last Tuesday. That release contained fourteen merged PRs. A payment provider also had a partial outage that week, and traffic was up 30% from a campaign. Your lead wants a root cause by end of day.',
-        prompt: 'Write how you would narrow this down.',
-      },
-      {
-        scenario:
-          'A churn model your team built recommends dropping a customer segment that looks unprofitable. The model was trained on eighteen months of data, but pricing changed nine months ago. Leadership is ready to act on it this quarter.',
-        prompt: 'Write the case you would make.',
-      },
-    ],
-  },
-  'ai-fluency': {
-    easy: [
-      {
-        scenario:
-          'An AI assistant writes you a working-looking Python function that calls pandas.read_json_lines(). It runs in your head but you have never seen that method before. The deadline is in an hour.',
-        prompt: 'Write what you do before committing this.',
-      },
-      {
-        scenario:
-          'You ask an AI to summarise a 40-page compliance document. The summary is clear, confident, and includes a specific clause number you need to cite in an email to your manager today.',
-        prompt: 'Write your next step and why.',
-      },
-    ],
-    medium: [
-      {
-        scenario:
-          'A teammate, Meera, opens a PR with 300 lines of AI-generated code. In review she cannot explain why one function retries three times. The tests pass and the sprint ends tomorrow.',
-        prompt: 'Write your review comment to Meera.',
-      },
-      {
-        scenario:
-          'You are writing your project report and an AI gives you three academic citations that perfectly support your argument. Two of the paper titles return nothing on Google Scholar. Submission is in two days.',
-        prompt: 'Write what you do about the citations.',
-      },
-    ],
-    hard: [
-      {
-        scenario:
-          'Your team wants to ship an AI feature that answers customer questions from your docs. In testing it is right about 90% of the time and confidently wrong the rest, usually on refund policy. Leadership sees 90% as a pass and wants it live next week.',
-        prompt: 'Write the position you take and how you argue it.',
-      },
-      {
-        scenario:
-          'An AI tool your company adopted has quietly been writing most of a junior engineer\'s output for four months. His code passes review. He has just been recommended for a promotion, and your lead asks what you think.',
-        prompt: 'Write your response to your lead.',
-      },
-    ],
-  },
+import { sampleShape } from './variation.js'
+
+const SYSTEMS = [
+  'the checkout service', 'the notification worker', 'the onboarding flow',
+  'the reporting dashboard', 'the authentication service', 'the payments webhook',
+  'the search index', 'the mobile sync job', 'the billing export',
+  'the image processing pipeline', 'the referral module', 'the audit log',
+]
+
+const ARTEFACTS = [
+  'a migration script', 'a caching layer', 'a retry policy', 'a rate limiter',
+  'an input validation rule', 'a background job', 'a feature flag', 'a webhook handler',
+]
+
+const pickFrom = (list, n) => list[Math.abs(n) % list.length]
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
+
+/**
+ * Each template receives the sampled shape, so the counterpart, medium, moment
+ * and pressure vary exactly as they do on the AI path.
+ */
+const TEMPLATES = {
+  'workplace-communication': [
+    (s, sys) => ({
+      scenario: `${s.name}, ${s.counterpart.role}, has asked you twice about ${sys} and you have not replied yet. The message is sitting in ${s.medium} and ${s.pressure}.`,
+      prompt: `Write what you send ${s.name}.`,
+    }),
+    (s, sys, art) => ({
+      scenario: `You shipped ${art} to ${sys} last week and it has caused a problem nobody has noticed yet. ${s.name}, ${s.counterpart.role}, is the person it will land on. You have to raise it in ${s.medium}, and ${s.pressure}.`,
+      prompt: `Write how you tell ${s.name}.`,
+    }),
+    (s, sys) => ({
+      scenario: `${s.name}, ${s.counterpart.role}, wants you to take on rebuilding ${sys} on top of what you already have. Saying yes means something else slips. The conversation is happening in ${s.medium} and ${s.pressure}.`,
+      prompt: `Write your reply to ${s.name}.`,
+    }),
+    (s, sys) => ({
+      scenario: `In ${s.medium}, ${s.name} — ${s.counterpart.role} — criticised your work on ${sys} in a way you think is only partly fair. Others saw it. ${cap(s.pressure)}.`,
+      prompt: `Write how you respond to ${s.name}.`,
+    }),
+    (s, sys) => ({
+      scenario: `A decision has already been made to ship ${sys} on Friday and you disagree with it. ${s.name}, ${s.counterpart.role}, made that call. You get one chance to say something in ${s.medium}, and ${s.pressure}.`,
+      prompt: `Write what you say to ${s.name}.`,
+    }),
+    (s, sys) => ({
+      scenario: `${s.name}, ${s.counterpart.role}, is asking you to commit to a delivery date for ${sys}. You genuinely do not know whether it is two days or two weeks. They want the answer now, in ${s.medium}, and ${s.pressure}.`,
+      prompt: `Write your answer to ${s.name}.`,
+    }),
+  ],
+
+  'critical-thinking': [
+    (s, sys) => ({
+      scenario: `${s.name}, ${s.counterpart.role}, reports that ${sys} is broken for everyone. Your metrics show error rates unchanged from last week. They raised it in ${s.medium} and ${s.pressure}.`,
+      prompt: `Write how you would approach this.`,
+    }),
+    (s, sys, art) => ({
+      scenario: `${s.name}, ${s.counterpart.role}, is proposing ${art} for ${sys}, citing a benchmark they ran themselves on a dataset far smaller than production. Nobody has questioned it. ${cap(s.pressure)}.`,
+      prompt: `Write what you raise, and how.`,
+    }),
+    (s, sys) => ({
+      scenario: `Two dashboards disagree about ${sys}: one shows usage rising, your own query shows it falling. ${s.name}, ${s.counterpart.role}, has already quoted the rising figure in ${s.medium}. ${cap(s.pressure)}.`,
+      prompt: `Write how you would resolve this.`,
+    }),
+    (s, sys) => ({
+      scenario: `A request has come in to add a feature to ${sys}. The stated reason does not match what the usage data shows. ${s.name}, ${s.counterpart.role}, is the one asking, in ${s.medium}, and ${s.pressure}.`,
+      prompt: `Write what you would do before building it.`,
+    }),
+    (s, sys) => ({
+      scenario: `Failures in ${sys} rose sharply after a release containing eleven merged changes. A third-party provider also had an outage that week, and traffic was up from a campaign. ${s.name}, ${s.counterpart.role}, wants a cause, and ${s.pressure}.`,
+      prompt: `Write how you would narrow this down.`,
+    }),
+    (s, sys, art) => ({
+      scenario: `You have to choose between ${art} and a simpler alternative for ${sys}. The evidence you have does not clearly favour either. ${s.name}, ${s.counterpart.role}, is waiting on your recommendation in ${s.medium}, and ${s.pressure}.`,
+      prompt: `Write your recommendation and your reasoning.`,
+    }),
+  ],
+
+  'ai-fluency': [
+    (s, sys) => ({
+      scenario: `An AI assistant has written you a working-looking function for ${sys} that calls a library method you have never seen documented. ${s.name}, ${s.counterpart.role}, is waiting on the change, and ${s.pressure}.`,
+      prompt: `Write what you do before committing it.`,
+    }),
+    (s, sys) => ({
+      scenario: `${s.name}, ${s.counterpart.role}, has opened a large change to ${sys} that was clearly AI-generated. In ${s.medium} they cannot explain why one part retries three times. The tests pass, and ${s.pressure}.`,
+      prompt: `Write your review comment to ${s.name}.`,
+    }),
+    (s, sys) => ({
+      scenario: `You asked an AI to summarise the incident history for ${sys}. The summary is confident and includes a specific figure you are about to repeat to ${s.name}, ${s.counterpart.role}, in ${s.medium}. ${cap(s.pressure)}.`,
+      prompt: `Write your next step and why.`,
+    }),
+    (s, sys) => ({
+      scenario: `A generated report about ${sys} cites three sources supporting your argument. Two of them return nothing when you search for them. ${s.name}, ${s.counterpart.role}, expects the report in ${s.medium}, and ${s.pressure}.`,
+      prompt: `Write what you do about the citations.`,
+    }),
+    (s, sys) => ({
+      scenario: `Your team wants to let an AI answer customer questions about ${sys}. In testing it is right most of the time and confidently wrong the rest, usually on refunds. ${s.name}, ${s.counterpart.role}, considers that acceptable, and ${s.pressure}.`,
+      prompt: `Write the position you take.`,
+    }),
+    (s, sys) => ({
+      scenario: `${s.name}, ${s.counterpart.role}, asks you in ${s.medium} whether an AI tool should be allowed to change ${sys} without human review. You can see arguments both ways, and ${s.pressure}.`,
+      prompt: `Write your answer to ${s.name}.`,
+    }),
+  ],
 }
 
-export function FALLBACK_SCENARIOS(trackId, difficulty, avoid = []) {
-  const pool = BANK[trackId]?.[difficulty] ?? BANK['workplace-communication'].easy
-  const seen = new Set(avoid.map((a) => a.slice(0, 60)))
-  const fresh = pool.filter((p) => !seen.has(p.scenario.slice(0, 60)))
-  const list = fresh.length ? fresh : pool
-  const pick = list[Math.floor(Math.random() * list.length)]
-  return { scenarioText: pick.scenario, taskPrompt: pick.prompt }
+/** Harder bands get a second complication appended. */
+const COMPLICATION = {
+  easy: '',
+  medium: ' Someone else on the team has already given a different answer.',
+  hard: ' Whatever you decide, one of the people involved loses something, and it will be visible to everyone.',
 }
+
+let counter = 0
+
+export function FALLBACK_SCENARIOS(trackId, difficulty, avoid = []) {
+  const templates = TEMPLATES[trackId] ?? TEMPLATES['workplace-communication']
+
+  // Walk forward until we produce something not recently served. The space is
+  // large enough that this terminates almost immediately.
+  for (let tries = 0; tries < 24; tries++) {
+    const n = counter++
+    const built = templates[n % templates.length](
+      sampleShape(n, {}, { singularOnly: true }),
+      pickFrom(SYSTEMS, n * 3),
+      pickFrom(ARTEFACTS, n * 5)
+    )
+    const scenarioText = built.scenario + (COMPLICATION[difficulty] ?? '')
+
+    if (!avoid.some((a) => a.slice(0, 60) === scenarioText.slice(0, 60))) {
+      return { scenarioText, taskPrompt: built.prompt }
+    }
+  }
+
+  const n = counter++
+  const built = templates[n % templates.length](
+    sampleShape(n, {}, { singularOnly: true }),
+    pickFrom(SYSTEMS, n),
+    pickFrom(ARTEFACTS, n)
+  )
+  return { scenarioText: built.scenario, taskPrompt: built.prompt }
+}
+
+/** Distinct offline scenarios reachable per track. Quoted in the report. */
+export const OFFLINE_SPACE = 6 * SYSTEMS.length * ARTEFACTS.length
 
 /**
  * Deterministic rubric used only when the model is unreachable. It rewards
@@ -180,6 +202,6 @@ export function heuristicEvaluation({ track, userResponse }) {
       'Try the "situation → what I will do → by when" shape. One sentence each, with a real name and a real date in it.',
     feedback: `${strengths} ${gaps}`,
     offlineNote:
-      'The AI model was unreachable, so this was scored by a local rubric — treat it as rough, not a real evaluation.',
+      'The AI model was rate-limited, so this was scored by a local rubric — treat it as rough, not a real evaluation.',
   }
 }

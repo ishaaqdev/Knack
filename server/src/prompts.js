@@ -1,3 +1,5 @@
+import { shapeBlock } from './variation.js'
+
 /**
  * Prompt templates live here so they can be tuned without touching route logic.
  *
@@ -89,7 +91,7 @@ function contextBlock({ profile, learner, portfolio }) {
   return parts.join('\n') + '\n'
 }
 
-export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner, portfolio }) {
+export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner, portfolio, shape }) {
   const t = TRACK_BRIEF[track.id]
   const avoidBlock = avoid.length
     ? `\nDo NOT reuse these situations — the trainee has already seen them:\n${avoid
@@ -98,6 +100,9 @@ export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner
     : ''
 
   const personalised = contextBlock({ profile, learner, portfolio })
+  const shaped = shape ? `
+${shapeBlock(shape)}
+` : ''
 
   return `You write short training scenarios for a soft-skills app used by
 engineering students in India who are about to start their first job.
@@ -106,7 +111,7 @@ TRACK: ${track.name} — ${t.focus}
 DIFFICULTY: ${DIFFICULTY_BRIEF[difficulty]}
 ${personalised}
 Write ONE realistic workplace scenario drawn from this space: ${t.situations}.
-${avoidBlock}
+${shaped}${avoidBlock}
 RULES
 - 2 to 4 sentences. Under 70 words. No preamble, no title.
 - Second person ("You are...", "Your team lead...").
@@ -122,6 +127,10 @@ at stake. It is NOT part of the scenario. Never state or hint at the trainee's
 year of study, branch, career goal, confidence, or past performance. Do not open
 with "As a final-year student" or anything like it. Write the situation as it
 would actually be experienced, from inside it.
+
+The five shape requirements above are not suggestions. Use that person, that
+place, that moment and that pressure. Do NOT default to a team lead asking for a
+shortcut before a deadline — that shape is overused and will be rejected.
 
 If technologies they know are listed, you may use ONE of them to make the
 scenario concrete — a real stack beats "the system". Vary which one you pick and

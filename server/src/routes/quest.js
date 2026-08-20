@@ -4,6 +4,7 @@ import { generateScenario, evaluateResponse } from '../ai.js'
 import { requireOnboarded } from '../auth.js'
 import { profileBrief, portfolioBrief } from '../profile.js'
 import { contextBrief, maybeRefresh } from '../context.js'
+import { sampleShape } from '../variation.js'
 import {
   levelFor,
   xpFor,
@@ -36,16 +37,28 @@ const recentScenarios = db.prepare(
 const justServed = new Map()
 const SERVED_MAX = 6
 
-function rememberServed(userId, trackId, text) {
-  const key = `${userId}:${trackId}`
-  const list = justServed.get(key) ?? []
-  list.unshift(text)
-  justServed.set(key, list.slice(0, SERVED_MAX))
-  // Bound the map itself so a long-lived server cannot grow unbounded.
+const key = (userId, trackId) => `${userId}:${trackId}`
+
+function servedState(userId, trackId) {
+  return justServed.get(key(userId, trackId)) ?? { texts: [], turns: 0, lastRole: null, lastName: null }
+}
+
+function rememberServed(userId, trackId, text, shape) {
+  const st = servedState(userId, trackId)
+  st.texts = [text, ...st.texts].slice(0, SERVED_MAX)
+  st.turns += 1
+  st.lastRole = shape?.counterpart?.role ?? null
+  st.lastName = shape?.name ?? null
+  justServed.set(key(userId, trackId), st)
+  // Bound the map so a long-lived server cannot grow without limit.
   if (justServed.size > 500) justServed.delete(justServed.keys().next().value)
 }
 
-const recentlyServed = (userId, trackId) => justServed.get(`${userId}:${trackId}`) ?? []
+const recentlyServed = (userId, trackId) => servedState(userId, trackId).texts
+
+const trackAttemptCount = db.prepare(
+  'SELECT COUNT(*) AS n FROM attempts WHERE userId = ? AND trackId = ?'
+)
 
 const insertAttempt = db.prepare(`
   INSERT INTO attempts
@@ -79,16 +92,25 @@ questRouter.post('/generate', async (req, res, next) => {
       ...recentScenarios.all(user.id, track.id).map((r) => r.scenarioText),
     ].slice(0, 8)
 
+    // The shape counter continues across restarts by seeding from completed
+    // attempts, so a returning trainee does not restart the rotation.
+    const st = servedState(user.id, track.id)
+    const shape = sampleShape(
+      trackAttemptCount.get(user.id, track.id).n + st.turns,
+      { role: st.lastRole, name: st.lastName }
+    )
+
     const quest = await generateScenario({
       track,
       difficulty,
       avoid,
+      shape,
       profile: profileBrief(user),
       learner: contextBrief(user.id),
       portfolio: portfolioBrief(user),
     })
 
-    rememberServed(user.id, track.id, quest.scenarioText)
+    rememberServed(user.id, track.id, quest.scenarioText, shape)
 
     res.json({
       ...quest,
