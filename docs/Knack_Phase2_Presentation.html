@@ -1,0 +1,1056 @@
+<!doctype html>
+<!--
+  ============================================================================
+  KNACK — PHASE 2 (IMPLEMENTATION STAGE) PRESENTATION
+  BGS College of Engineering & Technology · Dept. of ISE · AY 2025-26
+  Continues the Phase 1 template: blue side bar, Calibri headings,
+  Times New Roman body, plain bulleted slides.
+  ============================================================================
+
+  EXPORT
+    Chrome or Edge -> Ctrl+P -> Save as PDF
+    Layout LANDSCAPE · Paper A4 · Margins NONE · Scale 100%
+    TICK "Background graphics"    (the blue bar disappears without it)
+    UNTICK "Headers and footers"
+
+  TWO THINGS TO DROP IN BEFORE 24/08
+  ----------------------------------
+  1. COLLEGE HEADER on slide 1
+     Phase 1 has the Jai Sri Gurudev / BGSCET banner with the two portraits
+     and the crest. Crop that strip out of the Phase 1 PPT (or screenshot it
+     from the PDF), save as:   docs/assets/bgscet-header.png
+     Slide 1 already points at it and falls back to plain text if missing.
+
+  2. REAL SCREENSHOTS on slide 20
+     The phone frames are recreations from the real design tokens, not
+     captures. The circular asks for actual implementation, so replace them:
+       a. http://localhost:5173 in Chrome
+       b. F12 -> Ctrl+Shift+M -> "iPhone 12 Pro"
+       c. Ctrl+Shift+P -> "Capture screenshot"
+       d. Save into docs/screenshots/
+       e. Replace each .scr block with <img src="screenshots/name.png">
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Knack — Phase 2 Presentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#4472C4;
+  --deep:#1F3864;
+  --ink:#000000;
+  --grey:#595959;
+  --line:#000000;
+  --o:#FF7A35;          /* only inside app screenshots */
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{background:#B8B8B8;font-family:'Times New Roman',Times,serif;}
+
+/* 4:3, same shape as the Phase 1 deck */
+.sl{
+  width:1024px;height:768px;background:#fff;margin:0 auto 16px;position:relative;
+  padding:34px 52px 40px 104px;overflow:hidden;
+}
+.sl::before{content:'';position:absolute;left:0;top:0;bottom:0;width:56px;background:var(--blue);}
+
+@media screen{ body{padding:16px 0;} .sl{box-shadow:0 2px 10px rgba(0,0,0,.3);} }
+
+@page{ size:A4 landscape; margin:0; }
+@media print{
+  body{background:#fff;padding:0;}
+  .sl{width:264mm;height:198mm;margin:6mm auto;box-shadow:none;page-break-after:always;
+      padding:9mm 13mm 10mm 27mm;}
+  .sl::before{width:14mm;}
+  .sl:last-child{page-break-after:auto;}
+  .no-print{display:none;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+
+h1{
+  font-family:'Carlito',Calibri,'Segoe UI',sans-serif;font-weight:400;
+  font-size:38px;color:var(--ink);text-align:center;margin-bottom:26px;letter-spacing:.01em;
+}
+h1.sm{font-size:32px;}
+
+ul{list-style:none;}
+li{
+  font-size:22px;line-height:1.42;margin-bottom:19px;padding-left:30px;position:relative;
+  text-align:left;
+}
+li::before{content:'\25CF';position:absolute;left:2px;top:0;font-size:16px;color:var(--ink);}
+li.dash::before{content:'\2022';font-size:24px;left:4px;top:-2px;}
+li b,li strong{font-weight:bold;}
+li ul{margin-top:10px;}
+li ul li{font-size:20px;margin-bottom:9px;}
+
+p.lead{font-size:22px;line-height:1.42;margin-bottom:18px;}
+p.note{font-size:19px;line-height:1.4;color:var(--grey);margin-top:14px;}
+.small{font-size:18px;line-height:1.4;}
+
+table{width:100%;border-collapse:collapse;font-size:17px;}
+th,td{border:1px solid var(--line);padding:7px 9px;vertical-align:top;line-height:1.32;text-align:left;}
+th{font-weight:bold;font-size:18px;}
+td.c,th.c{text-align:center;}
+table.tight th,table.tight td{padding:5px 8px;font-size:15.5px;}
+
+.figwrap{text-align:center;margin-top:6px;}
+svg{max-width:100%;height:auto;}
+.figcap{font-size:16px;font-style:italic;color:var(--grey);margin-top:8px;text-align:center;}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:30px;}
+.two h3,.three h3{font-family:'Carlito',Calibri,sans-serif;font-size:21px;font-weight:700;margin-bottom:10px;}
+
+/* ---------------------------- title slide -------------------------- */
+.tt{text-align:center;}
+.tt .hdrimg{max-width:660px;margin:0 auto 14px;display:block;}
+.tt .hdrtxt{font-family:'Carlito',Calibri,sans-serif;line-height:1.35;margin-bottom:16px;}
+.tt .dept{font-family:'Carlito',Calibri,sans-serif;font-size:27px;font-weight:700;margin-top:26px;}
+.tt .ph{font-family:'Carlito',Calibri,sans-serif;font-size:26px;font-weight:700;color:var(--deep);margin-top:16px;}
+.tt .ay{font-family:'Carlito',Calibri,sans-serif;font-size:23px;font-weight:700;color:var(--deep);margin-top:12px;}
+.tt .name{font-family:'Carlito',Calibri,sans-serif;font-size:25px;font-weight:700;color:var(--deep);margin-top:14px;}
+.tt .who{display:flex;justify-content:space-between;margin-top:52px;text-align:left;
+         font-family:'Carlito',Calibri,sans-serif;font-size:21px;line-height:1.5;}
+
+/* ---------------------------- phone frames ------------------------- */
+.phones{display:flex;gap:20px;justify-content:center;margin-top:4px;}
+.ph2{width:172px;}
+.dev{border:2px solid #000;background:#000;padding-top:10px;position:relative;}
+.dev::before{content:'';position:absolute;top:4px;left:50%;transform:translateX(-50%);
+             width:34px;height:3px;background:#3C3C3C;}
+.scr{background:#0E0E10;color:#F2F0EC;height:300px;overflow:hidden;padding:8px;
+     font-family:Arial,Helvetica,sans-serif;font-size:7px;line-height:1.4;position:relative;}
+.scr img{width:100%;height:100%;object-fit:cover;object-position:top;}
+.ph2 .cap{text-align:center;font-size:16px;margin-top:9px;font-family:'Carlito',Calibri,sans-serif;}
+
+.sh{display:flex;align-items:center;gap:4px;border-bottom:1px solid #26262D;padding-bottom:6px;margin-bottom:8px;}
+.sav{width:13px;height:13px;border:1px solid #26262D;color:#9A9AA5;font-size:5px;display:flex;align-items:center;justify-content:center;}
+.sbr{font-weight:bold;font-size:8px;}
+.ssp{flex:1;}
+.sxp{font-weight:bold;font-size:8px;}
+.sxp i{color:#63636E;font-style:normal;font-size:6px;}
+.sfl{color:#FF7A35;font-weight:bold;font-size:8px;}
+.sh1{font-weight:bold;font-size:10.5px;margin:2px 0 6px;}
+.ssub{color:#9A9AA5;font-size:6.5px;margin-bottom:8px;line-height:1.4;}
+.sc{border:1px solid #1F1F25;background:#16161A;padding:7px;margin-bottom:6px;}
+.slb{font-size:5.5px;letter-spacing:.1em;color:#63636E;margin-bottom:3px;}
+.sbtn{background:#FF7A35;color:#160C05;text-align:center;padding:6px;font-weight:bold;font-size:7.5px;margin-top:6px;}
+.sbtn.g{background:transparent;border:1px solid #26262D;color:#9A9AA5;}
+.sbar{height:3px;background:#26262D;margin-top:4px;}
+.sbar i{display:block;height:3px;background:#FF7A35;}
+.srow{display:flex;justify-content:space-between;font-size:7px;margin-bottom:3px;}
+.snav{position:absolute;left:0;right:0;bottom:0;border-top:1px solid #26262D;background:#0E0E10;display:flex;padding:5px 0;}
+.snav div{flex:1;text-align:center;font-size:6px;color:#63636E;}
+.snav div.on{color:#FF7A35;}
+.spill{border:1px solid #26262D;padding:1px 5px;font-size:6px;color:#9A9AA5;}
+.sbrief{border-left:2px solid #FF7A35;padding-left:6px;font-size:7px;line-height:1.45;}
+.sta{border:1px solid #1F1F25;background:#16161A;height:44px;padding:5px;font-size:6px;color:#63636E;margin-top:5px;}
+
+.helper{max-width:1024px;margin:0 auto 16px;padding:13px 20px;background:#FFF9E8;
+        border:1px solid #C9A227;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="helper no-print">
+  <b>Export:</b> Ctrl+P → Save as PDF → <b>Landscape</b>, A4, Margins <b>None</b>, tick <b>Background graphics</b>.
+  <br><b>Drop in before 24/08:</b> (1) crop the BGSCET banner from your Phase 1 deck to
+  <b>docs/assets/bgscet-header.png</b>; (2) replace the slide-20 phone frames with real screenshots.
+  Steps are in the comment at the top of this file.
+</div>
+
+
+<!-- ============================ 1 · TITLE ============================= -->
+<section class="sl">
+  <div class="tt">
+    <img class="hdrimg" src="assets/bgscet-header.png" alt=""
+         onerror="this.style.display='none';document.getElementById('hdrfallback').style.display='block';">
+    <div class="hdrtxt" id="hdrfallback" style="display:none;">
+      <div style="font-size:16px;">|| Jai Sri Gurudev ||</div>
+      <div style="font-size:14px;">BGSKH Education Trust (R.) – A Unit of Sri Adichunchanagiri Shikshana Trust (R.)</div>
+      <div style="font-size:26px;font-weight:700;color:#1F3864;margin-top:4px;">
+        BGS College of Engineering &amp; Technology (BGSCET)</div>
+      <div style="font-size:16px;">Mahalakshmipuram, Bengaluru – 560086</div>
+    </div>
+
+    <div class="dept">Department of Information Science &amp; Engineering</div>
+    <div class="ph">Phase 2 Presentation of Major Project</div>
+    <div class="ph" style="font-size:22px;margin-top:6px;">Implementation Stage</div>
+    <div class="ay">AY : 2025-26</div>
+    <div class="name">“Knack: A Gamified Platform for Skill Development”</div>
+
+    <div class="who">
+      <div>
+        Under the Guidance of,<br>
+        Dr. Chaitra Naveen,<br>
+        Head of Department,<br>
+        Dept. of ISE
+      </div>
+      <div>
+        By,<br>
+        D Karthik Raj (1MP23IS018)<br>
+        Kiranraj G (1MP23IS027)<br>
+        Mohammed Ishaaq (1MP23IS030)<br>
+        Ullas M (1MP23IS058)
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================== 2 · CONTENTS =========================== -->
+<section class="sl">
+  <h1 style="text-align:left;">CONTENTS</h1>
+  <div class="two" style="gap:40px;">
+    <ol style="list-style:none;font-size:21.5px;line-height:2.0;">
+      <li style="padding-left:34px;">1. Introduction</li>
+      <li style="padding-left:34px;">2. Problem Statement</li>
+      <li style="padding-left:34px;">3. Objectives</li>
+      <li style="padding-left:34px;">4. Literature Survey</li>
+      <li style="padding-left:34px;">5. Research Gap</li>
+      <li style="padding-left:34px;">6. Existing System vs Proposed System</li>
+      <li style="padding-left:34px;">7. System Requirements</li>
+      <li style="padding-left:34px;">8. Methodology / Proposed Architecture</li>
+      <li style="padding-left:34px;">9. System Design and Flow Diagram</li>
+      <li style="padding-left:34px;">10. Database Design</li>
+    </ol>
+    <ol style="list-style:none;font-size:21.5px;line-height:2.0;">
+      <li style="padding-left:34px;">11. Modules and Their Functionality</li>
+      <li style="padding-left:34px;">12. Technologies, Tools and Software</li>
+      <li style="padding-left:34px;">13. Deviations from Phase 1</li>
+      <li style="padding-left:34px;">14. Implementation Details</li>
+      <li style="padding-left:34px;">15. Screenshots of Implemented Modules</li>
+      <li style="padding-left:34px;">16. Results / Current Progress</li>
+      <li style="padding-left:34px;">17. Challenges Faced and Solutions</li>
+      <li style="padding-left:34px;">18. Future Enhancements</li>
+      <li style="padding-left:34px;">19. Conclusion</li>
+      <li style="padding-left:34px;">20. References and Appendices</li>
+    </ol>
+  </div>
+  <p class="note" style="margin-top:26px;">
+    Items 1 to 5 carry forward from Phase 1. Items 6 to 19 are new to this stage.
+  </p>
+</section>
+
+
+<!-- ========================= 3 · INTRODUCTION ========================= -->
+<section class="sl">
+  <h1>INTRODUCTION</h1>
+  <ul>
+    <li><b>Overview:</b> Knack is an AI-powered web platform that develops essential soft skills
+        through interactive, scenario-based learning, delivered as a five-minute daily habit.</li>
+    <li><b>Current Scenario:</b> Engineering graduates often possess strong technical knowledge but
+        lack "job-readiness" due to a deficit in soft skill training.</li>
+    <li><b>Relevance:</b> Soft skills like communication and situational judgment are the most
+        sought-after traits by global employers.</li>
+    <li><b>Status at Phase 2:</b> The platform is <b>fully implemented and running</b>. A trainee can
+        register, complete a profile, receive AI-generated scenarios, submit written responses, and
+        be graded with specific feedback that carries forward between attempts.</li>
+  </ul>
+</section>
+
+
+<!-- ======================= 4 · PROBLEM STATEMENT ====================== -->
+<section class="sl">
+  <h1>PROBLEM STATEMENT</h1>
+  <p class="lead"><b>The Core Problem:</b> Over 60% of fresh graduates in India lack the soft skills
+     required for the professional workforce.</p>
+  <p class="lead" style="margin-top:22px;"><b>Key Issues:</b></p>
+  <ul>
+    <li><b>Educational Gap:</b> Soft skills remain largely untaught in standard engineering curricula.</li>
+    <li><b>Passive Learning Failure:</b> Existing solutions like workshops or MOOCs are passive and
+        non-engaging, leading to low completion rates.</li>
+    <li><b>Measurement Difficulty:</b> Traditional methods provide no credible way to measure or
+        track situational judgment growth.</li>
+    <li><b>Cost of Personalisation:</b> An AI tutor that remembers a learner normally grows more
+        expensive with every session, which makes daily use unaffordable at scale.</li>
+  </ul>
+</section>
+
+
+<!-- ========================== 5 · OBJECTIVES ========================== -->
+<section class="sl">
+  <h1>OBJECTIVES</h1>
+  <ul>
+    <li><b>Bridge Readiness Gaps:</b> Align academic learning with professional situational demands.</li>
+    <li><b>Dynamic Learning Environments:</b> Deliver adaptive, real-world professional challenges
+        generated for the individual learner.</li>
+    <li><b>Sustained Habit Formation:</b> Turn soft-skill development into a daily ritual using XP,
+        levels and streaks.</li>
+    <li><b>Measurable Progress Tracking:</b> Visualise qualitative growth through per-track skill
+        scores and a composite Professional Readiness Score.</li>
+    <li><b>Bounded Operating Cost:</b> Keep the AI prompt a constant size no matter how long a
+        learner has been training. <span style="color:#595959;">(Added at implementation stage.)</span></li>
+    <li><b>Graceful Degradation:</b> Remain usable when the free AI service is rate-limited.
+        <span style="color:#595959;">(Added at implementation stage.)</span></li>
+  </ul>
+</section>
+
+
+<!-- ====================== 6 · LITERATURE SURVEY ======================= -->
+<section class="sl">
+  <h1>LITERATURE SURVEY</h1>
+  <table class="tight">
+    <tr><th style="width:26%">Paper Title</th><th style="width:37%">Key Findings</th><th>Limitations</th></tr>
+    <tr>
+      <td><b>Effectiveness of Gamified Language Learning</b><br>(Duolingo Research, 2020)</td>
+      <td>Bite-sized lessons and daily streaks are highly effective for long-term retention.</td>
+      <td>Focused on language acquisition rather than complex professional situational judgment.</td>
+    </tr>
+    <tr>
+      <td><b>Employability and Skill Gap Study</b><br>(NASSCOM, 2023)</td>
+      <td>Over 60% of engineering graduates lack soft skills despite strong technical skills.</td>
+      <td>Statistical overview of the problem; proposes no technological solution.</td>
+    </tr>
+    <tr>
+      <td><b>Impact of Gamification on Learning Outcomes</b><br>(Lampropoulos et al., 2024)</td>
+      <td>Gamified learning consistently outperforms traditional methods in engagement and performance.</td>
+      <td>Highly context-dependent; requires thoughtful pedagogical design to sustain interest.</td>
+    </tr>
+    <tr>
+      <td><b>Research AI: Integrating AI and Gamification</b><br>(Marengo et al., 2025)</td>
+      <td>AI personalises educational pathways; gamification supports interactive soft-skill assessment.</td>
+      <td>Raises data privacy and accessibility challenges in resource-limited institutions.</td>
+    </tr>
+    <tr style="background:#F2F2F2;">
+      <td><b>Judging LLM-as-a-Judge</b><br>(Zheng et al., 2023)</td>
+      <td>Language models can apply a written rubric to open-ended answers with useful agreement.</td>
+      <td>Models show leniency bias and sensitivity to answer length; needs calibrated prompting.</td>
+    </tr>
+    <tr style="background:#F2F2F2;">
+      <td><b>Generative Agents</b><br>(Park et al., 2023)</td>
+      <td>Periodically rewriting a compact memory keeps long-running AI agents coherent over time.</td>
+      <td>Demonstrated in simulation, not in an assessed educational setting.</td>
+    </tr>
+  </table>
+  <p class="note" style="font-size:17px;">The last two rows were added at Phase 2; they directly informed the grading and memory design.</p>
+</section>
+
+
+<!-- ========================= 7 · RESEARCH GAP ========================= -->
+<section class="sl">
+  <h1>RESEARCH GAP</h1>
+  <ul>
+    <li class="dash"><b>Passive vs. Active Learning:</b> Existing platforms rely on passive video
+        consumption, which lacks the active engagement necessary for behavioural change.</li>
+    <li class="dash"><b>Lack of Real-Time Feedback:</b> Curriculum-based training gives no immediate,
+        AI-driven coaching on open-ended situational responses.</li>
+    <li class="dash"><b>Stagnant Content:</b> Most workshops use fixed scenarios that do not adapt to
+        an individual student's performance or skill level.</li>
+    <li class="dash"><b>Measurement Infrastructure:</b> There is a significant gap in measuring and
+        visualising soft-skill growth through quantitative metrics.</li>
+    <li class="dash"><b>Unbounded Memory Cost:</b> Systems that personalise from history typically
+        inject past interactions into every prompt, so cost and latency grow without limit.
+        No reviewed work addresses this for a daily-use educational tool.</li>
+  </ul>
+</section>
+
+
+<!-- ================= 8 · EXISTING vs PROPOSED SYSTEM ================== -->
+<section class="sl">
+  <h1>EXISTING SYSTEM vs PROPOSED SYSTEM</h1>
+  <table>
+    <tr>
+      <th style="width:22%">Aspect</th>
+      <th style="width:39%">Existing Systems</th>
+      <th>Proposed System (Knack)</th>
+    </tr>
+    <tr><td><b>Response format</b></td><td>Multiple choice or select-an-option</td>
+        <td>Free-text; the learner writes the reply they would actually send</td></tr>
+    <tr><td><b>Content source</b></td><td>Fixed bank, identical for every learner</td>
+        <td>Generated per learner by a large language model</td></tr>
+    <tr><td><b>Personalisation</b></td><td>None, or level selection only</td>
+        <td>Stated profile + GitHub portfolio + demonstrated weaknesses</td></tr>
+    <tr><td><b>Feedback</b></td><td>Correct / incorrect, or a score alone</td>
+        <td>Score 1–10 with strengths, gaps and one concrete improvement</td></tr>
+    <tr><td><b>Adaptation</b></td><td>Static difficulty</td>
+        <td>Difficulty tracks a rolling score and its recent trend</td></tr>
+    <tr><td><b>Memory of the learner</b></td><td>None</td>
+        <td>A rewritten summary carried forward at constant cost</td></tr>
+    <tr><td><b>Availability</b></td><td>Fails when the service is down</td>
+        <td>Falls back to a local scenario bank, clearly labelled</td></tr>
+  </table>
+</section>
+
+
+<!-- ======================= 9 · SYSTEM REQUIREMENTS ==================== -->
+<section class="sl">
+  <h1>SYSTEM REQUIREMENTS</h1>
+  <div class="two">
+    <div>
+      <h3>Hardware Requirements</h3>
+      <table class="tight">
+        <tr><td style="width:38%"><b>Processor</b></td><td>Dual-core x86-64, 2.0 GHz or above</td></tr>
+        <tr><td><b>Memory</b></td><td>4 GB minimum, 8 GB recommended</td></tr>
+        <tr><td><b>Storage</b></td><td>500 MB including dependencies</td></tr>
+        <tr><td><b>Network</b></td><td>Internet for AI calls; app runs without it</td></tr>
+        <tr><td><b>Client device</b></td><td>Any modern browser, phone or laptop</td></tr>
+      </table>
+
+      <h3 style="margin-top:22px;">Functional Requirements</h3>
+      <ul style="margin-top:4px;">
+        <li style="font-size:18px;margin-bottom:9px;">Account creation and secure login</li>
+        <li style="font-size:18px;margin-bottom:9px;">Profile capture and editing</li>
+        <li style="font-size:18px;margin-bottom:9px;">Scenario generation and response grading</li>
+        <li style="font-size:18px;margin-bottom:9px;">XP, level, streak and skill tracking</li>
+        <li style="font-size:18px;margin-bottom:0;">History with full attempt replay</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Software Requirements</h3>
+      <table class="tight">
+        <tr><td style="width:38%"><b>OS</b></td><td>Windows 10/11, Linux or macOS</td></tr>
+        <tr><td><b>Runtime</b></td><td>Node.js v24 LTS</td></tr>
+        <tr><td><b>Database</b></td><td>SQLite (file-based, no server)</td></tr>
+        <tr><td><b>AI service</b></td><td>OpenRouter account and API key</td></tr>
+        <tr><td><b>Browser</b></td><td>Chrome, Edge or Firefox, current version</td></tr>
+      </table>
+
+      <h3 style="margin-top:22px;">Non-Functional Requirements</h3>
+      <ul style="margin-top:4px;">
+        <li style="font-size:18px;margin-bottom:9px;"><b>Bounded cost</b> — prompt size independent of history</li>
+        <li style="font-size:18px;margin-bottom:9px;"><b>Security</b> — memory-hard password hashing</li>
+        <li style="font-size:18px;margin-bottom:9px;"><b>Isolation</b> — data scoped to the owning account</li>
+        <li style="font-size:18px;margin-bottom:9px;"><b>Usability</b> — one primary action per screen</li>
+        <li style="font-size:18px;margin-bottom:0;"><b>Accessibility</b> — respects reduced-motion setting</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== 10 · METHODOLOGY / ARCHITECTURE =============== -->
+<section class="sl">
+  <h1>METHODOLOGY / PROPOSED ARCHITECTURE</h1>
+  <div class="figwrap">
+    <svg viewBox="0 0 900 400" width="856">
+      <defs><marker id="ar" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+        <polygon points="0 0, 9 3.5, 0 7" fill="#000"/></marker></defs>
+
+      <rect x="4" y="50" width="216" height="252" fill="#EDF1F9" stroke="#000" stroke-width="1.4"/>
+      <rect x="4" y="50" width="216" height="30" fill="#4472C4"/>
+      <text x="112" y="71" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700" fill="#fff">PRESENTATION TIER</text>
+      <g font-family="Times New Roman" font-size="15">
+        <text x="112" y="102" text-anchor="middle" font-style="italic" fill="#595959">Browser · port 5173</text>
+        <text x="22" y="132">React 19 + Vite SPA</text>
+        <text x="22" y="160">8 pages, route guards</text>
+        <text x="22" y="188">Zustand global state</text>
+        <text x="22" y="216">Tailwind CSS v4</text>
+        <text x="22" y="244">Framer Motion</text>
+        <text x="22" y="272">Responsive, mobile-first</text>
+      </g>
+
+      <rect x="288" y="50" width="230" height="252" fill="#EDF1F9" stroke="#000" stroke-width="1.4"/>
+      <rect x="288" y="50" width="230" height="30" fill="#4472C4"/>
+      <text x="403" y="71" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700" fill="#fff">APPLICATION TIER</text>
+      <g font-family="Times New Roman" font-size="15">
+        <text x="403" y="102" text-anchor="middle" font-style="italic" fill="#595959">Express 5 · port 5190</text>
+        <text x="306" y="132">Authentication (scrypt)</text>
+        <text x="306" y="160">Profile and GitHub reader</text>
+        <text x="306" y="188">Memory summariser</text>
+        <text x="306" y="216">Scenario shape sampler</text>
+        <text x="306" y="244">Gamification engine</text>
+        <text x="306" y="272">Prompt and model adapter</text>
+      </g>
+
+      <rect x="586" y="50" width="212" height="118" fill="#EDF1F9" stroke="#000" stroke-width="1.4"/>
+      <rect x="586" y="50" width="212" height="30" fill="#4472C4"/>
+      <text x="692" y="71" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700" fill="#fff">DATA TIER</text>
+      <g font-family="Times New Roman" font-size="15">
+        <text x="604" y="104">SQLite, WAL mode</text>
+        <text x="604" y="132">5 relations</text>
+        <text x="604" y="158">Foreign keys enforced</text>
+      </g>
+
+      <rect x="586" y="184" width="212" height="118" fill="#EDF1F9" stroke="#000" stroke-width="1.4"/>
+      <rect x="586" y="184" width="212" height="30" fill="#4472C4"/>
+      <text x="692" y="205" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700" fill="#fff">AI SERVICES</text>
+      <g font-family="Times New Roman" font-size="15">
+        <text x="604" y="238">OpenRouter — Gemma 4</text>
+        <text x="604" y="266">4 models, 3 providers</text>
+        <text x="604" y="292">GitHub REST API</text>
+      </g>
+
+      <g stroke="#000" stroke-width="1.4" marker-end="url(#ar)">
+        <line x1="224" y1="150" x2="284" y2="150"/>
+        <line x1="284" y1="210" x2="224" y2="210"/>
+        <line x1="522" y1="110" x2="582" y2="110"/>
+        <line x1="522" y1="242" x2="582" y2="242"/>
+      </g>
+      <g font-family="Times New Roman" font-size="13" fill="#595959">
+        <text x="254" y="142" text-anchor="middle">request</text>
+        <text x="254" y="228" text-anchor="middle">response</text>
+        <text x="552" y="102" text-anchor="middle">SQL</text>
+        <text x="552" y="234" text-anchor="middle">REST</text>
+      </g>
+
+      <text x="450" y="338" text-anchor="middle" font-family="Times New Roman" font-size="16">
+        The application tier binds the loopback interface only, so the database file and the API key
+      </text>
+      <text x="450" y="360" text-anchor="middle" font-family="Times New Roman" font-size="16">
+        are never reachable from the network, even while the app is open on a phone over Wi-Fi.
+      </text>
+    </svg>
+    <div class="figcap">Figure 1. Three-tier system architecture</div>
+  </div>
+</section>
+
+
+<!-- ==================== 11 · SYSTEM FLOW DIAGRAM ====================== -->
+<section class="sl">
+  <h1>SYSTEM DESIGN AND FLOW DIAGRAM</h1>
+  <div class="figwrap">
+    <svg viewBox="0 0 880 420" width="800">
+      <defs><marker id="f1" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+        <polygon points="0 0, 9 3.5, 0 7" fill="#000"/></marker></defs>
+
+      <rect x="300" y="4" width="256" height="34" fill="#4472C4"/>
+      <text x="428" y="27" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700" fill="#fff">START — learner selects a track</text>
+
+      <rect x="300" y="56" width="256" height="40" fill="#EDF1F9" stroke="#000" stroke-width="1.3"/>
+      <text x="428" y="72" text-anchor="middle" font-family="Times New Roman" font-size="15">Load profile, GitHub stack and</text>
+      <text x="428" y="90" text-anchor="middle" font-family="Times New Roman" font-size="15">derived learner memory</text>
+
+      <rect x="300" y="114" width="256" height="40" fill="#EDF1F9" stroke="#000" stroke-width="1.3"/>
+      <text x="428" y="130" text-anchor="middle" font-family="Times New Roman" font-size="15">Compute difficulty from rolling</text>
+      <text x="428" y="148" text-anchor="middle" font-family="Times New Roman" font-size="15">score and recent trend</text>
+
+      <rect x="300" y="172" width="256" height="40" fill="#EDF1F9" stroke="#000" stroke-width="1.3"/>
+      <text x="428" y="188" text-anchor="middle" font-family="Times New Roman" font-size="15">Sample scenario shape and</text>
+      <text x="428" y="206" text-anchor="middle" font-family="Times New Roman" font-size="15">compose the prompt</text>
+
+      <polygon points="428,224 566,254 428,284 290,254" fill="#fff" stroke="#000" stroke-width="1.4"/>
+      <text x="428" y="250" text-anchor="middle" font-family="Times New Roman" font-size="15">AI service available?</text>
+      <text x="428" y="268" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#595959">(quota and cooldown check)</text>
+
+      <rect x="620" y="234" width="150" height="40" fill="#F2F2F2" stroke="#000" stroke-width="1.3" stroke-dasharray="4 3"/>
+      <text x="695" y="250" text-anchor="middle" font-family="Times New Roman" font-size="14">Offline scenario bank</text>
+      <text x="695" y="268" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#595959">labelled in the UI</text>
+
+      <rect x="300" y="300" width="256" height="32" fill="#EDF1F9" stroke="#000" stroke-width="1.3"/>
+      <text x="428" y="321" text-anchor="middle" font-family="Times New Roman" font-size="15">Learner writes the response</text>
+
+      <rect x="300" y="348" width="256" height="40" fill="#EDF1F9" stroke="#000" stroke-width="1.3"/>
+      <text x="428" y="364" text-anchor="middle" font-family="Times New Roman" font-size="15">AI grades 1–10; XP, streak and</text>
+      <text x="428" y="382" text-anchor="middle" font-family="Times New Roman" font-size="15">attempt saved in one transaction</text>
+
+      <rect x="24" y="330" width="196" height="58" fill="#EDF1F9" stroke="#000" stroke-width="1.3"/>
+      <text x="122" y="352" text-anchor="middle" font-family="Times New Roman" font-size="15">Every 3rd attempt:</text>
+      <text x="122" y="372" text-anchor="middle" font-family="Times New Roman" font-size="15">rewrite the 60-word memory</text>
+
+      <g stroke="#000" stroke-width="1.3" fill="none" marker-end="url(#f1)">
+        <line x1="428" y1="38" x2="428" y2="52"/>
+        <line x1="428" y1="96" x2="428" y2="110"/>
+        <line x1="428" y1="154" x2="428" y2="168"/>
+        <line x1="428" y1="212" x2="428" y2="220"/>
+        <line x1="428" y1="284" x2="428" y2="296"/>
+        <line x1="428" y1="332" x2="428" y2="344"/>
+        <line x1="566" y1="254" x2="616" y2="254"/>
+        <line x1="300" y1="368" x2="224" y2="362"/>
+      </g>
+      <path d="M695,274 L695,316 L560,316" stroke="#000" stroke-width="1.3" fill="none"
+            stroke-dasharray="4 3" marker-end="url(#f1)"/>
+      <path d="M122,330 L122,74 L296,74" stroke="#000" stroke-width="1.3" fill="none"
+            stroke-dasharray="5 4" marker-end="url(#f1)"/>
+
+      <text x="588" y="246" font-family="Times New Roman" font-size="13">no</text>
+      <text x="438" y="294" font-family="Times New Roman" font-size="13">yes</text>
+      <text x="132" y="200" font-family="Times New Roman" font-size="13" fill="#595959">feeds the next scenario</text>
+    </svg>
+    <div class="figcap">Figure 2. End-to-end execution flow. The memory rewrite runs after the response
+      is returned, so it never adds to the learner's waiting time.</div>
+  </div>
+</section>
+
+
+<!-- ======================= 12 · DATABASE DESIGN ======================= -->
+<section class="sl">
+  <h1>DATABASE DESIGN</h1>
+  <div class="figwrap">
+    <svg viewBox="0 0 880 330" width="840">
+      <rect x="292" y="4" width="292" height="110" fill="#EDF1F9" stroke="#000" stroke-width="1.4"/>
+      <rect x="292" y="4" width="292" height="26" fill="#4472C4"/>
+      <text x="438" y="23" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">users</text>
+      <g font-family="Times New Roman" font-size="14">
+        <text x="304" y="48">id, email, passwordHash, name</text>
+        <text x="304" y="68">year, branch, targetRole, workSetting</text>
+        <text x="304" y="88">confidence, focusAreas, githubStack</text>
+        <text x="304" y="107">xp, streak, longestStreak, lastActiveDate</text>
+      </g>
+
+      <rect x="8" y="188" width="200" height="88" fill="#EDF1F9" stroke="#000" stroke-width="1.4"/>
+      <rect x="8" y="188" width="200" height="26" fill="#4472C4"/>
+      <text x="108" y="207" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">sessions</text>
+      <g font-family="Times New Roman" font-size="14">
+        <text x="20" y="232">tokenHash (SHA-256)</text>
+        <text x="20" y="252">userId, createdAt</text>
+        <text x="20" y="270">expiresAt</text>
+      </g>
+
+      <rect x="292" y="188" width="292" height="104" fill="#FDEFE6" stroke="#000" stroke-width="1.8"/>
+      <rect x="292" y="188" width="292" height="26" fill="#C55A11"/>
+      <text x="438" y="207" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">learner_context</text>
+      <g font-family="Times New Roman" font-size="14">
+        <text x="304" y="232">summary (60 words, rewritten in place)</text>
+        <text x="304" y="252">recurringGaps (at most 3)</text>
+        <text x="304" y="272">pushNext, attemptsAtUpdate, updatedAt</text>
+      </g>
+
+      <rect x="668" y="166" width="204" height="126" fill="#EDF1F9" stroke="#000" stroke-width="1.4"/>
+      <rect x="668" y="166" width="204" height="26" fill="#4472C4"/>
+      <text x="770" y="185" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">attempts</text>
+      <g font-family="Times New Roman" font-size="14">
+        <text x="680" y="210">scenarioText, userResponse</text>
+        <text x="680" y="230">score, strengths, gaps</text>
+        <text x="680" y="250">suggestion, xpAwarded</text>
+        <text x="680" y="270">source, timestamp</text>
+      </g>
+
+      <rect x="668" y="20" width="204" height="78" fill="#EDF1F9" stroke="#000" stroke-width="1.4"/>
+      <rect x="668" y="20" width="204" height="26" fill="#4472C4"/>
+      <text x="770" y="39" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">tracks</text>
+      <g font-family="Times New Roman" font-size="14">
+        <text x="680" y="64">3 rows, seeded at startup</text>
+        <text x="680" y="86">id, name, description</text>
+      </g>
+
+      <g stroke="#000" stroke-width="1.3" fill="none">
+        <path d="M292,86 L108,86 L108,184"/>
+        <path d="M576,60 L716,60 L716,162"/>
+        <path d="M770,98 L770,162"/>
+      </g>
+      <path d="M438,118 L438,184" stroke="#C55A11" stroke-width="2.2" fill="none"/>
+
+      <g font-family="Times New Roman" font-size="13" font-style="italic" fill="#595959">
+        <text x="118" y="172">1 : N</text>
+        <text x="722" y="150">1 : N</text>
+        <text x="776" y="150">1 : N</text>
+      </g>
+      <text x="448" y="160" font-family="Times New Roman" font-size="14" font-style="italic" fill="#C55A11">1 : 1</text>
+
+      <text x="440" y="320" text-anchor="middle" font-family="Times New Roman" font-size="16">
+        The one-to-one link is deliberate: history is compressed into a single evolving row, not accumulated.
+      </text>
+    </svg>
+    <div class="figcap">Figure 3. Entity-relationship design (5 relations, foreign keys enforced)</div>
+  </div>
+</section>
+
+
+<!-- ================= 13 · MODULES AND FUNCTIONALITY =================== -->
+<section class="sl">
+  <h1>MODULES AND THEIR FUNCTIONALITY</h1>
+  <table class="tight">
+    <tr><th style="width:19%">Module</th><th style="width:37%">Functionality</th><th>Key design decision</th></tr>
+    <tr><td><b>Authentication</b></td><td>Registration, login, sessions, protected routes</td>
+        <td>Only the hash of a session token is stored, so a database leak grants no access</td></tr>
+    <tr><td><b>Profile</b></td><td>Eight onboarding questions and their validation</td>
+        <td>Defined once on the server so the form and validation cannot diverge</td></tr>
+    <tr><td><b>GitHub Reader</b></td><td>Reads public repositories, derives the learner's real stack</td>
+        <td>Forks and archived repositories excluded — not evidence of the learner's own work</td></tr>
+    <tr><td><b>Memory Controller</b></td><td>Rewrites the learner summary every three attempts</td>
+        <td>Runs after the response is sent, so it never adds to perceived latency</td></tr>
+    <tr><td><b>Scenario Sampler</b></td><td>Selects the shape of each scenario before generation</td>
+        <td>18,480 combinations generated by the system, not requested from the model</td></tr>
+    <tr><td><b>Prompt Templates</b></td><td>Four templates: generate, grade, portfolio, memory</td>
+        <td>Isolated in one file so they can be tuned without touching route logic</td></tr>
+    <tr><td><b>AI Adapter</b></td><td>Model calls, retries, cross-provider fallback chain</td>
+        <td>A rate-limit response is never retried; reset timestamps are honoured</td></tr>
+    <tr><td><b>Gamification Engine</b></td><td>XP, levels, streaks, skill scores, readiness score</td>
+        <td>Self-rated confidence sets starting difficulty only, never the score</td></tr>
+    <tr><td><b>Offline Fallback</b></td><td>Local scenario generator and deterministic rubric</td>
+        <td>Always labelled in the interface, never presented as AI output</td></tr>
+  </table>
+</section>
+
+
+<!-- ============= 14 · TECHNOLOGIES, TOOLS AND SOFTWARE ================ -->
+<section class="sl">
+  <h1>TECHNOLOGIES, TOOLS AND SOFTWARE USED</h1>
+  <table>
+    <tr><th style="width:20%">Layer</th><th style="width:40%">Technology</th><th>Purpose</th></tr>
+    <tr><td><b>Frontend</b></td><td>React 19, Vite 7, Tailwind CSS v4, Framer Motion, Zustand, React Router 7</td>
+        <td>Single-page interface, state, animation and routing</td></tr>
+    <tr><td><b>Backend</b></td><td>Node.js 24, Express 5, cookie-parser</td>
+        <td>REST endpoints, middleware and session handling</td></tr>
+    <tr><td><b>Security</b></td><td>scrypt from Node's built-in crypto module</td>
+        <td>Memory-hard password hashing without an extra dependency</td></tr>
+    <tr><td><b>Database</b></td><td>SQLite via better-sqlite3, WAL mode</td>
+        <td>Local transactional storage, five relations</td></tr>
+    <tr><td><b>AI engine</b></td><td>Gemma 4 31B via OpenRouter, with GPT-OSS 20B, Nemotron and Gemma 4 26B as fallbacks</td>
+        <td>Scenario generation, response grading, memory and portfolio summarisation</td></tr>
+    <tr><td><b>External API</b></td><td>GitHub REST API v3</td>
+        <td>Reads public repository metadata for portfolio grounding</td></tr>
+    <tr><td><b>Tools</b></td><td>Git and GitHub, VS Code, Chrome DevTools</td>
+        <td>Version control, development and mobile testing</td></tr>
+  </table>
+  <p class="note">Complete source code: <b>github.com/ishaaqdev/Knack</b></p>
+</section>
+
+
+<!-- ================= 15 · DEVIATIONS FROM PHASE 1 ===================== -->
+<section class="sl">
+  <h1>DEVIATIONS FROM PHASE 1</h1>
+  <table class="tight">
+    <tr><th style="width:17%">Area</th><th style="width:22%">Phase 1 proposal</th>
+        <th style="width:22%">Implemented</th><th>Reason for the change</th></tr>
+    <tr><td><b>Frontend</b></td><td>Flutter (mobile and web)</td><td>React 19 + Vite, responsive web</td>
+        <td>One responsive codebase reaches phone and laptop without a second build toolchain</td></tr>
+    <tr><td><b>Backend</b></td><td>Node.js with FastAPI (Python)</td><td>Node.js with Express 5 only</td>
+        <td>No Python component proved necessary; two runtimes would double deployment complexity</td></tr>
+    <tr><td><b>AI model</b></td><td>Gemini API or GPT-4o</td><td>Gemma 4 31B via OpenRouter</td>
+        <td>Both proposed models are paid. OpenRouter's free tier made daily use possible at zero cost</td></tr>
+    <tr><td><b>Gamification store</b></td><td>Redis for live leaderboards</td><td>SQLite; leaderboards removed</td>
+        <td>Ranking classmates on communication ability would deter the students who most need practice</td></tr>
+    <tr><td><b>Streak triggers</b></td><td>Firebase</td><td>Calendar-date logic in SQLite</td>
+        <td>A single local database removes an external dependency for a purely date-based rule</td></tr>
+    <tr><td><b>Tracks</b></td><td>Four, including Situational Judgment</td><td>Three</td>
+        <td>Situational judgment is exercised inside all three tracks rather than isolated as its own</td></tr>
+    <tr><td><b>Badges, skill tree</b></td><td>Planned</td><td>Deferred</td>
+        <td>Deprioritised in favour of grading quality and the memory mechanism</td></tr>
+  </table>
+  <p class="note" style="font-size:17.5px;">
+    Every deviation reduced external dependencies or running cost. No proposed objective was dropped.
+  </p>
+</section>
+
+
+<!-- ============== 16 · IMPLEMENTATION — PERSONALISATION =============== -->
+<section class="sl">
+  <h1 class="sm">IMPLEMENTATION DETAILS — PERSONALISATION</h1>
+  <p class="lead">Three independent signals are combined into every scenario. Each is bounded in size
+     by construction, which is what keeps the prompt a constant length.</p>
+  <ul style="margin-top:16px;">
+    <li><b>Stated profile (8 fields):</b> academic year, branch, target role, prior team experience,
+        preferred work setting, self-identified difficulties and confidence per track. Collected once
+        at onboarding, editable later.</li>
+    <li><b>GitHub portfolio (optional):</b> reads the learner's public repositories, discards forks and
+        archived work, and reduces them to at most six technologies and three problem domains.</li>
+    <li><b>Derived memory:</b> a 60-word summary of what past attempts revealed, rewritten by the model
+        every three attempts from a six-attempt window.</li>
+    <li><b>Scenario shape sampling:</b> the counterpart, the medium, the moment and the pressure are
+        chosen by the server from <b>18,480 combinations</b> and passed to the model as requirements,
+        rather than asking the model to vary its own output.</li>
+  </ul>
+  <p class="note">
+    The prompt explicitly forbids restating the learner's profile in the scenario text — the background
+    selects the setting and the stakes, and must never appear in the situation itself.
+  </p>
+</section>
+
+
+<!-- ================= 17 · IMPLEMENTATION — MEMORY ===================== -->
+<section class="sl">
+  <h1 class="sm">IMPLEMENTATION DETAILS — BOUNDED MEMORY</h1>
+  <div class="figwrap">
+    <svg viewBox="0 0 860 270" width="800">
+      <line x1="66" y1="212" x2="828" y2="212" stroke="#000" stroke-width="1.4"/>
+      <line x1="66" y1="212" x2="66" y2="20" stroke="#000" stroke-width="1.4"/>
+      <text x="447" y="248" text-anchor="middle" font-family="Times New Roman" font-size="16">Number of attempts completed</text>
+      <text x="26" y="118" text-anchor="middle" font-family="Times New Roman" font-size="16" transform="rotate(-90 26 118)">Prompt size</text>
+
+      <path d="M66,204 L828,38" fill="none" stroke="#888" stroke-width="2.5" stroke-dasharray="8 5"/>
+      <text x="600" y="58" font-family="Times New Roman" font-size="16" fill="#595959">Injecting every past attempt</text>
+      <text x="600" y="78" font-family="Times New Roman" font-size="15" fill="#888">grows without limit</text>
+
+      <path d="M66,158 L828,158" fill="none" stroke="#C55A11" stroke-width="3.5"/>
+      <text x="530" y="146" font-family="Times New Roman" font-size="16" fill="#C55A11">Knack — one rewritten summary</text>
+      <text x="530" y="184" font-family="Times New Roman" font-size="15" fill="#595959">constant, regardless of history</text>
+
+      <g fill="#C55A11">
+        <circle cx="180" cy="158" r="5"/><circle cx="294" cy="158" r="5"/><circle cx="408" cy="158" r="5"/>
+        <circle cx="522" cy="158" r="5"/><circle cx="636" cy="158" r="5"/><circle cx="750" cy="158" r="5"/>
+      </g>
+      <g stroke="#C55A11" stroke-width="1.1" stroke-dasharray="3 3">
+        <line x1="180" y1="112" x2="180" y2="150"/><line x1="294" y1="112" x2="294" y2="150"/>
+        <line x1="408" y1="112" x2="408" y2="150"/><line x1="522" y1="112" x2="522" y2="150"/>
+        <line x1="636" y1="112" x2="636" y2="150"/><line x1="750" y1="112" x2="750" y2="150"/>
+      </g>
+      <text x="400" y="102" text-anchor="middle" font-family="Times New Roman" font-size="15" fill="#C55A11">
+        every 3 attempts the summary is rewritten, never appended to</text>
+    </svg>
+    <div class="figcap">Figure 4. Prompt size against usage (design property, illustrated)</div>
+  </div>
+  <p class="lead" style="margin-top:6px;"><b>Observed effect.</b> After three deliberately vague
+     answers, the system recorded: <i>"consistently provides vague, non-committal responses… describes
+     their intent to communicate rather than concrete actions."</i> On the fourth such answer the
+     grader replied: <b>"This is the same gap as last time."</b></p>
+</section>
+
+
+<!-- ===================== 18 · SCREENSHOTS ============================= -->
+<section class="sl">
+  <h1 class="sm">SCREENSHOTS OF IMPLEMENTED MODULES</h1>
+  <div class="phones">
+
+    <div class="ph2"><div class="dev"><div class="scr">
+      <div class="sh"><div class="sav">MI</div><div class="sbr">Knack</div><div class="ssp"></div>
+        <div class="sxp">340<i> XP</i></div><div class="sfl">5</div></div>
+      <div class="sh1">Pick a track</div>
+      <div class="ssub">Difficulty adapts to your score.</div>
+      <div class="sc"><div class="srow"><b>Workplace Comm.</b><span style="color:#FF7A35">72</span></div>
+        <div class="sbar"><i style="width:72%"></i></div></div>
+      <div class="sc"><div class="srow"><b>Critical Thinking</b><span style="color:#FF7A35">41</span></div>
+        <div class="sbar"><i style="width:41%"></i></div></div>
+      <div class="sc"><div class="srow"><b>AI Fluency</b><span style="color:#FF7A35">65</span></div>
+        <div class="sbar"><i style="width:65%"></i></div></div>
+      <div class="snav"><div>Home</div><div class="on">Quest</div><div>Profile</div></div>
+    </div></div><div class="cap">Track selection</div></div>
+
+    <div class="ph2"><div class="dev"><div class="scr">
+      <div class="sh"><div class="sav">MI</div><div class="sbr">Knack</div><div class="ssp"></div>
+        <div class="sxp">340<i> XP</i></div><div class="sfl">5</div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <b style="font-size:8px;">Critical Thinking</b><div class="spill">Medium</div></div>
+      <div class="sc"><div class="slb">THE SITUATION</div>
+        <div class="sbrief">Two dashboards disagree about the billing export. Meera, a client
+        contact, already quoted the rising figure on a call.</div></div>
+      <div style="color:#9A9AA5;font-size:6.5px;margin-top:5px;">Write how you would resolve this.</div>
+      <div class="sta">Before correcting anyone publicly I would reconcile both queries against the same date range…</div>
+      <div class="sbtn">Submit response</div>
+    </div></div><div class="cap">Quest session</div></div>
+
+    <div class="ph2"><div class="dev"><div class="scr">
+      <div class="sh"><div class="sav">MI</div><div class="sbr">Knack</div><div class="ssp"></div>
+        <div class="sxp">420<i> XP</i></div><div class="sfl">6</div></div>
+      <div style="text-align:center;margin:6px 0;">
+        <svg width="92" height="92" viewBox="0 0 92 92">
+          <circle cx="46" cy="46" r="38" fill="none" stroke="#26262D" stroke-width="7"
+                  stroke-linecap="round" stroke-dasharray="162 239" transform="rotate(122 46 46)"/>
+          <circle cx="46" cy="46" r="38" fill="none" stroke="#FF7A35" stroke-width="7"
+                  stroke-linecap="round" stroke-dasharray="130 239" transform="rotate(122 46 46)"/>
+          <text x="46" y="52" text-anchor="middle" font-family="Arial" font-size="25" font-weight="bold" fill="#F2F0EC">8</text>
+          <text x="46" y="64" text-anchor="middle" font-family="Arial" font-size="6" fill="#FF7A35">STRONG</text>
+        </svg></div>
+      <div style="display:flex;gap:5px;">
+        <div class="sc" style="flex:1;text-align:center;margin-bottom:5px;">
+          <div style="color:#FF7A35;font-weight:bold;font-size:12px;">+80</div>
+          <div style="font-size:5px;color:#63636E;">XP EARNED</div></div>
+        <div class="sc" style="flex:1;text-align:center;margin-bottom:5px;">
+          <div style="color:#FF7A35;font-weight:bold;font-size:12px;">Day 6</div>
+          <div style="font-size:5px;color:#63636E;">STREAK</div></div></div>
+      <div class="sc"><div class="slb">WHAT WAS MISSING</div>
+        <div style="font-size:6.8px;color:#9A9AA5;line-height:1.5;">
+          <span style="color:#FF7A35">This is the same gap as last time</span> — you named the check
+          but not who you would tell, or by when.</div></div>
+    </div></div><div class="cap">Feedback and score</div></div>
+
+    <div class="ph2"><div class="dev"><div class="scr">
+      <div class="sh"><div class="sav">MI</div><div class="sbr">Knack</div><div class="ssp"></div>
+        <div class="sxp">420<i> XP</i></div><div class="sfl">6</div></div>
+      <div class="sc"><b style="font-size:8px;">Today's quest is done.</b>
+        <div style="color:#9A9AA5;font-size:6.5px;margin-top:3px;">Day 6 logged. Come back tomorrow.</div>
+        <div class="sbtn g">Do another anyway</div></div>
+      <div class="sc" style="text-align:center;">
+        <div class="slb">PROFESSIONAL READINESS</div>
+        <svg width="82" height="66" viewBox="0 0 82 66">
+          <circle cx="41" cy="39" r="27" fill="none" stroke="#26262D" stroke-width="7"
+                  stroke-linecap="round" stroke-dasharray="115 170" transform="rotate(122 41 39)"/>
+          <circle cx="41" cy="39" r="27" fill="none" stroke="#FF7A35" stroke-width="7"
+                  stroke-linecap="round" stroke-dasharray="68 170" transform="rotate(122 41 39)"/>
+          <text x="41" y="45" text-anchor="middle" font-family="Arial" font-size="19" font-weight="bold" fill="#F2F0EC">59</text>
+        </svg></div>
+      <div class="sc"><div class="slb">WHAT KNACK HAS PICKED UP</div>
+        <div style="font-size:6.5px;color:#9A9AA5;line-height:1.5;">Gives clear reasoning but rarely
+        names who to inform, or by when.</div></div>
+      <div class="snav"><div class="on">Home</div><div>Quest</div><div>Profile</div></div>
+    </div></div><div class="cap">Dashboard</div></div>
+
+  </div>
+  <p class="note" style="text-align:center;margin-top:16px;">
+    Mobile-first interface. XP and streak remain visible on every screen; one primary action per page.
+  </p>
+</section>
+
+
+<!-- ================= 19 · RESULTS / CURRENT PROGRESS ================== -->
+<section class="sl">
+  <h1>RESULTS / CURRENT PROGRESS</h1>
+  <table class="tight">
+    <tr><th style="width:23%">Property tested</th><th style="width:28%">Method</th><th>Observed result</th></tr>
+    <tr><td><b>Grader discrimination</b></td><td>Four answers of differing quality on comparable scenarios</td>
+        <td>Dismissive one-line answer <b>1/10</b>; polite but non-committal <b>2/10</b>; reasonable <b>6/10</b>;
+            specific and offering a real choice <b>9/10</b></td></tr>
+    <tr><td><b>Profile sensitivity</b></td><td>Two profiles differing in every field, same track</td>
+        <td>CSE / startup received a payment-gateway code review; ECE / core / service company received
+            a PCB layout error in a sprint review</td></tr>
+    <tr><td><b>Portfolio grounding</b></td><td>Public GitHub linked, 10 repositories read</td>
+        <td>Stack correctly derived; scenarios moved to model-latency and sensor-calibration disputes</td></tr>
+    <tr><td><b>Derived memory</b></td><td>Evasive answer pattern planted over three attempts</td>
+        <td>System identified the pattern unprompted and reported it as a recurring gap</td></tr>
+    <tr><td><b>Memory in feedback</b></td><td>Same evasive answer given a fourth time</td>
+        <td>Grader replied <b>"This is the same gap as last time"</b></td></tr>
+    <tr><td><b>Data isolation</b></td><td>Second account created while the first held attempts</td>
+        <td>Account B saw 0 quests; account A saw 4</td></tr>
+    <tr><td><b>Scenario variety</b></td><td>Six generations, same track and difficulty</td>
+        <td>Before the fix: 7/9 distinct, 2 identical pairs. After: <b>6/6 distinct</b>, no duplicates,
+            six different counterpart roles</td></tr>
+  </table>
+  <p class="note" style="font-size:17.5px;">
+    <b>Stated honestly:</b> assessment uses a single grader that has not been checked against human
+    experts, and testing used profiles we constructed rather than a student cohort. What is demonstrated
+    is that the grader <i>discriminates</i>, not that it is correct.
+  </p>
+</section>
+
+
+<!-- ============ 20 · CHALLENGES FACED AND SOLUTIONS =================== -->
+<section class="sl">
+  <h1>CHALLENGES FACED AND SOLUTIONS ADOPTED</h1>
+  <table class="tight">
+    <tr><th style="width:24%">Challenge</th><th style="width:36%">Cause identified</th><th>Solution adopted</th></tr>
+    <tr><td><b>Free AI quota exhausted within hours</b></td>
+        <td>OpenRouter allows 50 free requests per day. Our retry policy used up to six requests per scenario.</td>
+        <td>One attempt per model, rate limits never retried, and reset timestamps honoured through a cooldown</td></tr>
+    <tr><td><b>The fallback model failed identically</b></td>
+        <td>Both models in the chain were served by the same upstream provider.</td>
+        <td>Chain rebuilt across three independent providers</td></tr>
+    <tr><td><b>Every scenario read the same</b></td>
+        <td>Instructing the model to vary its output changed the wording but not the structure.</td>
+        <td>18,480 scenario shapes sampled by the server and passed as requirements</td></tr>
+    <tr><td><b>Model fixated on one project</b></td>
+        <td>The GitHub summary named a specific project and the model anchored on it.</td>
+        <td>Summary kept for display; only the technology list is sent to the model</td></tr>
+    <tr><td><b>Profile read back in the scenario</b></td>
+        <td>Scenarios opened "As a final-year CSE student aiming for…".</td>
+        <td>Explicit rule: background sets the scene and must never appear in it</td></tr>
+    <tr><td><b>Some models returned no output</b></td>
+        <td>Reasoning models wrote their thinking first and hit the token ceiling.</td>
+        <td>Reasoning suppressed in the request and the ceiling raised</td></tr>
+    <tr><td><b>Port silently taken by another service</b></td>
+        <td>The app worked only because the hostname resolved over IPv6.</td>
+        <td>Moved to a free port and bound the loopback interface explicitly</td></tr>
+  </table>
+</section>
+
+
+<!-- ==================== 21 · FUTURE ENHANCEMENTS ====================== -->
+<section class="sl">
+  <h1>FUTURE ENHANCEMENTS</h1>
+  <ul>
+    <li class="dash"><b>Validate the grader against human raters.</b> Collect expert scores for the
+        same responses and measure agreement. This converts the present result — that the grader
+        separates good answers from poor ones — into a claim that it is correct. Highest value next step.</li>
+    <li class="dash"><b>Two-grader reconciliation.</b> Sample two independent gradings and reconcile
+        where they diverge, reducing variance at roughly double the inference cost.</li>
+    <li class="dash"><b>Spoken-response track.</b> Placement interviews and group discussions are
+        spoken. Add audio capture and transcription, then grade through the same rubric.</li>
+    <li class="dash"><b>Instructor dashboard.</b> Anonymised, class-level weakness aggregation so a
+        department can see which competencies to address in teaching.</li>
+    <li class="dash"><b>Achievement badges and skill-tree visualisation</b>, deferred from Phase 1 and
+        compatible with the existing progression model.</li>
+    <li class="dash"><b>Account recovery and a native mobile client.</b> The interface is already
+        responsive, so a mobile client is an incremental rather than architectural change.</li>
+  </ul>
+</section>
+
+
+<!-- ========================= 22 · CONCLUSION ========================== -->
+<section class="sl">
+  <h1>CONCLUSION</h1>
+  <ul>
+    <li><b>Objectives met.</b> A working platform delivers AI-generated, personalised workplace
+        scenarios, grades free-text responses on a calibrated rubric, and tracks progress through XP,
+        levels, streaks and a Professional Readiness Score.</li>
+    <li><b>Personalisation is demonstrable.</b> Substituting the learner profile changes the scenario
+        substantially, and linking a GitHub account grounds scenarios in the technologies the learner
+        actually uses.</li>
+    <li><b>The principal contribution is bounded memory.</b> By rewriting a short summary every three
+        attempts rather than accumulating history, the system carries forward what it has learned at a
+        constant cost. Its effect is visible in feedback that says <b>"this is the same gap as last
+        time"</b> — a statement a stateless system cannot produce.</li>
+    <li><b>Limitations are acknowledged.</b> The grader is unvalidated against human experts, testing
+        used synthetic profiles, and no longitudinal study of learning outcomes has been carried out.</li>
+  </ul>
+  <p class="note" style="margin-top:6px;">
+    Complete implementation and documentation: <b>github.com/ishaaqdev/Knack</b>
+  </p>
+</section>
+
+
+<!-- ========================= 23 · REFERENCES ========================== -->
+<section class="sl">
+  <h1>REFERENCES</h1>
+  <ol style="font-size:16.5px;line-height:1.5;padding-left:30px;">
+    <li style="margin-bottom:8px;"><b>Deterding, S., et al. (2011).</b> From Game Design Elements to Gamefulness: Defining Gamification. <i>Proc. 15th International Academic MindTrek Conference.</i></li>
+    <li style="margin-bottom:8px;"><b>Kapp, K. M. (2012).</b> <i>The Gamification of Learning and Instruction.</i> Wiley Publishing.</li>
+    <li style="margin-bottom:8px;"><b>Duolingo Research (2020).</b> Effectiveness of Gamified Language Learning and Long-term Retention Strategies. <i>Journal of Computer Assisted Learning.</i></li>
+    <li style="margin-bottom:8px;"><b>Altomari, L., et al. (2023).</b> Gamification in Soft Skills Assessment: Trends and Opportunities. <i>IEEE / Educational Research Papers.</i></li>
+    <li style="margin-bottom:8px;"><b>Thomas, M. (2023).</b> AI Chatbots in Mobile Learning Environments: A Qualitative Study. <i>International Journal of Educational Technology.</i></li>
+    <li style="margin-bottom:8px;"><b>World Economic Forum (2023).</b> The Future of Jobs Report 2023. <i>WEF Strategy Papers.</i></li>
+    <li style="margin-bottom:8px;"><b>Lampropoulos, G., et al. (2024).</b> Impact of Gamification on Learning Outcomes: A Systematic Review. <i>Journal of Interactive Learning Environments.</i></li>
+    <li style="margin-bottom:8px;"><b>Marengo, A., et al. (2025).</b> Integrating AI and Gamification for Professional Skill Development. <i>Proc. IEEE Int. Conf. on Learning Technologies.</i></li>
+    <li style="margin-bottom:8px;"><b>Mercer-Mettl (2025).</b> India Graduate Skill Index Report. <i>Industry Skill Assessment Report.</i></li>
+    <li style="margin-bottom:8px;"><b>Reddy, V., &amp; Sharma, P. (2025).</b> Bridging the Employability Gap Using AI-driven Soft Skill Training. <i>Journal of Vocational Education.</i></li>
+    <li style="margin-bottom:8px;"><b>Zheng, L., et al. (2023).</b> Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. <i>Advances in Neural Information Processing Systems 36.</i></li>
+    <li style="margin-bottom:8px;"><b>Park, J. S., et al. (2023).</b> Generative Agents: Interactive Simulacra of Human Behavior. <i>Proc. ACM UIST.</i></li>
+    <li style="margin-bottom:8px;"><b>Lewis, P., et al. (2020).</b> Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. <i>NeurIPS 33.</i></li>
+    <li style="margin-bottom:8px;"><b>Hattie, J., &amp; Timperley, H. (2007).</b> The Power of Feedback. <i>Review of Educational Research, 77(1).</i></li>
+    <li style="margin-bottom:8px;"><b>Corbett, A. T., &amp; Anderson, J. R. (1994).</b> Knowledge Tracing: Modeling the Acquisition of Procedural Knowledge. <i>User Modeling and User-Adapted Interaction, 4.</i></li>
+    <li style="margin-bottom:0;"><b>Percival, C., &amp; Josefsson, S. (2016).</b> The scrypt Password-Based Key Derivation Function. <i>RFC 7914, IETF.</i></li>
+  </ol>
+</section>
+
+
+<!-- ================= 24 · APPENDIX A ================================== -->
+<section class="sl">
+  <h1 class="sm">Appendix A: Workplace Communication</h1>
+  <p class="lead" style="font-style:italic;">Focus: Navigating professional hierarchy and clarity.</p>
+  <ul style="margin-top:14px;">
+    <li><b>The Rebuttal:</b> You fundamentally disagree with your Team Lead's technical direction
+        during a client briefing; deliver a professional rebuttal that protects project integrity
+        without undermining authority.</li>
+    <li><b>The Credit Claim:</b> A peer takes credit for your code or logic in a team meeting;
+        reclaim your contribution professionally so your performance is accurately recorded.</li>
+    <li><b>The Crisis Update:</b> A major deadline will be missed due to a server failure; draft a
+        "no-excuse" update to your manager that proposes a recovery timeline.</li>
+  </ul>
+  <p class="note">
+    Implemented: the system now generates scenarios of this kind automatically, varying the
+    counterpart, the medium, the moment and the pressure on every generation.
+  </p>
+</section>
+
+
+<!-- ================= 25 · APPENDIX B ================================== -->
+<section class="sl">
+  <h1 class="sm">Appendix B: Critical Thinking</h1>
+  <p class="lead" style="font-style:italic;">Focus: Resource management and data-driven logic.</p>
+  <ul style="margin-top:14px;">
+    <li><b>The Runway Decision:</b> Your startup has exactly ₹50,000 remaining; justify spending it
+        on urgent lead generation or on fixing a critical security bug.</li>
+    <li><b>The Presentation Pivot:</b> During a project defence a panelist identifies a fundamental
+        flaw in your logic; decide in real time whether to defend the architecture or pivot.</li>
+    <li><b>The Hiring Logic:</b> Evaluate two candidates with identical CGPAs on situational judgment
+        data and justify your selection against a competency rubric.</li>
+  </ul>
+  <p class="note">
+    Implemented: difficulty for this track is set from the learner's rolling average of the last five
+    scores, shifting one band at a time as the trend moves.
+  </p>
+</section>
+
+
+<!-- ================= 26 · APPENDIX C ================================== -->
+<section class="sl">
+  <h1 class="sm">Appendix C: Digital &amp; AI Fluency</h1>
+  <p class="lead" style="font-style:italic;">Focus: Critical oversight of automated systems.</p>
+  <ul style="margin-top:14px;">
+    <li><b>The Hallucination Audit:</b> An AI-generated proposal contains two subtle factual errors
+        about local regulations; identify them and evaluate the risk of sending the document.</li>
+    <li><b>The Component Design Challenge:</b> Generate boilerplate for an analytics dashboard with an
+        AI tool, identify a logic flaw in the state management, and refine the prompt so the design is
+        scalable and secure.</li>
+    <li><b>The Ethical Risk Assessment:</b> An organisation plans to automate all student counselling
+        with language models; evaluate the top three ethical and privacy risks.</li>
+  </ul>
+  <p class="note">
+    Implemented: this track grades whether the learner named a specific verification step, rather than
+    whether they expressed general caution.
+  </p>
+</section>
+
+</body>
+</html>
