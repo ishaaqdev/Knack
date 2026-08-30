@@ -2,7 +2,18 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { api } from '../lib/api'
-import { Button, Card, Empty, Page, Pill, SectionLabel, SkillBar, Spinner } from '../components/primitives'
+import {
+  Button,
+  Card,
+  Empty,
+  Page,
+  PageHead,
+  Pill,
+  SectionLabel,
+  SkillBar,
+  Spinner,
+} from '../components/primitives'
+import { Avatar } from '../components/Avatar'
 import { IconArrowRight, IconClose, IconPen, IconUser } from '../components/Icons'
 import { cx, relativeDate, useReducedMotion } from '../lib/ui'
 
@@ -122,11 +133,9 @@ function Person({ person, index, pronounOptions, onRenamed }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: reduced ? 0 : index * 0.05, duration: 0.35 }}
     >
-      <Card className="p-0">
+      <Card tap className="p-0">
         <button type="button" onClick={expand} className="flex w-full items-center gap-3.5 p-4 text-left">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-line text-[12px] font-semibold text-faint">
-            {INITIALS(shown.name)}
-          </span>
+          <Avatar name={shown.name} value={shown.relationship} size={44} delay={0.1 + index * 0.05} />
           <span className="min-w-0 flex-1">
             <span className="flex items-baseline gap-2">
               <span className="truncate font-display text-[15px] font-semibold">{shown.name}</span>
@@ -138,9 +147,7 @@ function Person({ person, index, pronounOptions, onRenamed }) {
                 <span className="text-faint"> · {shown.status}</span>
               )}
             </span>
-            <span className="mt-2 block">
-              <SkillBar value={shown.relationship} height={4} delay={0.1 + index * 0.05} />
-            </span>
+
           </span>
           <span className="stat shrink-0 text-[13px] text-dim">{shown.relationship}</span>
         </button>
@@ -269,13 +276,10 @@ export function People() {
 
   return (
     <Page className="pb-12">
-      <div className="mb-5">
-        <h1 className="font-display text-[26px] font-bold tracking-tight">People</h1>
-        <p className="mt-1.5 text-[14px] leading-relaxed text-dim">
-          The colleagues you work with. They remember how you handled them, and it changes what
-          they are willing to do for you later.
-        </p>
-      </div>
+      <PageHead eyebrow="Your team" title="People">
+        They remember how you handled them, and it changes what they are willing to do for you
+        later.
+      </PageHead>
 
       {error && <p className="mb-4 text-[12.5px] text-ember-hi">{error}</p>}
 
@@ -292,7 +296,7 @@ export function People() {
       ) : (
         <>
           <SectionLabel right={<span className="text-[12px] text-faint">{people.length} people</span>}>
-            Your team
+            Tap anyone to see what they remember
           </SectionLabel>
           <div className="space-y-3">
             {people.map((p, i) => (
@@ -306,8 +310,8 @@ export function People() {
             ))}
           </div>
           <p className="mt-6 text-center text-[12px] leading-relaxed text-faint">
-            Tap anyone to see what they remember. Relationships move on how you actually treated
-            them, not on how many levels you finished.
+            Relationships move on how you actually treated them, not on how many levels you
+            finished.
           </p>
         </>
       )}

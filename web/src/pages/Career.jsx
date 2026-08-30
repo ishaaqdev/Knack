@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useKnack } from '../store/useKnack'
 import { api } from '../lib/api'
-import { Button, Card, Page, Pill, SectionLabel, Spinner } from '../components/primitives'
+import { Button, Card, Page, PageHead, Pill, SectionLabel, Spinner } from '../components/primitives'
 import { AttributePanel } from '../components/Attributes'
 import {
   IconArrowRight,
@@ -231,18 +231,18 @@ export function Career() {
 
   return (
     <Page className="pb-12">
-      <div className="mb-5">
-        <h1 className="font-display text-[26px] font-bold tracking-tight">Your career</h1>
-        <p className="mt-1.5 text-[14px] leading-relaxed text-dim">
-          {career.company
-            ? `Applying to ${career.company.name} — ${career.company.kind}.`
-            : 'Pick where you are aiming, then work through the phases.'}
-        </p>
-      </div>
+      <PageHead
+        eyebrow={career.company ? career.company.name : 'Not set yet'}
+        title="Your career"
+      >
+        {career.company
+          ? `Six phases at ${career.company.kind}, each one earned rather than unlocked.`
+          : 'Pick where you are aiming, then work through the phases.'}
+      </PageHead>
 
       {/* one action, always */}
-      <Card className="mb-5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+      <Card hot className="mb-5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ember">
           Where you are
         </p>
         <p className="mt-1.5 font-display text-[17px] font-semibold">{phase?.name}</p>

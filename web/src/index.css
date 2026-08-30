@@ -18,6 +18,14 @@
   --color-ember: #ff7a35;
   --color-ember-hi: #ffa061;
   --color-ember-low: #8a4a24;
+  --color-ember-dim: #4a2716;
+
+  /* Depth, as three values rather than ad-hoc shadows at each call site.
+     On a dark surface the top highlight does most of the work — it is what
+     stops a card reading as a hole cut in the page. */
+  --edge-top: inset 0 1px 0 rgb(255 255 255 / 0.045);
+  --lift-1: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px -8px rgb(0 0 0 / 0.5);
+  --lift-2: 0 2px 6px rgb(0 0 0 / 0.45), 0 14px 40px -14px rgb(0 0 0 / 0.7);
 
   --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -48,6 +56,25 @@
     overscroll-behavior-y: none;
   }
 
+  /*
+   * A single warm source, top-left, behind everything.
+   *
+   * Flat charcoal reads as unfinished — the eye expects a dark room to have a
+   * light in it somewhere. This is the whole atmosphere budget: one ember
+   * gradient at four per cent, fixed so it does not scroll away, and pinned
+   * behind every layer so nothing has to opt in.
+   */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(70rem 40rem at 12% -10%, rgb(255 122 53 / 0.055), transparent 60%),
+      radial-gradient(50rem 30rem at 100% 0%, rgb(255 122 53 / 0.025), transparent 55%);
+  }
+
   /* Numbers are stats, not prose — tabular so counters do not jitter. */
   .stat {
     font-family: var(--font-display);
@@ -60,7 +87,21 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+  }
+
+  /* Page titles carry the hierarchy on a screen with no chrome to spare. */
+  .title {
+    font-family: var(--font-display);
+    font-size: 30px;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+  @media (min-width: 400px) {
+    .title {
+      font-size: 33px;
+    }
   }
 
   ::selection {
@@ -102,9 +143,45 @@
   }
 
   .card {
-    background: var(--color-surface);
+    background: linear-gradient(180deg, #191920 0%, var(--color-surface) 100%);
     border: 1px solid var(--color-hair);
     border-radius: var(--radius-card);
+    box-shadow: var(--edge-top), var(--lift-1);
+  }
+
+  /* Cards you can press. The lift is small on purpose — this is a reading app
+     that happens to be a game, not the other way round. */
+  .card-tap {
+    transition:
+      transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+  .card-tap:hover:not(:disabled) {
+    border-color: var(--color-line);
+    box-shadow: var(--edge-top), var(--lift-2);
+    transform: translateY(-1px);
+  }
+  .card-tap:active:not(:disabled) {
+    transform: translateY(0) scale(0.995);
+    box-shadow: var(--edge-top), var(--lift-1);
+  }
+
+  /* The one card on a screen that matters most. */
+  .card-hot {
+    border-color: rgb(255 122 53 / 0.28);
+    box-shadow:
+      var(--edge-top),
+      var(--lift-1),
+      0 0 40px -18px rgb(255 122 53 / 0.55);
+  }
+
+  /* Inset wells: transcripts, option lists, anything that sits *inside* a card
+     and should read as recessed rather than stacked. */
+  .well {
+    background: rgb(0 0 0 / 0.22);
+    border: 1px solid var(--color-hair);
+    border-radius: var(--radius-tile);
   }
 
   /* Fades a long scenario/history list into the page rather than cutting it. */

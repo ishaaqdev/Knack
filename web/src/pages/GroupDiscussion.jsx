@@ -3,7 +3,17 @@ import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useKnack } from '../store/useKnack'
 import { api } from '../lib/api'
-import { Button, Card, Page, Pill, SectionLabel, SkillBar, Spinner } from '../components/primitives'
+import {
+  Button,
+  Card,
+  Page,
+  PageHead,
+  Pill,
+  SectionLabel,
+  SkillBar,
+  Spinner,
+} from '../components/primitives'
+import { Avatar } from '../components/Avatar'
 import { AttributeDeltas } from '../components/Attributes'
 import { IconArrowLeft, IconArrowRight, IconRefresh, IconSpeech } from '../components/Icons'
 import { relativeDate, useReducedMotion } from '../lib/ui'
@@ -31,13 +41,14 @@ function Turn({ turn, index }) {
       transition={{ delay: reduced ? 0 : Math.min(index, 3) * 0.08, duration: 0.3 }}
       className={`flex gap-2.5 ${mine ? 'flex-row-reverse' : ''}`}
     >
-      <span
-        className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full border text-[9.5px] font-semibold ${
-          mine ? 'border-ember bg-ember text-[#160c05]' : 'border-line text-faint'
-        }`}
-      >
-        {mine ? 'YOU' : INITIALS(turn.speaker)}
-      </span>
+      <Avatar
+        name={mine ? 'You' : turn.speaker}
+        value={null}
+        size={28}
+        stroke={0}
+        active={mine}
+        className="mt-0.5"
+      />
       <div className={`min-w-0 flex-1 ${mine ? 'text-right' : ''}`}>
         <p className="text-[11px] text-faint">{turn.speaker}</p>
         <p
@@ -400,13 +411,10 @@ export function GroupDiscussion() {
         />
       ) : (
         <>
-          <div className="mb-5">
-            <h1 className="font-display text-[26px] font-bold tracking-tight">Group discussion</h1>
-            <p className="mt-1.5 text-[14px] leading-relaxed text-dim">
-              Five candidates, one motion, five exchanges. You decide when to speak — and being the
-              loudest is not how this is scored.
-            </p>
-          </div>
+          <PageHead eyebrow="Phase one" title="Group discussion">
+            Five candidates, one motion, five exchanges. You decide when to speak — and being the
+            loudest is not how this is scored.
+          </PageHead>
 
           {state && (
             <Card className="mb-5">
@@ -430,9 +438,7 @@ export function GroupDiscussion() {
           <Card className="mb-5 divide-y divide-hair p-0">
             {(state?.panel ?? []).map((p) => (
               <div key={p.name} className="flex items-center gap-3 px-4 py-3">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line text-[10px] font-semibold text-faint">
-                  {INITIALS(p.name)}
-                </span>
+                <Avatar name={p.name} value={null} size={32} stroke={0} />
                 <span className="flex-1 text-[13.5px] font-medium">{p.name}</span>
                 <span className="text-[12px] text-faint">{p.trait}</span>
               </div>

@@ -3,7 +3,16 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useKnack } from '../store/useKnack'
 import { api } from '../lib/api'
-import { Button, Card, Page, Pill, SectionLabel, SkillBar, Spinner } from '../components/primitives'
+import {
+  Button,
+  Card,
+  Page,
+  PageHead,
+  Pill,
+  SectionLabel,
+  SkillBar,
+  Spinner,
+} from '../components/primitives'
 import { AttributeDeltas } from '../components/Attributes'
 import { IconArrowRight, IconBriefcase, IconCheck } from '../components/Icons'
 import { cx, useReducedMotion } from '../lib/ui'
@@ -66,7 +75,7 @@ function Terms({ offer }) {
   const reduced = useReducedMotion()
 
   return (
-    <Card className="mb-5">
+    <Card hot className="mb-5">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 text-ember">
           <IconBriefcase size={19} />
@@ -255,12 +264,7 @@ function FullTime({ data, onPromote, busy, error }) {
 
   return (
     <>
-      <div className="mb-5">
-        <h1 className="font-display text-[26px] font-bold tracking-tight">Your job</h1>
-        <p className="mt-1.5 text-[14px] leading-relaxed text-dim">
-          {data.jobTitle} · {Number(data.ctc).toFixed(1)} LPA
-        </p>
-      </div>
+      <PageHead eyebrow={`${Number(data.ctc).toFixed(1)} LPA`} title={data.jobTitle} />
 
       <Card className="mb-5">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
@@ -389,8 +393,9 @@ export function Offer() {
   if (!data) {
     return (
       <Page>
+        <PageHead eyebrow="Not yet" title="Your offer" />
         <Card className="text-center">
-          <p className="font-display text-[16px] font-semibold">No offer yet</p>
+          <p className="font-display text-[16px] font-semibold">Nothing on the table</p>
           <p className="mx-auto mt-1.5 max-w-sm text-[13px] leading-relaxed text-dim">
             {error ?? 'Finish the internship first.'}
           </p>
@@ -444,12 +449,9 @@ export function Offer() {
 
   return (
     <Page className="pb-12">
-      <div className="mb-5">
-        <h1 className="font-display text-[26px] font-bold tracking-tight">Your offer</h1>
-        <p className="mt-1.5 text-[14px] leading-relaxed text-dim">
-          The internship is over. Here is the review, and here is the number.
-        </p>
-      </div>
+      <PageHead eyebrow={offer.company} title="Your offer">
+        The internship is over. Here is the review, and here is the number.
+      </PageHead>
 
       <Review offer={offer} review={data.review} />
       <Terms offer={offer} />

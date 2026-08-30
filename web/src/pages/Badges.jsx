@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { api } from '../lib/api'
-import { Card, Page, SectionLabel, Spinner } from '../components/primitives'
+import { Card, Page, PageHead, SectionLabel, Spinner } from '../components/primitives'
 import { IconCheck, IconLock } from '../components/Icons'
 import { cx, fullDate, useReducedMotion } from '../lib/ui'
 
@@ -83,13 +83,9 @@ export function Badges() {
 
   return (
     <Page className="pb-12">
-      <div className="mb-5">
-        <h1 className="font-display text-[26px] font-bold tracking-tight">Badges</h1>
-        <p className="mt-1.5 text-[14px] leading-relaxed text-dim">
-          {data.earned} of {list.length} earned. Every one has a condition — none are given out for
-          turning up.
-        </p>
-      </div>
+      <PageHead eyebrow={`${data.earned} of ${list.length} earned`} title="Badges">
+        Every one has a condition. None are given out for turning up.
+      </PageHead>
 
       {GROUPS.map(([phase, label]) => {
         const group = list.filter((b) => b.phase === phase)

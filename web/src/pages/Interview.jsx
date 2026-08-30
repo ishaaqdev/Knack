@@ -3,7 +3,17 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useKnack } from '../store/useKnack'
 import { api } from '../lib/api'
-import { Button, Card, Empty, Page, Pill, SectionLabel, SkillBar, Spinner } from '../components/primitives'
+import {
+  Button,
+  Card,
+  Empty,
+  Page,
+  PageHead,
+  Pill,
+  SectionLabel,
+  SkillBar,
+  Spinner,
+} from '../components/primitives'
 import {
   IconArrowLeft,
   IconArrowRight,
@@ -31,8 +41,8 @@ function RoundRow({ round, onStart, busy, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: reduced ? 0 : index * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       className={[
-        'card flex w-full items-center gap-3.5 p-4 text-left transition-colors',
-        locked ? 'opacity-55' : 'hover:border-dim',
+        'card flex w-full items-center gap-3.5 p-4 text-left',
+        locked ? 'opacity-55' : 'card-tap',
       ].join(' ')}
     >
       <span
@@ -68,13 +78,10 @@ function Overview({ state, onStart, busy, error }) {
 
   return (
     <>
-      <div className="mb-5">
-        <h1 className="font-display text-[26px] font-bold tracking-tight">Interview prep</h1>
-        <p className="mt-1.5 text-[14px] leading-relaxed text-dim">
-          Five rounds against an interviewer who has read your file. You are applying for{' '}
-          <span className="text-text">{state.role}</span> at {state.company}.
-        </p>
-      </div>
+      <PageHead eyebrow={state.role} title="Interview prep">
+        Five rounds against an interviewer who has read your file. You are applying at{' '}
+        {state.company}.
+      </PageHead>
 
       <Card className="mb-5">
         <div className="flex items-baseline justify-between">

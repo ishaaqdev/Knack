@@ -53,9 +53,7 @@ function TodayCard({ user }) {
   const done_ = state.tone === 'done'
 
   return (
-    <Card
-      className={`relative overflow-hidden ${risk ? 'border-ember/30' : ''}`}
-    >
+    <Card hot={!done_} className="relative overflow-hidden">
       {risk && (
         <div
           className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-20 blur-3xl"
@@ -101,32 +99,46 @@ function TodayCard({ user }) {
 function ReadinessCard({ user }) {
   const reduced = useReducedMotion()
   const r = user.readinessScore
+  const profile = user.professionalIndex ?? null
+  const badges = user.badgeCount ?? 0
   const verdict =
     r >= 75 ? 'Interview-ready' : r >= 50 ? 'Coming together' : r >= 25 ? 'Early days' : 'Just started'
 
   return (
-    <Card className="flex flex-col items-center py-7">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-faint">
-        Professional Readiness
-      </p>
-
-      <Gauge value={r / 100} size={172} stroke={9}>
+    <Card className="flex items-center gap-4 py-6 xs:gap-5">
+      <Gauge value={r / 100} size={118} stroke={7.5}>
         <div className="flex flex-col items-center">
-          <CountUp to={r} from={0} duration={1.2} className="stat text-[52px] font-bold leading-none" />
-          <motion.span
-            initial={reduced ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.1 }}
-            className="mt-1 text-[11px] font-medium tracking-wide text-ember"
-          >
-            {verdict}
-          </motion.span>
+          <CountUp to={r} from={0} duration={1.2} className="stat text-[34px] font-bold leading-none" />
         </div>
       </Gauge>
 
-      <p className="-mt-2 max-w-[15rem] text-center text-[12px] leading-relaxed text-faint">
-        The average of your three track scores. Breadth counts — an untouched track holds it down.
-      </p>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-faint">
+          Readiness
+        </p>
+        <motion.p
+          initial={reduced ? false : { opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: reduced ? 0 : 0.9 }}
+          className="mt-1 font-display text-[17px] font-semibold text-ember"
+        >
+          {verdict}
+        </motion.p>
+        <p className="mt-2 text-[12.5px] leading-relaxed text-faint">
+          The average of your three track scores. Breadth counts — an untouched track holds it down.
+        </p>
+
+        {profile !== null && (
+          <div className="mt-3.5 flex items-center gap-4 border-t border-hair pt-3">
+            <span className="text-[12px] text-faint">
+              Profile <span className="stat text-dim">{profile}</span>
+            </span>
+            <span className="text-[12px] text-faint">
+              Badges <span className="stat text-dim">{badges}</span>
+            </span>
+          </div>
+        )}
+      </div>
     </Card>
   )
 }
@@ -204,14 +216,14 @@ export function Dashboard() {
               return (
                 <Link key={t.id} to={`/quest/${t.id}`} className="group block">
                   <div className="mb-2 flex items-center gap-2.5">
-                    <span className="text-faint transition-colors group-hover:text-ember">
-                      <Icon size={16} />
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-hair bg-raised text-faint transition-colors group-hover:border-ember/35 group-hover:text-ember">
+                      <Icon size={15} />
                     </span>
                     <span className="flex-1 truncate text-[13.5px] font-medium">{t.name}</span>
                     {t.attempts === 0 && <Pill dot={false}>New</Pill>}
-                    <span className="stat text-[13.5px] font-semibold text-dim">{t.score}</span>
+                    <span className="stat text-[14px] font-semibold text-text">{t.score}</span>
                   </div>
-                  <SkillBar value={t.score} delay={0.1 + i * 0.08} />
+                  <SkillBar value={t.score} delay={0.1 + i * 0.08} muted={t.attempts === 0} />
                 </Link>
               )
             })}
@@ -221,7 +233,7 @@ export function Dashboard() {
         {/* the career — one phase, one next action */}
         <section>
           <SectionLabel>Your career</SectionLabel>
-          <Link to="/career" className="card flex items-center gap-3.5 p-5 hover:border-dim">
+          <Link to="/career" className="card card-tap group flex items-center gap-3.5 p-5">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-ember/40 text-ember">
               <IconBriefcase size={17} />
             </span>

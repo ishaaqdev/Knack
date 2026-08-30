@@ -3,7 +3,17 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useKnack } from '../store/useKnack'
 import { api } from '../lib/api'
-import { Button, Card, Empty, Page, Pill, SectionLabel, Spinner } from '../components/primitives'
+import {
+  Button,
+  Card,
+  Empty,
+  Page,
+  PageHead,
+  Pill,
+  SectionLabel,
+  Spinner,
+} from '../components/primitives'
+import { Avatar } from '../components/Avatar'
 import { AttributeDeltas } from '../components/Attributes'
 import {
   IconArrowLeft,
@@ -27,6 +37,15 @@ import { cx, relativeDate, useReducedMotion } from '../lib/ui'
  */
 
 const KIND_ICON = { message: IconPen, task: IconBriefcase, decision: IconCheck, dialogue: IconSpeech }
+
+/** Each room gets its own mark, so the office reads as five places not five rows. */
+const LOCATION_ICON = {
+  desk: IconPen,
+  manager: IconBriefcase,
+  meeting: IconUser,
+  cafeteria: IconSpeech,
+  hr: IconCheck,
+}
 const KIND_LABEL = {
   message: 'A message',
   task: 'The work',
@@ -148,14 +167,17 @@ function Beat({ beat, at, total, onAnswer, onDialogue, busy, error }) {
         <Clock left={left} total={beat.seconds} />
       </div>
 
-      <Card className="relative overflow-hidden">
+      <Card hot className="relative overflow-hidden">
         <div className="absolute left-0 top-0 h-full w-[3px] bg-ember" />
         {beat.character && (
-          <p className="mb-2 text-[11.5px] text-faint">
-            {beat.character.name} · {beat.character.role}
-          </p>
+          <div className="mb-3 flex items-center gap-2.5">
+            <Avatar name={beat.character.name} size={26} stroke={0} value={null} />
+            <p className="text-[11.5px] text-faint">
+              <span className="text-dim">{beat.character.name}</span> · {beat.character.role}
+            </p>
+          </div>
         )}
-        <p className="font-display text-[15px] font-semibold">{beat.headline}</p>
+        <p className="font-display text-[16px] font-semibold">{beat.headline}</p>
         <p className="mt-2 text-[15px] leading-[1.65] text-dim">{beat.situation}</p>
       </Card>
 
@@ -164,14 +186,14 @@ function Beat({ beat, at, total, onAnswer, onDialogue, busy, error }) {
         <div className="mt-4 space-y-3">
           {turns.map((t, i) => (
             <div key={i} className={cx('flex gap-2.5', t.who === 'you' && 'flex-row-reverse')}>
-              <span
-                className={cx(
-                  'mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full border text-[9.5px] font-semibold',
-                  t.who === 'you' ? 'border-ember bg-ember text-[#160c05]' : 'border-line text-faint'
-                )}
-              >
-                {t.who === 'you' ? 'YOU' : beat.character?.name.slice(0, 2).toUpperCase()}
-              </span>
+              <Avatar
+                name={t.who === 'you' ? 'You' : (beat.character?.name ?? '?')}
+                value={null}
+                size={28}
+                stroke={0}
+                active={t.who === 'you'}
+                className="mt-0.5"
+              />
               <p
                 className={cx(
                   'max-w-[80%] rounded-tile px-3 py-2 text-[13.5px] leading-relaxed',
@@ -639,13 +661,9 @@ export function Workplace() {
 
   return (
     <Page className="pb-12">
-      <div className="mb-5">
-        <h1 className="font-display text-[26px] font-bold tracking-tight">The office</h1>
-        <p className="mt-1.5 text-[14px] leading-relaxed text-dim">
-          Day {state.day}. Pick where you spend it — three things will happen, and where you go
-          decides what they are.
-        </p>
-      </div>
+      <PageHead eyebrow={`Day ${state.day}`} title="The office">
+        Pick where you spend it. Three things will happen, and where you go decides what they are.
+      </PageHead>
 
       {state.news?.length > 0 && (
         <Card className="mb-5 border-ember/25">
@@ -673,21 +691,33 @@ export function Workplace() {
 
       <SectionLabel>Where do you go?</SectionLabel>
       <div className="space-y-3">
-        {state.locations.map((l, i) => (
-          <motion.button
-            key={l.id}
-            type="button"
-            disabled={busy}
-            onClick={() => startDay(l.id)}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05, duration: 0.3 }}
-            className="card w-full p-4 text-left transition-colors hover:border-dim disabled:opacity-50"
-          >
-            <p className="font-display text-[15px] font-semibold">{l.name}</p>
-            <p className="mt-0.5 text-[12.5px] leading-relaxed text-dim">{l.blurb}</p>
-          </motion.button>
-        ))}
+        {state.locations.map((l, i) => {
+          const LIcon = LOCATION_ICON[l.id] ?? IconBriefcase
+          return (
+            <motion.button
+              key={l.id}
+              type="button"
+              disabled={busy}
+              onClick={() => startDay(l.id)}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              className="card card-tap group flex w-full items-start gap-4 p-4 text-left disabled:opacity-50"
+            >
+              <span className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-tile border border-line bg-raised text-dim transition-colors group-hover:border-ember/40 group-hover:text-ember">
+                <LIcon size={19} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-display text-[15.5px] font-semibold">{l.name}</span>
+                <span className="mt-1 block text-[12.5px] leading-relaxed text-dim">{l.blurb}</span>
+              </span>
+              <IconArrowRight
+                size={16}
+                className="mt-3.5 shrink-0 text-faint transition-colors group-hover:text-ember"
+              />
+            </motion.button>
+          )
+        })}
       </div>
 
       {busy && (
@@ -707,11 +737,9 @@ export function Workplace() {
           The team today
         </SectionLabel>
         <Card className="divide-y divide-hair p-0">
-          {state.people.map((p) => (
+          {state.people.map((p, i) => (
             <div key={p.id} className="flex items-center gap-3 px-4 py-3">
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line text-[10px] font-semibold text-faint">
-                {p.name.slice(0, 2).toUpperCase()}
-              </span>
+              <Avatar name={p.name} value={p.relationship} size={34} delay={0.1 + i * 0.05} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[13.5px] font-medium">{p.name}</span>
                 <span className="block truncate text-[11.5px] text-faint">{p.role}</span>

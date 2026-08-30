@@ -5,11 +5,15 @@ import { cx, spring, useReducedMotion } from '../lib/ui'
 
 const VARIANTS = {
   primary:
-    'bg-ember text-[#160c05] font-semibold hover:bg-ember-hi active:bg-ember disabled:bg-line disabled:text-faint',
+    'bg-ember text-[#160c05] font-semibold hover:bg-ember-hi active:bg-ember disabled:bg-line disabled:text-faint disabled:shadow-none',
   ghost:
     'bg-transparent text-dim border border-line hover:text-text hover:border-dim disabled:opacity-40',
-  quiet: 'bg-raised text-text hover:bg-line disabled:opacity-40',
+  quiet: 'bg-raised text-text border border-hair hover:bg-line hover:border-line disabled:opacity-40',
 }
+
+// The primary action is the brightest thing on the screen; it should throw a
+// little light. Dropped when disabled, so a dead button never looks live.
+const PRIMARY_GLOW = { boxShadow: '0 6px 22px -10px rgb(255 122 53 / 0.85)' }
 
 // motion.create() must never run during render — a fresh component identity on
 // every pass would remount the button (and kill focus). Cache per element type.
@@ -39,6 +43,7 @@ export function Button({
         VARIANTS[variant],
         className
       )}
+      style={variant === 'primary' && !rest.disabled ? PRIMARY_GLOW : undefined}
       whileTap={reduced || rest.disabled ? undefined : { scale: 0.97 }}
       transition={spring}
       {...rest}
@@ -50,11 +55,11 @@ export function Button({
 
 /* --------------------------------------------------------------- card ----- */
 
-export function Card({ className, children, ...rest }) {
+export function Card({ as: As = 'div', tap = false, hot = false, className, children, ...rest }) {
   return (
-    <div className={cx('card p-5', className)} {...rest}>
+    <As className={cx('card p-5', tap && 'card-tap', hot && 'card-hot', className)} {...rest}>
       {children}
-    </div>
+    </As>
   )
 }
 
@@ -91,22 +96,32 @@ export function Pill({ active = false, className, children, dot = true, title })
 
 /* ---------------------------------------------------------- skill bar ----- */
 
-export function SkillBar({ value = 0, delay = 0, className, height = 6 }) {
+export function SkillBar({ value = 0, delay = 0, className, height = 6, muted = false }) {
   const reduced = useReducedMotion()
+  const v = Math.max(0, Math.min(100, value))
+
   return (
     <div
-      className={cx('w-full overflow-hidden rounded-full bg-line', className)}
-      style={{ height }}
+      className={cx('w-full overflow-hidden rounded-full', className)}
+      style={{ height, background: 'rgb(0 0 0 / 0.35)', boxShadow: 'inset 0 1px 2px rgb(0 0 0 / 0.4)' }}
       role="progressbar"
       aria-valuenow={value}
       aria-valuemin={0}
       aria-valuemax={100}
     >
       <motion.div
-        className="h-full rounded-full bg-ember"
-        initial={{ width: reduced ? `${value}%` : 0 }}
-        animate={{ width: `${Math.max(0, Math.min(100, value))}%` }}
-        transition={reduced ? { duration: 0 } : { duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
+        className="h-full rounded-full"
+        style={{
+          // A flat fill reads as a loading bar. The gradient and the small
+          // bloom at the end make it read as a level.
+          background: muted
+            ? 'var(--color-line)'
+            : 'linear-gradient(90deg, var(--color-ember-low), var(--color-ember) 70%, var(--color-ember-hi))',
+          boxShadow: muted || v < 4 ? 'none' : '0 0 10px -2px rgb(255 122 53 / 0.55)',
+        }}
+        initial={{ width: reduced ? `${v}%` : 0 }}
+        animate={{ width: `${v}%` }}
+        transition={reduced ? { duration: 0 } : { duration: 0.85, delay, ease: [0.16, 1, 0.3, 1] }}
       />
     </div>
   )
@@ -125,6 +140,41 @@ export function Page({ className, children }) {
     >
       {children}
     </motion.main>
+  )
+}
+
+/**
+ * The top of a screen.
+ *
+ * Every page was opening with the same 26px heading and a paragraph, which made
+ * eight different screens look like one screen. The title now carries real
+ * scale, and an optional eyebrow says where you are — so the reader knows
+ * which part of the app they are in before they have read a sentence.
+ */
+export function PageHead({ eyebrow, title, children, right }) {
+  const reduced = useReducedMotion()
+  return (
+    <motion.div
+      className="mb-6"
+      initial={reduced ? false : { opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          {eyebrow && (
+            <p className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ember">
+              {eyebrow}
+            </p>
+          )}
+          <h1 className="title">{title}</h1>
+        </div>
+        {right}
+      </div>
+      {children && (
+        <p className="mt-2.5 max-w-prose text-[14px] leading-relaxed text-dim">{children}</p>
+      )}
+    </motion.div>
   )
 }
 
