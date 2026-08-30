@@ -4,6 +4,10 @@ import { requireAuth } from '../auth.js'
 import { validateProfile } from '../profile.js'
 import { getContext } from '../context.js'
 import { interviewProgress } from '../interview.js'
+import { getAttributes, professionalIndex, seedAttributes, weakest } from '../attributes.js'
+import { listCharacters } from '../characters.js'
+import { earnedCount } from '../badges.js'
+import { careerState } from '../career.js'
 import {
   levelFor,
   localDate,
@@ -37,6 +41,9 @@ const recent = db.prepare(`
 
 userRouter.get('/', (req, res) => {
   const user = req.user
+  // Cheap and idempotent: the attribute row set has to exist before anything
+  // can read it, and onboarding is the only place the seed values come from.
+  seedAttributes(user)
   const today = localDate()
   const status = streakStatus(user, today)
 
@@ -79,6 +86,15 @@ userRouter.get('/', (req, res) => {
     // the three track scores.
     interview: interviewProgress(user),
 
+    // The simulation layer: where they are in the career, what the ten
+    // attributes say about them, who they work with, and what they have earned.
+    career: careerState(user),
+    attributes: getAttributes(user.id),
+    professionalIndex: professionalIndex(user.id),
+    weakestAttributes: weakest(user.id, 3),
+    people: listCharacters(user.id),
+    badgeCount: earnedCount(user.id),
+
     // What the app has worked out about them — surfaced so it is legible
     // rather than a black box.
     insight: ctx.summary
@@ -94,9 +110,16 @@ userRouter.post('/reset', (req, res) => {
     db.prepare('DELETE FROM attempts WHERE userId = ?').run(req.user.id)
     db.prepare('DELETE FROM learner_context WHERE userId = ?').run(req.user.id)
     db.prepare('DELETE FROM interview_runs WHERE userId = ?').run(req.user.id)
+    db.prepare('DELETE FROM gd_runs WHERE userId = ?').run(req.user.id)
+    db.prepare('DELETE FROM attribute_log WHERE userId = ?').run(req.user.id)
+    db.prepare('DELETE FROM attributes WHERE userId = ?').run(req.user.id)
+    db.prepare('DELETE FROM character_events WHERE userId = ?').run(req.user.id)
+    db.prepare('DELETE FROM characters WHERE userId = ?').run(req.user.id)
+    db.prepare('DELETE FROM badges WHERE userId = ?').run(req.user.id)
     db.prepare(
       `UPDATE users SET xp = 0, streak = 0, longestStreak = 0, lastActiveDate = NULL,
-              interviewLevel = 1
+              interviewLevel = 1, phase = 'gd', gdCleared = 0, internshipLevel = 5,
+              joinedCompanyAt = NULL
        WHERE id = ?`
     ).run(req.user.id)
   })()

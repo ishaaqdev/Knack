@@ -8,6 +8,9 @@ import {
   levelEvaluationPrompt,
   interviewPrompt,
   interviewDebriefPrompt,
+  gdTurnPrompt,
+  gdEvaluationPrompt,
+  GD_PANEL,
 } from './prompts.js'
 import {
   FALLBACK_SCENARIOS,
@@ -15,6 +18,8 @@ import {
   FALLBACK_INTERVIEW,
   heuristicEvaluation,
   heuristicDebrief,
+  FALLBACK_GD_TURN,
+  heuristicGd,
 } from './fallback.js'
 
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions'
@@ -236,10 +241,10 @@ async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate
 
 /* --------------------------------------------------------------- public --- */
 
-export async function generateScenario({ track, difficulty, avoid, profile, learner, portfolio, resume, shape }) {
+export async function generateScenario({ track, difficulty, avoid, profile, learner, portfolio, resume, attributes, shape }) {
   try {
     const { data, model } = await askForJson(
-      scenarioPrompt({ track, difficulty, avoid, profile, learner, portfolio, resume, shape }),
+      scenarioPrompt({ track, difficulty, avoid, profile, learner, portfolio, resume, attributes, shape }),
       {
         temperature: 1.0,
         maxTokens: 900,
@@ -454,10 +459,10 @@ function normaliseQuestion(q) {
   }
 }
 
-export async function generateLevel({ track, difficulty, profile, learner, portfolio, resume, shape, avoid, n = 0 }) {
+export async function generateLevel({ track, difficulty, profile, learner, portfolio, resume, attributes, shape, avoid, n = 0 }) {
   try {
     const { data, model } = await askForJson(
-      levelPrompt({ track, difficulty, profile, learner, portfolio, resume, shape, avoid }),
+      levelPrompt({ track, difficulty, profile, learner, portfolio, resume, attributes, shape, avoid }),
       {
         temperature: 1.0,
         maxTokens: 1800,
@@ -606,5 +611,82 @@ export async function debriefInterview({ round, role, profile, resume, portfolio
   } catch (err) {
     console.warn('[ai] debrief fell back to heuristic |', (err.tried ?? []).join(' | ') || err.message)
     return { ...heuristicDebrief({ pairs }), source: 'offline' }
+  }
+}
+
+/* --------------------------------------------------- group discussion ----- */
+
+export async function gdTurn({ topic, transcript, beat, totalBeats, lastUserTurn }) {
+  try {
+    const { data, model } = await askForJson(
+      gdTurnPrompt({ topic, transcript, beat, totalBeats, lastUserTurn }),
+      {
+        temperature: 1.0,
+        maxTokens: 500,
+        budgetMs: 40_000,
+        validate: (d) => Array.isArray(d.turns) && d.turns.length >= 1,
+      }
+    )
+
+    const names = new Set(GD_PANEL.map((p) => p.name))
+    const turns = data.turns
+      .filter((t) => t && typeof t.text === 'string' && t.text.trim())
+      // A turn attributed to someone not in the room breaks the illusion
+      // completely, so an unknown speaker is reassigned rather than shown.
+      .map((t, i) => ({
+        speaker: names.has(t.speaker) ? t.speaker : GD_PANEL[(beat + i) % GD_PANEL.length].name,
+        text: str(t.text, 240),
+      }))
+      .slice(0, 3)
+
+    if (!turns.length) throw new Error('no usable turns')
+    return { turns, source: 'ai', model }
+  } catch (err) {
+    console.warn('[ai] GD turn fell back to script |', (err.tried ?? []).join(' | ') || err.message)
+    return { ...FALLBACK_GD_TURN(beat, lastUserTurn), source: 'offline' }
+  }
+}
+
+export async function evaluateGd({ topic, transcript, contributions, profile }) {
+  try {
+    const { data, model } = await askForJson(
+      gdEvaluationPrompt({ topic, transcript, contributions, profile }),
+      {
+        temperature: 0.3,
+        maxTokens: 900,
+        budgetMs: 60_000,
+        validate: (d) => d.scores && Number.isFinite(Number(d.score)),
+      }
+    )
+
+    const pct = (v) => Math.max(0, Math.min(100, Math.round(Number(v) || 0)))
+    const scores = {
+      communication: pct(data.scores.communication),
+      confidence: pct(data.scores.confidence),
+      leadership: pct(data.scores.leadership),
+      teamwork: pct(data.scores.teamwork),
+      listening: pct(data.scores.listening),
+    }
+
+    // A candidate who never spoke cannot be carried by a generous grader.
+    if (!contributions.length) {
+      for (const k of Object.keys(scores)) scores[k] = Math.min(scores[k], 25)
+    }
+
+    return {
+      scores,
+      score: contributions.length
+        ? Math.max(1, Math.min(10, Math.round(Number(data.score))))
+        : 1,
+      verdict: str(data.verdict, 300),
+      strengths: str(data.strengths, 600),
+      gaps: str(data.gaps, 600),
+      nextFocus: str(data.nextFocus, 200),
+      source: 'ai',
+      model,
+    }
+  } catch (err) {
+    console.warn('[ai] GD debrief fell back to heuristic |', (err.tried ?? []).join(' | ') || err.message)
+    return { ...heuristicGd({ transcript, contributions }), source: 'offline' }
   }
 }

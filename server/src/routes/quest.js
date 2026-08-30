@@ -6,6 +6,10 @@ import { requireOnboarded } from '../auth.js'
 import { profileBrief, portfolioBrief } from '../profile.js'
 import { resumeBrief } from '../resume.js'
 import { contextBrief, maybeRefresh } from '../context.js'
+import { applyAttributeDeltas, derivedDeltas, getAttributes, attributeBrief } from '../attributes.js'
+import { listCharacters, recordInteraction } from '../characters.js'
+import { award, checkStateBadges } from '../badges.js'
+import { advanceInternship, careerState } from '../career.js'
 import { sampleShape } from '../variation.js'
 import {
   levelFor,
@@ -287,6 +291,7 @@ questRouter.post('/level/generate', async (req, res, next) => {
       learner: contextBrief(user.id),
       portfolio: portfolioBrief(user),
       resume: resumeBrief(user),
+      attributes: attributeBrief(user.id),
     }
 
     const choices = await generateLevel({ track, difficulty, shape, avoid, n, ...context })
@@ -491,6 +496,54 @@ questRouter.post('/level/submit', async (req, res, next) => {
 
     pendingLevels.delete(levelId)
 
+    /*
+     * Everything below is the part that makes this a career rather than a
+     * quiz: the score moves the ten attributes, a colleague remembers how you
+     * handled them, badges are checked against real state, and the internship
+     * advances only if the level was actually good enough.
+     */
+    const moved = applyAttributeDeltas(before.id, derivedDeltas(track.id, score), {
+      reason: `${track.name} level scored ${score}/10`,
+      source: 'level',
+    })
+
+    // The counterpart in the written stage is the person who remembers this.
+    const named = listCharacters(before.id).find((c) =>
+      new RegExp(`\\b${c.name}\\b`, 'i').test(writtenStage.scenarioText)
+    )
+    const relationship = named
+      ? recordInteraction(before.id, named.id, {
+          summary:
+            score >= 7
+              ? `You handled a difficult exchange with them well (${score}/10).`
+              : score >= 4
+                ? `You got through a difficult exchange with them, but left things unresolved (${score}/10).`
+                : `You handled a difficult exchange with them badly (${score}/10).`,
+          delta: score >= 8 ? 4 : score >= 6 ? 2 : score >= 4 ? 0 : -4,
+          source: 'level',
+        })
+      : null
+
+    const progress = advanceInternship(before, score)
+
+    const newBadges = []
+    if (score >= 8 && /disagree|criticis|conflict|pushback|argument/i.test(writtenStage.scenarioText)) {
+      const b = award(before.id, 'conflict-navigator', `Handled a disagreement at ${score}/10.`)
+      if (b) newBadges.push(b)
+    }
+    if (score >= 8 && /deadline|slip|friday|ship|late|by \d/i.test(writtenStage.scenarioText)) {
+      const b = award(before.id, 'deadline-defender', `Held a deadline conversation at ${score}/10.`)
+      if (b) newBadges.push(b)
+    }
+    const attributes = getAttributes(before.id)
+    newBadges.push(
+      ...checkStateBadges(before.id, {
+        attributes,
+        characters: listCharacters(before.id),
+        streak,
+      })
+    )
+
     const scores = allTrackScores(before.id)
     const weakest = weakestTrack(scores)
 
@@ -517,6 +570,12 @@ questRouter.post('/level/submit', async (req, res, next) => {
         weakest.score < 70 && weakest.id !== track.id
           ? { id: weakest.id, name: weakest.name, score: weakest.score }
           : null,
+
+      attributes: moved,
+      relationship,
+      badges: newBadges,
+      internship: progress,
+      career: careerState({ ...before, internshipLevel: progress.level, phase: progress.phase }),
     })
 
     maybeRefresh(before.id)

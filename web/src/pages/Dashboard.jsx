@@ -6,6 +6,7 @@ import { Gauge } from '../components/Ring'
 import { Insight } from '../components/Insight'
 import { CountUp } from '../components/CountUp'
 import { TRACK_ICONS, IconArrowRight, IconBriefcase, IconCheck, IconFlame } from '../components/Icons'
+import { SkillBar as Bar } from '../components/primitives'
 import { relativeDate, useReducedMotion } from '../lib/ui'
 
 /* ------------------------------------------------------- today's status --- */
@@ -130,6 +131,32 @@ function ReadinessCard({ user }) {
   )
 }
 
+const PHASE_LABEL = {
+  gd: 'Group discussion',
+  interview: 'Interview rounds',
+  joining: 'You got the internship',
+  internship: 'On the job',
+  offer: 'The offer',
+  fulltime: 'Full-time',
+}
+
+const PHASE_BLURB = (career, interview) => {
+  switch (career.phase) {
+    case 'gd':
+      return 'Five candidates, one motion. Clear it to reach the interview.'
+    case 'interview':
+      return `${interview.cleared} of ${interview.maxLevel} rounds cleared.`
+    case 'joining':
+      return 'Meet the people you will be working with.'
+    case 'internship':
+      return `Level ${career.internship.level} of ${career.internship.end}.`
+    case 'offer':
+      return 'Performance review, then a number you can argue with.'
+    default:
+      return 'Keep going.'
+  }
+}
+
 /* ------------------------------------------------------------- page ------- */
 
 export function Dashboard() {
@@ -137,6 +164,8 @@ export function Dashboard() {
   if (!user) return null
 
   const interview = user.interview ?? { totalRuns: 0, cleared: 0, unlocked: 1, maxLevel: 5, readiness: 0 }
+  const career = user.career ?? { phase: 'gd', internship: { level: 5, end: 30 } }
+  const weak = (user.weakestAttributes ?? []).slice(0, 3)
 
   return (
     <Page>
@@ -189,28 +218,54 @@ export function Dashboard() {
           </Card>
         </section>
 
-        {/* interview prep — its own progression, so its own entry point */}
+        {/* the career — one phase, one next action */}
         <section>
-          <SectionLabel>Interview prep</SectionLabel>
-          <Link to="/interview" className="card flex items-center gap-3.5 p-5 hover:border-dim">
+          <SectionLabel>Your career</SectionLabel>
+          <Link to="/career" className="card flex items-center gap-3.5 p-5 hover:border-dim">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-ember/40 text-ember">
               <IconBriefcase size={17} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="font-display text-[15px] font-semibold">
-                {interview.totalRuns === 0
-                  ? 'Sit a mock interview'
-                  : `Round ${Math.min(interview.unlocked, interview.maxLevel)} of ${interview.maxLevel}`}
-              </p>
+              <p className="font-display text-[15px] font-semibold">{PHASE_LABEL[career.phase]}</p>
               <p className="mt-0.5 text-[12.5px] leading-relaxed text-dim">
-                {interview.totalRuns === 0
-                  ? 'Five rounds, questions written from your resume.'
-                  : `${interview.cleared} cleared · readiness ${interview.readiness}`}
+                {PHASE_BLURB(career, interview)}
               </p>
             </div>
             <IconArrowRight size={17} className="shrink-0 text-faint" />
           </Link>
         </section>
+
+        {/* the three attributes most in need of work */}
+        {weak.length > 0 && (
+          <section>
+            <SectionLabel
+              right={
+                <Link
+                  to="/career"
+                  className="text-[12px] font-medium text-dim transition-colors hover:text-ember"
+                >
+                  All ten
+                </Link>
+              }
+            >
+              Needs work
+            </SectionLabel>
+            <Card className="space-y-3.5">
+              {weak.map((a, i) => (
+                <div key={a.key}>
+                  <div className="mb-1.5 flex items-baseline justify-between">
+                    <span className="text-[13.5px] font-medium">{a.name}</span>
+                    <span className="stat text-[13px] text-dim">{Math.round(a.value)}</span>
+                  </div>
+                  <Bar value={a.value} delay={0.1 + i * 0.08} />
+                </div>
+              ))}
+              <p className="text-[12px] leading-relaxed text-faint">
+                Scenarios are aimed at whichever of these is lowest.
+              </p>
+            </Card>
+          </section>
+        )}
 
         {/* recent */}
         <section>

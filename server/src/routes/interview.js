@@ -6,6 +6,9 @@ import { generateInterview, debriefInterview } from '../ai.js'
 import { profileBrief, portfolioBrief } from '../profile.js'
 import { interviewBrief } from '../resume.js'
 import { maybeRefresh } from '../context.js'
+import { applyAttributeDeltas, getAttributes } from '../attributes.js'
+import { award, checkStateBadges } from '../badges.js'
+import { clearInterview, careerState } from '../career.js'
 import {
   ROUNDS,
   roundFor,
@@ -265,6 +268,37 @@ interviewRouter.post('/submit', async (req, res, next) => {
     const unlockedTo = unlockAfter(before, run.level, debrief.score)
     const progress = interviewProgress({ ...before, interviewLevel: unlockedTo })
 
+    /*
+     * An interview exercises a specific and narrow set of attributes — how you
+     * present evidence, whether you hold up when challenged, whether you can
+     * structure an answer. It should not move Teamwork.
+     */
+    const moved = applyAttributeDeltas(
+      before.id,
+      {
+        communication: (debrief.score - 5.5) / 1.6,
+        confidence: (debrief.score - 5.5) / 1.9,
+        professionalism: (debrief.score - 5.5) / 2.6,
+        ...(run.level >= 4 ? { adaptability: (debrief.score - 5.5) / 2.6 } : {}),
+      },
+      { reason: `Interview round ${run.level}: ${round.name}`, source: 'interview' }
+    )
+
+    const newBadges = []
+    if (debrief.score >= PASS_SCORE && run.level === 1) {
+      const b = award(before.id, 'interview-ready', `Cleared the introduction round at ${debrief.score}/10.`)
+      if (b) newBadges.push(b)
+    }
+    if (debrief.score >= PASS_SCORE && run.level === 4) {
+      const b = award(before.id, 'under-pressure', `Held up in the pressure round at ${debrief.score}/10.`)
+      if (b) newBadges.push(b)
+    }
+    newBadges.push(...checkStateBadges(before.id, { attributes: getAttributes(before.id), streak }))
+
+    // Clearing the last round is the offer of the internship.
+    const allCleared = progress.rounds.every((r) => r.cleared)
+    const phase = allCleared ? clearInterview(before) : before.phase
+
     res.json({
       kind: 'interview',
       runId,
@@ -295,6 +329,11 @@ interviewRouter.post('/submit', async (req, res, next) => {
       levelUp: afterLevel.index > beforeLevel.index ? afterLevel : null,
       level: afterLevel,
       progress,
+
+      attributes: moved,
+      badges: newBadges,
+      phaseUnlocked: phase !== before.phase ? phase : null,
+      career: careerState({ ...before, interviewLevel: unlockedTo, phase }),
     })
 
     maybeRefresh(before.id)

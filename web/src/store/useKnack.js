@@ -116,6 +116,9 @@ export const useKnack = create((set, get) => ({
               }
             : {}),
           ...(result.progress ? { interview: result.progress } : {}),
+          // The simulation layer moves on almost every result, so the header
+          // and dashboard reflect it before the reconciling fetch lands.
+          ...(result.career ? { career: result.career } : {}),
         },
       })
     }

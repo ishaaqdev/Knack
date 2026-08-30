@@ -6,7 +6,7 @@ import { cx } from '../lib/ui'
 const NAV = [
   { to: '/dashboard', label: 'Home', Icon: IconHome },
   { to: '/tracks', label: 'Quest', Icon: IconQuest },
-  { to: '/interview', label: 'Interview', Icon: IconBriefcase },
+  { to: '/career', label: 'Career', Icon: IconBriefcase },
   { to: '/profile', label: 'Profile', Icon: IconUser },
 ]
 
@@ -72,7 +72,9 @@ function DeskNav() {
 export function AppShell() {
   const { pathname } = useLocation()
   // The quest and feedback flows are focus modes — nav would invite bailing out.
-  const focusMode = pathname.startsWith('/quest') || pathname.startsWith('/feedback')
+  // A discussion and an interview are performances — nav would invite bailing.
+  const focusMode =
+    pathname.startsWith('/quest') || pathname.startsWith('/feedback') || pathname.startsWith('/gd')
 
   return (
     <div className="min-h-dvh bg-ink">

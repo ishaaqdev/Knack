@@ -439,3 +439,101 @@ export function heuristicDebrief({ pairs }) {
       'The AI model was rate-limited, so this round was scored by a local rubric. Retry later for a proper debrief.',
   }
 }
+
+/* ------------------------------------------------------- offline GD ------- */
+
+/**
+ * The discussion without a model. Beats are pre-written per personality and
+ * selected by position, so the room still behaves the way the panel says it
+ * does even when nothing can be generated.
+ */
+const GD_BEATS = [
+  [
+    { speaker: 'Rohit', text: 'I will start. The answer here is obvious once you look at productivity, and I think most people overcomplicate it.' },
+    { speaker: 'Anjali', text: 'The data is less clear than that. The studies that get quoted measure output over three months, not over three years.' },
+  ],
+  [
+    { speaker: 'Vikram', text: 'That is a convenient reading. You are assuming the thing you are trying to prove.' },
+    { speaker: 'Sneha', text: 'I think both of you are describing different timeframes rather than disagreeing. Can we separate the short term from the long term?' },
+  ],
+  [
+    { speaker: 'Imran', text: 'The part nobody has said is who carries the cost. It is not distributed evenly.' },
+    { speaker: 'Rohit', text: 'Sure, but somebody always carries a cost. That cannot be the reason not to do it.' },
+  ],
+  [
+    { speaker: 'Anjali', text: 'There is a middle position that works in practice — set the rule at team level rather than company level.' },
+    { speaker: 'Vikram', text: 'Then you get five teams doing five different things and nobody can plan anything.' },
+  ],
+  [
+    { speaker: 'Sneha', text: 'We are close to time. Can somebody pull together what we actually agreed on?' },
+    { speaker: 'Imran', text: 'We agreed the cost is real and unevenly shared. We did not agree who should decide.' },
+  ],
+]
+
+export function FALLBACK_GD_TURN(beat, lastUserTurn) {
+  const turns = GD_BEATS[Math.min(beat - 1, GD_BEATS.length - 1)].map((t) => ({ ...t }))
+  // Someone always reacts to the trainee. Being ignored is not the lesson here.
+  if (lastUserTurn) {
+    turns[0] = {
+      speaker: turns[0].speaker,
+      text: `Taking your point — ${turns[0].text.charAt(0).toLowerCase()}${turns[0].text.slice(1)}`,
+    }
+  }
+  return { turns, offlineNote: 'The AI model was unavailable, so the panel is running from a scripted discussion.' }
+}
+
+/**
+ * Deterministic GD scoring. Timing and build-on behaviour are visible from the
+ * transcript positions alone, which is most of what a GD is judged on, so this
+ * is a better proxy than the written-answer rubric.
+ */
+export function heuristicGd({ transcript, contributions }) {
+  const n = contributions.length
+  const total = transcript.length || 1
+
+  if (n === 0) {
+    return {
+      scores: { communication: 10, confidence: 5, leadership: 5, teamwork: 15, listening: 20 },
+      score: 1,
+      verdict: 'You did not speak. In a real group discussion that is an automatic cut.',
+      strengths: 'You listened to the whole discussion.',
+      gaps: 'Nothing was contributed, so there is nothing to assess.',
+      nextFocus: 'enter the discussion within the first two minutes, even briefly',
+      offlineNote: 'Scored by a local rubric while the model was unavailable.',
+    }
+  }
+
+  const words = contributions.reduce((s, c) => s + c.text.trim().split(/\s+/).length, 0) / n
+  const firstEntry = contributions[0].after / total
+  const referenced = contributions.filter((c) => /\b(agree|point|said|building on|as \w+ mentioned|disagree)\b/i.test(c.text)).length
+
+  const timing = firstEntry < 0.35 ? 85 : firstEntry < 0.6 ? 60 : 35
+  const substance = words >= 35 ? 80 : words >= 18 ? 62 : 40
+  const buildsOn = Math.min(90, 35 + (referenced / n) * 60)
+  const share = n >= 2 && n <= 4 ? 80 : n === 1 ? 50 : 55
+
+  const scores = {
+    communication: Math.round(substance),
+    confidence: Math.round((timing + share) / 2),
+    leadership: Math.round((buildsOn + timing) / 2 - 8),
+    teamwork: Math.round(buildsOn),
+    listening: Math.round(buildsOn * 0.9 + 8),
+  }
+  const mean = Object.values(scores).reduce((a, b) => a + b, 0) / 5
+
+  return {
+    scores,
+    score: Math.max(1, Math.min(7, Math.round(mean / 10))),
+    verdict: 'Scored locally while the model was unavailable — treat this as rough.',
+    strengths: `You spoke ${n} ${n === 1 ? 'time' : 'times'}, averaging ${Math.round(words)} words${
+      firstEntry < 0.35 ? ', and you entered early rather than waiting to be invited' : ''
+    }.`,
+    gaps:
+      referenced === 0
+        ? 'None of your contributions referred to what anyone else had said, which reads as a prepared speech rather than a discussion.'
+        : 'Without the model this can only judge timing and structure, not the quality of your argument.',
+    nextFocus:
+      referenced === 0 ? 'name the person you are building on before making your own point' : 'run this again for a real read',
+    offlineNote: 'Scored by a local rubric while the model was unavailable. Retry later for a proper debrief.',
+  }
+}

@@ -60,8 +60,8 @@ the human rather than the tool`,
  * you...". The fix is to state explicitly that the profile selects the *setting*
  * and is never surfaced in the text, and to repeat that at the rules.
  */
-function contextBlock({ profile, learner, portfolio, resume }) {
-  if (!profile && !learner && !portfolio && !resume) return ''
+function contextBlock({ profile, learner, portfolio, resume, attributes }) {
+  if (!profile && !learner && !portfolio && !resume && !attributes) return ''
 
   const parts = ['\nWHO THIS IS FOR (background only — see the rules)']
 
@@ -83,6 +83,14 @@ function contextBlock({ profile, learner, portfolio, resume }) {
     parts.push(`- Kinds of work they have done: ${portfolio.domains.join(', ')}`)
   }
 
+  // The ten attributes decide what the scenario should make them do, not what
+  // it should say. A low Leadership score means put them in a position where
+  // someone has to decide; it never means mention leadership.
+  if (attributes?.weakest?.length) {
+    parts.push(`- Weakest professional attributes right now: ${attributes.weakest.join(', ')}`)
+    parts.push('- Build the situation so it forces the first of those to be used.')
+  }
+
   if (learner?.summary) {
     parts.push(`- What their last few attempts showed: ${learner.summary}`)
     if (learner.gaps?.length) {
@@ -94,7 +102,7 @@ function contextBlock({ profile, learner, portfolio, resume }) {
   return parts.join('\n') + '\n'
 }
 
-export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner, portfolio, resume, shape }) {
+export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner, portfolio, resume, attributes, shape }) {
   const t = TRACK_BRIEF[track.id]
   const avoidBlock = avoid.length
     ? `\nDo NOT reuse these situations — the trainee has already seen them:\n${avoid
@@ -102,7 +110,7 @@ export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner
         .join('\n')}\n`
     : ''
 
-  const personalised = contextBlock({ profile, learner, portfolio, resume })
+  const personalised = contextBlock({ profile, learner, portfolio, resume, attributes })
   const shaped = shape ? `
 ${shapeBlock(shape)}
 ` : ''
@@ -317,9 +325,9 @@ Reply with ONLY this JSON object and nothing else:
  * teaches nothing — the interesting workplace choices are the ones that are all
  * defensible and differ by degree.
  */
-export function levelPrompt({ track, difficulty, profile, learner, portfolio, resume, shape, avoid = [] }) {
+export function levelPrompt({ track, difficulty, profile, learner, portfolio, resume, attributes, shape, avoid = [] }) {
   const t = TRACK_BRIEF[track.id]
-  const personalised = contextBlock({ profile, learner, portfolio, resume })
+  const personalised = contextBlock({ profile, learner, portfolio, resume, attributes })
   const shaped = shape ? `\n${shapeBlock(shape)}\n` : ''
   const avoidBlock = avoid.length
     ? `\nThe trainee has recently seen these situations. Do not reuse them:\n${avoid
@@ -557,4 +565,129 @@ RULES
 
 Reply with ONLY this JSON object and nothing else:
 {"answers":[{"i":<index>,"score":<1-10>,"worked":"<one sentence>","improve":"<one sentence>","better":"<one sentence>"}],"score":<1-10>,"verdict":"<one sentence>","strengths":"<1-2 sentences>","gaps":"<1-2 sentences>","nextFocus":"<one clause>"}`
+}
+
+/* --------------------------------------------------- group discussion ----- */
+
+/**
+ * The five candidates in the room.
+ *
+ * Personalities are fixed rather than generated. The point of a GD is that the
+ * trainee learns to handle a dominant voice, a quiet one with a good idea, and
+ * someone who challenges everything — those roles have to be reliably present,
+ * not left to a sampler.
+ */
+export const GD_PANEL = [
+  { name: 'Rohit', trait: 'Dominant', how: 'talks first, talks longest, interrupts to finish his own point' },
+  { name: 'Anjali', trait: 'Knowledgeable', how: 'brings real facts and numbers, but states them flatly and does not push' },
+  { name: 'Vikram', trait: 'Aggressive', how: 'challenges whatever was just said, sometimes fairly, sometimes not' },
+  { name: 'Sneha', trait: 'Diplomatic', how: 'tries to reconcile two positions and bring quieter people in' },
+  { name: 'Imran', trait: 'Quiet', how: 'says very little, but what he says is usually the best point so far' },
+]
+
+export const GD_TOPICS = [
+  'Should companies require employees to return to the office full time?',
+  'Is it fair for companies to use AI to screen resumes?',
+  'Should engineers be responsible for the business impact of what they build?',
+  'Do college degrees still matter for hiring in software?',
+  'Should a company ever ship a product it knows is not finished?',
+  'Is remote work worse for people at the start of their careers?',
+  'Should social media companies be liable for what their algorithms promote?',
+  'Are internships exploitative when they are unpaid?',
+]
+
+/**
+ * One beat of the discussion: what the panel says next, given everything so
+ * far. Asking for the whole discussion up front would make it a script the
+ * trainee reads rather than a room they are in.
+ */
+export function gdTurnPrompt({ topic, transcript, beat, totalBeats, lastUserTurn }) {
+  const panel = GD_PANEL.map((p) => `- ${p.name} (${p.trait}): ${p.how}`).join('\n')
+  const said = transcript.length
+    ? transcript.map((t) => `${t.speaker}: ${t.text}`).join('\n')
+    : '(nothing yet — this is the opening)'
+
+  return `You are simulating a campus placement group discussion for a training
+app. Five candidates are in the room, plus the trainee, who is a sixth
+participant you must NOT speak for.
+
+TOPIC
+${topic}
+
+THE PANEL
+${panel}
+
+THE DISCUSSION SO FAR
+${said}
+
+You are writing beat ${beat} of about ${totalBeats}.
+${
+  lastUserTurn
+    ? `The trainee just said: "${lastUserTurn}"\nAt least one candidate should react to it directly — agreeing, building on it, or pushing back. Do not ignore it.`
+    : 'The trainee has not spoken yet. Do not mention them or invite them by name.'
+}
+
+Write 2 or 3 short turns from DIFFERENT candidates, in the order they speak.
+
+RULES
+- Each turn is 1 to 2 sentences, under 40 words. Spoken, not written.
+- Stay in character. Rohit dominates, Vikram challenges, Imran is brief and
+  sharp, Anjali cites something concrete, Sneha reconciles.
+- Advance the argument. Do not restate what has already been said.
+- Never speak for the trainee and never put words in their mouth.
+- Real spoken English. No markdown, no emoji, no stage directions.
+
+Reply with ONLY this JSON object and nothing else:
+{"turns":[{"speaker":"<candidate name>","text":"<what they say>"}]}`
+}
+
+/**
+ * The debrief. Judged on the things a GD actually tests, which are mostly not
+ * "did they talk a lot".
+ */
+export function gdEvaluationPrompt({ topic, transcript, contributions, profile }) {
+  const said = transcript.map((t) => `${t.speaker}: ${t.text}`).join('\n')
+  const mine = contributions.length
+    ? contributions.map((c, i) => `${i + 1}. (after ${c.after} other turns) "${c.text}"`).join('\n')
+    : '(the trainee never spoke)'
+
+  return `You are an experienced placement assessor debriefing a candidate after
+a group discussion. Be honest — a candidate told they were great and then cut in
+a real GD has been let down.
+
+TOPIC
+${topic}
+${profile ? `\nTHE CANDIDATE: ${profile.who}\n` : ''}
+FULL TRANSCRIPT
+${said}
+
+WHAT THE CANDIDATE SAID, AND WHEN
+${mine}
+
+Assess them on: when they entered, whether they added anything new, whether they
+built on others, whether they disagreed without being rude, clarity, and whether
+they helped the group reach anywhere.
+
+SCORING, on each of these, 0-100
+- communication: clarity and structure of what they actually said
+- confidence: entering without being invited, holding a position under challenge
+- leadership: shaping direction, summarising, bringing others in
+- teamwork: building on others, crediting them, not talking over people
+- listening: responding to what was actually said rather than a prepared point
+
+Do NOT reward volume. A candidate who spoke twice at the right moment and moved
+the discussion on scores higher than one who spoke six times and repeated the
+room. A candidate who never spoke cannot score above 25 on anything, and their
+verdict must say so plainly.
+
+Then give an overall score out of 10 consistent with those five numbers.
+
+RULES
+- Address them as "you". Quote something they actually said, if they said anything.
+- strengths / gaps: 1-2 sentences each, behavioural and specific.
+- nextFocus: one clause naming the single thing to change next time.
+- Plain text only. No markdown, no emoji.
+
+Reply with ONLY this JSON object and nothing else:
+{"scores":{"communication":<0-100>,"confidence":<0-100>,"leadership":<0-100>,"teamwork":<0-100>,"listening":<0-100>},"score":<1-10>,"verdict":"<one sentence>","strengths":"<1-2 sentences>","gaps":"<1-2 sentences>","nextFocus":"<one clause>"}`
 }

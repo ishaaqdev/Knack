@@ -76,6 +76,24 @@ export const api = {
   submitInterview: (payload) => req('/interview/submit', { method: 'POST', body: payload }),
   interviewRun: (id) => req(`/interview/runs/${id}`),
 
+  // career simulation
+  career: () => req('/career'),
+  chooseCompany: (companyId, roleId) =>
+    req('/career/company', { method: 'POST', body: { companyId, roleId } }),
+  joinCompany: () => req('/career/join', { method: 'POST' }),
+  people: () => req('/career/people'),
+  person: (id) => req(`/career/people/${id}`),
+  renamePerson: (id, body) => req(`/career/people/${id}`, { method: 'PATCH', body }),
+  attributes: () => req('/career/attributes'),
+  badges: () => req('/career/badges'),
+
+  // group discussion
+  gd: () => req('/gd'),
+  startGd: () => req('/gd/start', { method: 'POST', body: {} }),
+  gdTurn: (runId, text) => req('/gd/turn', { method: 'POST', body: { runId, text } }),
+  finishGd: (runId) => req('/gd/finish', { method: 'POST', body: { runId } }),
+  gdRun: (id) => req(`/gd/runs/${id}`),
+
   history: ({ trackId = 'all', limit = 50, offset = 0 } = {}) =>
     req(`/history?trackId=${encodeURIComponent(trackId)}&limit=${limit}&offset=${offset}`),
 }

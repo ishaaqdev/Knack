@@ -96,7 +96,109 @@ db.exec(`
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
   );
 
+  -- The ten permanent professional attributes, one row per user per attribute.
+  -- Key/value rather than ten columns: the set is meant to be inspectable and
+  -- extendable, and every write is a delta with a reason attached.
+  CREATE TABLE IF NOT EXISTS attributes (
+    userId    INTEGER NOT NULL,
+    key       TEXT    NOT NULL,
+    value     REAL    NOT NULL DEFAULT 50,
+    updatedAt TEXT,
+    PRIMARY KEY (userId, key),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- Why an attribute moved. This is what lets the app say "Leadership 27 to 31
+  -- because you coordinated two people under a deadline" instead of a number
+  -- changing on its own.
+  CREATE TABLE IF NOT EXISTS attribute_log (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId    INTEGER NOT NULL,
+    key       TEXT    NOT NULL,
+    delta     REAL    NOT NULL,
+    before    REAL    NOT NULL,
+    after     REAL    NOT NULL,
+    reason    TEXT    NOT NULL DEFAULT '',
+    source    TEXT    NOT NULL DEFAULT '',
+    at        TEXT    NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- Persistent colleagues. Created when the trainee joins the company and kept
+  -- for the rest of the simulation.
+  CREATE TABLE IF NOT EXISTS characters (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId        INTEGER NOT NULL,
+    slug          TEXT    NOT NULL,
+    name          TEXT    NOT NULL,
+    defaultName   TEXT    NOT NULL,
+    pronouns      TEXT    NOT NULL DEFAULT 'they/them',
+    role          TEXT    NOT NULL,
+    department    TEXT    NOT NULL DEFAULT '',
+    personality   TEXT    NOT NULL DEFAULT '',
+    strengths     TEXT    NOT NULL DEFAULT '[]',
+    weaknesses    TEXT    NOT NULL DEFAULT '[]',
+    careerHistory TEXT    NOT NULL DEFAULT '[]',
+    joinedLabel   TEXT    NOT NULL DEFAULT '',
+    relationship  INTEGER NOT NULL DEFAULT 50,
+    status        TEXT    NOT NULL DEFAULT 'active',
+    sortOrder     INTEGER NOT NULL DEFAULT 0,
+    createdAt     TEXT    NOT NULL,
+    UNIQUE (userId, slug),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- What a colleague remembers. Bounded per character when read, because a
+  -- prompt cannot carry an unbounded history any more than a person can.
+  CREATE TABLE IF NOT EXISTS character_events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId      INTEGER NOT NULL,
+    characterId INTEGER NOT NULL,
+    summary     TEXT    NOT NULL,
+    delta       INTEGER NOT NULL DEFAULT 0,
+    before      INTEGER NOT NULL DEFAULT 50,
+    after       INTEGER NOT NULL DEFAULT 50,
+    source      TEXT    NOT NULL DEFAULT '',
+    at          TEXT    NOT NULL,
+    FOREIGN KEY (characterId) REFERENCES characters(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS badges (
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL,
+    slug   TEXT    NOT NULL,
+    why    TEXT    NOT NULL DEFAULT '',
+    phase  TEXT    NOT NULL DEFAULT '',
+    at     TEXT    NOT NULL,
+    UNIQUE (userId, slug),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- One group discussion, transcript and all.
+  CREATE TABLE IF NOT EXISTS gd_runs (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId        INTEGER NOT NULL,
+    topic         TEXT    NOT NULL,
+    transcript    TEXT    NOT NULL DEFAULT '[]',
+    contributions TEXT    NOT NULL DEFAULT '[]',
+    scores        TEXT    NOT NULL DEFAULT '{}',
+    score         INTEGER NOT NULL DEFAULT 0,
+    verdict       TEXT    NOT NULL DEFAULT '',
+    strengths     TEXT    NOT NULL DEFAULT '',
+    gaps          TEXT    NOT NULL DEFAULT '',
+    nextFocus     TEXT    NOT NULL DEFAULT '',
+    xpAwarded     INTEGER NOT NULL DEFAULT 0,
+    source        TEXT    NOT NULL DEFAULT 'ai',
+    timestamp     TEXT    NOT NULL,
+    localDate     TEXT    NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
   CREATE INDEX IF NOT EXISTS idx_attempts_user_track ON attempts(userId, trackId, id DESC);
+  CREATE INDEX IF NOT EXISTS idx_attrlog_user ON attribute_log(userId, id DESC);
+  CREATE INDEX IF NOT EXISTS idx_chars_user ON characters(userId, sortOrder);
+  CREATE INDEX IF NOT EXISTS idx_charev_char ON character_events(characterId, id DESC);
+  CREATE INDEX IF NOT EXISTS idx_gd_user ON gd_runs(userId, id DESC);
   CREATE INDEX IF NOT EXISTS idx_interview_user ON interview_runs(userId, id DESC);
   CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(userId, id DESC);
   CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(userId);
@@ -152,6 +254,17 @@ addColumn('users', 'interviewLevel', 'INTEGER NOT NULL DEFAULT 1')
 // readable: kind defaults to the single-scenario shape they were written in.
 addColumn('attempts', 'kind', "TEXT NOT NULL DEFAULT 'open'")
 addColumn('attempts', 'detail', "TEXT NOT NULL DEFAULT ''")
+
+// The career simulation. `phase` is the spine: gd -> interview -> joining ->
+// internship -> offer -> fulltime. Everything else reads it to decide what the
+// trainee is allowed to do next.
+addColumn('users', 'phase', "TEXT NOT NULL DEFAULT 'gd'")
+addColumn('users', 'simCompany', 'TEXT')
+addColumn('users', 'simCompanyKind', 'TEXT')
+addColumn('users', 'simRole', 'TEXT')
+addColumn('users', 'joinedCompanyAt', 'TEXT')
+addColumn('users', 'internshipLevel', 'INTEGER NOT NULL DEFAULT 5')
+addColumn('users', 'gdCleared', 'INTEGER NOT NULL DEFAULT 0')
 
 // SQLite cannot add a UNIQUE column via ALTER TABLE, so the constraint lives in
 // an index. Partial, because pre-auth legacy rows have a NULL email.
@@ -219,6 +332,15 @@ export function publicUser(row) {
     confidence: safeParse(row.confidence, {}),
     focusAreas: safeParse(row.focusAreas, []),
     onboarded: !!row.onboardedAt,
+    sim: {
+      phase: row.phase ?? 'gd',
+      company: row.simCompany,
+      companyKind: row.simCompanyKind,
+      role: row.simRole,
+      joinedAt: row.joinedCompanyAt,
+      internshipLevel: row.internshipLevel ?? 5,
+      gdCleared: !!row.gdCleared,
+    },
     resume: row.resumeUpdatedAt
       ? {
           brief: row.resumeBrief,
