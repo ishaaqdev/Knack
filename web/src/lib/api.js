@@ -78,13 +78,15 @@ export const api = {
 
   // career simulation
   career: () => req('/career'),
-  chooseCompany: (companyId, roleId) =>
-    req('/career/company', { method: 'POST', body: { companyId, roleId } }),
+  chooseCompany: (companyId, roleId, customName) =>
+    req('/career/company', { method: 'POST', body: { companyId, roleId, customName } }),
   joinCompany: () => req('/career/join', { method: 'POST' }),
   people: () => req('/career/people'),
   person: (id) => req(`/career/people/${id}`),
   renamePerson: (id, body) => req(`/career/people/${id}`, { method: 'PATCH', body }),
   attributes: () => req('/career/attributes'),
+  challenge: () => req('/career/challenge'),
+  review: () => req('/career/review'),
   badges: () => req('/career/badges'),
 
   // the workplace

@@ -48,7 +48,7 @@ offerRouter.get('/', async (req, res, next) => {
       return res.json({
         phase: 'fulltime',
         offer: latestOffer(user.id),
-        grade: gradeAt(user.gradeIndex ?? 0),
+        grade: gradeAt(user.gradeIndex ?? 0, user),
         promotion: promotionCheck(user),
         jobTitle: user.jobTitle,
         ctc: user.ctc,
@@ -185,7 +185,7 @@ offerRouter.post('/decide', (req, res) => {
   }
 
   const final = decideOffer(user.id, true)
-  const grade = gradeAt(0)
+  const grade = gradeAt(0, user)
 
   db.transaction(() => {
     setFulltime.run({ id: user.id, jobTitle: grade.name, ctc: final.total })

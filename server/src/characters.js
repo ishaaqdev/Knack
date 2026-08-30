@@ -25,7 +25,9 @@ export const CAST = [
     defaultName: 'Hema',
     role: 'Engineering Manager',
     department: 'Engineering',
-    personality: 'Calm, direct, and short of time. Says what she thinks once.',
+    // Written without pronouns: the trainee picks those at the introduction,
+    // and a description that has already decided makes the choice a fiction.
+    personality: 'Calm, direct, and short of time. Says a thing once.',
     strengths: ['Prioritisation', 'People management', 'Clear expectations'],
     weaknesses: ['Assumes context you do not have', 'Rarely follows up in writing'],
     careerHistory: ['Engineer', 'Senior Engineer', 'Engineering Manager'],

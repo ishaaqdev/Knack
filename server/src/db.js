@@ -348,6 +348,7 @@ addColumn('users', 'jobTitle', 'TEXT')
 addColumn('users', 'ctc', 'REAL')
 addColumn('users', 'gradeIndex', 'INTEGER NOT NULL DEFAULT 0')
 addColumn('users', 'levelsSinceHire', 'INTEGER NOT NULL DEFAULT 0')
+addColumn('users', 'lastReviewLevel', 'INTEGER NOT NULL DEFAULT 5')
 
 // SQLite cannot add a UNIQUE column via ALTER TABLE, so the constraint lives in
 // an index. Partial, because pre-auth legacy rows have a NULL email.

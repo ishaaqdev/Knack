@@ -156,6 +156,43 @@ export const BADGES = [
   },
 ]
 
+/**
+ * Rarity.
+ *
+ * Derived from the condition rather than stored, so a badge cannot drift out of
+ * step with how hard it actually is. Bronze is "you turned up and did the
+ * thing"; platinum is the end of a phase or a number almost nobody reaches.
+ */
+const RARITY = {
+  'career-starter': 'bronze',
+  'first-day': 'bronze',
+  'workplace-explorer': 'bronze',
+  'discussion-catalyst': 'silver',
+  'interview-ready': 'silver',
+  'leadership-spark': 'silver',
+  'team-player': 'silver',
+  'confident-communicator': 'silver',
+  'conflict-navigator': 'silver',
+  'deadline-defender': 'silver',
+  'feedback-pro': 'silver',
+  'long-memory': 'silver',
+  'voice-of-the-room': 'gold',
+  'under-pressure': 'gold',
+  'problem-solver': 'gold',
+  'professional-standard': 'gold',
+  'trusted-colleague': 'gold',
+  'steady-hand': 'gold',
+  'promotion-ready': 'gold',
+  'negotiation-pro': 'gold',
+  'offer-secured': 'platinum',
+  'career-launch': 'platinum',
+  'people-person': 'platinum',
+  'rising-professional': 'platinum',
+}
+
+export const RARITY_ORDER = ['bronze', 'silver', 'gold', 'platinum']
+export const rarityOf = (slug) => RARITY[slug] ?? 'bronze'
+
 const BY_SLUG = Object.fromEntries(BADGES.map((b) => [b.slug, b]))
 
 const ownedStmt = db.prepare('SELECT slug, why, at FROM badges WHERE userId = ? ORDER BY id')
@@ -179,7 +216,12 @@ export function award(userId, slug, why) {
     phase: def.phase,
     at: new Date().toISOString(),
   })
-  return { slug, name: def.name, why: String(why ?? def.hint).slice(0, 200) }
+  return {
+    slug,
+    name: def.name,
+    rarity: rarityOf(slug),
+    why: String(why ?? def.hint).slice(0, 200),
+  }
 }
 
 /**
@@ -193,6 +235,7 @@ export function listBadges(userId) {
     name: b.name,
     hint: b.hint,
     phase: b.phase,
+    rarity: rarityOf(b.slug),
     earned: !!owned[b.slug],
     why: owned[b.slug]?.why ?? null,
     at: owned[b.slug]?.at ?? null,

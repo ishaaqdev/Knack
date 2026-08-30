@@ -16,6 +16,7 @@ import {
 import { Avatar } from '../components/Avatar'
 import { AttributeDeltas } from '../components/Attributes'
 import { IconArrowLeft, IconArrowRight, IconRefresh, IconSpeech } from '../components/Icons'
+import { Clock, useCountdown } from '../components/Countdown'
 import { relativeDate, useReducedMotion } from '../lib/ui'
 
 /**
@@ -84,6 +85,18 @@ function Room({ run, onTurn, onFinish, busy, error }) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
   const spoken = run.transcript.filter((t) => t.you).length
 
+  /*
+   * The window to make a point closes whether or not you have decided to make
+   * it. Running out passes — which is a real move here, and a scored one.
+   */
+  const expire = useCallback(() => {
+    if (busy || run.closed) return
+    onTurn('')
+    setText('')
+  }, [busy, run.closed, onTurn])
+
+  const left = useCountdown(run.seconds ?? 60, expire, !busy && !run.closed)
+
   return (
     <>
       <Card className="relative overflow-hidden">
@@ -103,9 +116,12 @@ function Room({ run, onTurn, onFinish, busy, error }) {
 
       <div className="mt-4 flex items-center justify-between">
         <SectionLabel>Discussion</SectionLabel>
-        <span className="text-[11px] text-faint">
-          beat {Math.min(run.beat, run.totalBeats)} of {run.totalBeats} · you spoke {spoken}×
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] text-faint">
+            beat {Math.min(run.beat, run.totalBeats)}/{run.totalBeats} · spoke {spoken}×
+          </span>
+          {!run.closed && <Clock left={left} total={run.seconds ?? 60} />}
+        </div>
       </div>
 
       <div className="space-y-3.5">

@@ -92,6 +92,7 @@ function PhaseRow({ phase, index, current, done }) {
 function ChooseCompany({ career, onChosen }) {
   const [companyId, setCompanyId] = useState(career.companies[0].id)
   const [roleId, setRoleId] = useState(career.roles[0].id)
+  const [customName, setCustomName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
@@ -99,7 +100,7 @@ function ChooseCompany({ career, onChosen }) {
     setBusy(true)
     setError(null)
     try {
-      await api.chooseCompany(companyId, roleId)
+      await api.chooseCompany(companyId, roleId, customName)
       await onChosen()
     } catch (e) {
       setError(e.message)
@@ -160,6 +161,21 @@ function ChooseCompany({ career, onChosen }) {
         </p>
       </div>
 
+      <div className="mt-4">
+        <SectionLabel>Name it yourself (optional)</SectionLabel>
+        <input
+          value={customName}
+          maxLength={40}
+          onChange={(e) => setCustomName(e.target.value)}
+          placeholder={career.companies.find((c) => c.id === companyId)?.name}
+          className="w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none focus:border-ember"
+        />
+        <p className="mt-2 text-[12px] leading-relaxed text-faint">
+          The size and culture still come from the choice above — the name is the part that makes
+          it yours.
+        </p>
+      </div>
+
       {error && <p className="mt-3 text-[12.5px] text-ember-hi">{error}</p>}
 
       <Button className="mt-4 w-full" onClick={save} disabled={busy}>
@@ -201,7 +217,9 @@ export function Career() {
       await api.joinCompany()
       await load()
       await reload()
-      navigate('/people')
+      // Straight into the introductions — the team is five strangers until the
+      // trainee has named them.
+      navigate('/joining')
     } catch (e) {
       setError(e.message)
     } finally {
@@ -297,6 +315,11 @@ export function Career() {
               <span className="text-faint"> / {career.internship.end}</span>
             </span>
           </div>
+          {career.band && (
+            <p className="mt-1.5 text-[13px] text-ember-hi">
+              {career.band.name} — {career.band.brief}
+            </p>
+          )}
           <p className="mt-2 text-[12.5px] leading-relaxed text-faint">
             A level scored 5 or better advances you. Level {career.internship.end} is the job offer.
           </p>
@@ -314,7 +337,33 @@ export function Career() {
       </SectionLabel>
       <AttributePanel attributes={career.attributes} professionalIndex={career.professionalIndex} />
 
-      <p className="mt-3 text-center text-[12px] leading-relaxed text-faint">
+      {career.challenge && (
+        <Card hot className="mt-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ember">
+            Development challenge
+          </p>
+          <p className="mt-1.5 font-display text-[15.5px] font-semibold">
+            {career.challenge.name} · {career.challenge.value}
+            <span className="ml-2 text-[12.5px] font-normal text-faint">
+              {career.challenge.tier}
+            </span>
+          </p>
+          <p className="mt-1.5 text-[13.5px] leading-relaxed text-dim">
+            {career.challenge.challenge}
+          </p>
+          <Button
+            as={Link}
+            to={`/quest/${career.challenge.trackId}`}
+            variant="quiet"
+            size="sm"
+            className="mt-3.5"
+          >
+            Take it on <IconArrowRight size={15} />
+          </Button>
+        </Card>
+      )}
+
+      <p className="mt-4 text-center text-[12px] leading-relaxed text-faint">
         These are not XP. They go down when you handle something badly, and they decide which
         situations the app puts you in next.
       </p>

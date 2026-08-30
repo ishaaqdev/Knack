@@ -3,16 +3,16 @@
   ============================================================================
   KNACK — PHASE 2 (IMPLEMENTATION STAGE) PRESENTATION
   BGS College of Engineering & Technology · Dept. of ISE · AY 2025-26
-  Phase 1 template, monochrome: Calibri headings, Times New Roman body,
-  plain bulleted slides. The blue side bar has been removed — the only colour
-  left on a slide is the app's orange, and only where it carries meaning.
+  Phase 1 template: blue side band, Calibri headings, Times New Roman body,
+  plain bulleted slides. No rule under the headings. The only other colour on a
+  slide is the app's orange, and only where it carries meaning.
   ============================================================================
 
   EXPORT
     A ready-made PDF sits beside this file: Knack_Phase2_Presentation.pdf
     To regenerate it by hand: Chrome or Edge -> Ctrl+P -> Save as PDF
     Layout LANDSCAPE · Paper A4 · Margins NONE · Scale 100%
-    TICK "Background graphics"    (table rules and diagrams need it)
+    TICK "Background graphics"    (the blue band disappears without it)
     UNTICK "Headers and footers"
 
   TWO THINGS TO DROP IN BEFORE 24/08
@@ -40,6 +40,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
+  --bar:#4472C4;        /* the department template's blue side band */
   --ink:#000000;
   --grey:#595959;
   --line:#000000;
@@ -54,9 +55,11 @@ body{background:#B8B8B8;font-family:'Times New Roman',Times,serif;}
 /* 4:3, same shape as the Phase 1 deck */
 .sl{
   width:1024px;height:768px;background:#fff;margin:0 auto 16px;position:relative;
-  padding:42px 68px 40px 68px;overflow:hidden;
+  padding:42px 60px 40px 104px;overflow:hidden;
   display:flex;flex-direction:column;
 }
+/* The department template's blue band, edge to edge down the left side. */
+.sl::before{content:'';position:absolute;left:0;top:0;bottom:0;width:56px;background:var(--bar);}
 
 @media screen{ body{padding:16px 0;} .sl{box-shadow:0 2px 10px rgba(0,0,0,.3);} }
 
@@ -64,7 +67,8 @@ body{background:#B8B8B8;font-family:'Times New Roman',Times,serif;}
 @media print{
   body{background:#fff;padding:0;}
   .sl{width:264mm;height:198mm;margin:6mm auto;box-shadow:none;page-break-after:always;
-      padding:11mm 17mm 10mm 17mm;}
+      padding:11mm 15mm 10mm 27mm;}
+  .sl::before{width:14mm;}
   .sl:last-child{page-break-after:auto;}
   .no-print{display:none;}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -73,7 +77,7 @@ body{background:#B8B8B8;font-family:'Times New Roman',Times,serif;}
 h1{
   font-family:'Carlito',Calibri,'Segoe UI',sans-serif;font-weight:400;
   font-size:38px;color:var(--ink);text-align:center;letter-spacing:.01em;
-  padding-bottom:14px;margin-bottom:26px;border-bottom:1px solid #000;
+  margin-bottom:26px;
 }
 h1.sm{font-size:32px;}
 
@@ -1847,17 +1851,17 @@ svg{max-width:100%;height:auto;}
 <!-- ========================= 24 · REFERENCES ========================== -->
 <section class="sl">
   <h1>REFERENCES</h1>
-  <ol style="font-size:16.6px;line-height:1.42;padding-left:30px;margin-bottom:0;">
-    <li style="margin-bottom:6px;"><b>Deterding, S., et al. (2011).</b> From Game Design Elements to Gamefulness: Defining Gamification. <i>Proc. 15th International Academic MindTrek Conference.</i></li>
-    <li style="margin-bottom:6px;"><b>Kapp, K. M. (2012).</b> <i>The Gamification of Learning and Instruction.</i> Wiley Publishing.</li>
-    <li style="margin-bottom:6px;"><b>Duolingo Research (2020).</b> Effectiveness of Gamified Language Learning and Long-term Retention Strategies. <i>Journal of Computer Assisted Learning.</i></li>
-    <li style="margin-bottom:6px;"><b>Altomari, L., et al. (2023).</b> Gamification in Soft Skills Assessment: Trends and Opportunities. <i>IEEE / Educational Research Papers.</i></li>
-    <li style="margin-bottom:6px;"><b>Thomas, M. (2023).</b> AI Chatbots in Mobile Learning Environments: A Qualitative Study. <i>International Journal of Educational Technology.</i></li>
-    <li style="margin-bottom:6px;"><b>World Economic Forum (2023).</b> The Future of Jobs Report 2023. <i>WEF Strategy Papers.</i></li>
-    <li style="margin-bottom:6px;"><b>Lampropoulos, G., et al. (2024).</b> Impact of Gamification on Learning Outcomes: A Systematic Review. <i>Journal of Interactive Learning Environments.</i></li>
-    <li style="margin-bottom:6px;"><b>Marengo, A., et al. (2025).</b> Integrating AI and Gamification for Professional Skill Development. <i>Proc. IEEE Int. Conf. on Learning Technologies.</i></li>
-    <li style="margin-bottom:6px;"><b>Mercer-Mettl (2025).</b> India Graduate Skill Index Report. <i>Industry Skill Assessment Report.</i></li>
-    <li style="margin-bottom:6px;"><b>Reddy, V., &amp; Sharma, P. (2025).</b> Bridging the Employability Gap Using AI-driven Soft Skill Training. <i>Journal of Vocational Education.</i></li>
+  <ol style="font-size:16px;line-height:1.4;padding-left:30px;margin-bottom:0;">
+    <li style="margin-bottom:4px;"><b>Deterding, S., et al. (2011).</b> From Game Design Elements to Gamefulness: Defining Gamification. <i>Proc. 15th International Academic MindTrek Conference.</i></li>
+    <li style="margin-bottom:4px;"><b>Kapp, K. M. (2012).</b> <i>The Gamification of Learning and Instruction.</i> Wiley Publishing.</li>
+    <li style="margin-bottom:4px;"><b>Duolingo Research (2020).</b> Effectiveness of Gamified Language Learning and Long-term Retention Strategies. <i>Journal of Computer Assisted Learning.</i></li>
+    <li style="margin-bottom:4px;"><b>Altomari, L., et al. (2023).</b> Gamification in Soft Skills Assessment: Trends and Opportunities. <i>IEEE / Educational Research Papers.</i></li>
+    <li style="margin-bottom:4px;"><b>Thomas, M. (2023).</b> AI Chatbots in Mobile Learning Environments: A Qualitative Study. <i>International Journal of Educational Technology.</i></li>
+    <li style="margin-bottom:4px;"><b>World Economic Forum (2023).</b> The Future of Jobs Report 2023. <i>WEF Strategy Papers.</i></li>
+    <li style="margin-bottom:4px;"><b>Lampropoulos, G., et al. (2024).</b> Impact of Gamification on Learning Outcomes: A Systematic Review. <i>Journal of Interactive Learning Environments.</i></li>
+    <li style="margin-bottom:4px;"><b>Marengo, A., et al. (2025).</b> Integrating AI and Gamification for Professional Skill Development. <i>Proc. IEEE Int. Conf. on Learning Technologies.</i></li>
+    <li style="margin-bottom:4px;"><b>Mercer-Mettl (2025).</b> India Graduate Skill Index Report. <i>Industry Skill Assessment Report.</i></li>
+    <li style="margin-bottom:4px;"><b>Reddy, V., &amp; Sharma, P. (2025).</b> Bridging the Employability Gap Using AI-driven Soft Skill Training. <i>Journal of Vocational Education.</i></li>
   </ol>
 </section>
 
@@ -1865,12 +1869,12 @@ svg{max-width:100%;height:auto;}
 <!-- ==================== 25 · REFERENCES (CONTINUED) =================== -->
 <section class="sl">
   <h1>REFERENCES (CONTINUED)</h1>
-  <ol start="9" style="font-size:16.6px;line-height:1.42;padding-left:30px;margin-bottom:0;">
-    <li style="margin-bottom:6px;"><b>Zheng, L., et al. (2023).</b> Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. <i>Advances in Neural Information Processing Systems 36.</i></li>
-    <li style="margin-bottom:6px;"><b>Park, J. S., et al. (2023).</b> Generative Agents: Interactive Simulacra of Human Behavior. <i>Proc. ACM UIST.</i></li>
-    <li style="margin-bottom:6px;"><b>Lewis, P., et al. (2020).</b> Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. <i>NeurIPS 33.</i></li>
-    <li style="margin-bottom:6px;"><b>Hattie, J., &amp; Timperley, H. (2007).</b> The Power of Feedback. <i>Review of Educational Research, 77(1).</i></li>
-    <li style="margin-bottom:6px;"><b>Corbett, A. T., &amp; Anderson, J. R. (1994).</b> Knowledge Tracing: Modeling the Acquisition of Procedural Knowledge. <i>User Modeling and User-Adapted Interaction, 4.</i></li>
+  <ol start="9" style="font-size:16px;line-height:1.4;padding-left:30px;margin-bottom:0;">
+    <li style="margin-bottom:4px;"><b>Zheng, L., et al. (2023).</b> Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. <i>Advances in Neural Information Processing Systems 36.</i></li>
+    <li style="margin-bottom:4px;"><b>Park, J. S., et al. (2023).</b> Generative Agents: Interactive Simulacra of Human Behavior. <i>Proc. ACM UIST.</i></li>
+    <li style="margin-bottom:4px;"><b>Lewis, P., et al. (2020).</b> Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. <i>NeurIPS 33.</i></li>
+    <li style="margin-bottom:4px;"><b>Hattie, J., &amp; Timperley, H. (2007).</b> The Power of Feedback. <i>Review of Educational Research, 77(1).</i></li>
+    <li style="margin-bottom:4px;"><b>Corbett, A. T., &amp; Anderson, J. R. (1994).</b> Knowledge Tracing: Modeling the Acquisition of Procedural Knowledge. <i>User Modeling and User-Adapted Interaction, 4.</i></li>
     <li style="margin-bottom:0;"><b>Percival, C., &amp; Josefsson, S. (2016).</b> The scrypt Password-Based Key Derivation Function. <i>RFC 7914, IETF.</i></li>
   </ol>
 </section>

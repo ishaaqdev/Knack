@@ -8,7 +8,15 @@ import {
   chooseCompany,
   joinCompany,
   phaseIndex,
+  developmentChallenge,
+  currentObjective,
+  reviewDue,
+  markReviewed,
+  bandFor,
+  INTERNSHIP_START,
 } from '../career.js'
+import { performanceReview } from '../offer.js'
+import { writeReview } from '../ai.js'
 import {
   getAttributes,
   attributeHistory,
@@ -46,6 +54,7 @@ careerRouter.get('/', (req, res) => {
     attributes,
     professionalIndex: professionalIndex(user.id),
     weakest: weakest(user.id, 3),
+    challenge: developmentChallenge(user.id),
     characters,
     badges: { earned: earnedCount(user.id), list: listBadges(user.id) },
   })
@@ -61,6 +70,7 @@ careerRouter.post('/company', (req, res) => {
   const chosen = chooseCompany(user, {
     companyId: req.body?.companyId,
     roleId: req.body?.roleId,
+    customName: req.body?.customName,
   })
   res.json({ ...chosen, user: publicUser(findUserById(user.id)) })
 })
@@ -81,6 +91,64 @@ careerRouter.post('/join', (req, res) => {
     user: publicUser(fresh),
     career: careerState(fresh),
   })
+})
+
+/* -------------------------------------------- GET /api/career/challenge --- */
+
+/**
+ * What to work on, and where to go and do it.
+ *
+ * The design document is right that repeatedly telling a learner they are bad
+ * at something does not help. So this never says it — it names one ability, one
+ * concrete thing that would move it, and the track that exercises it.
+ */
+careerRouter.get('/challenge', (req, res) => {
+  res.json({
+    challenge: developmentChallenge(req.user.id),
+    objective: currentObjective(req.user),
+  })
+})
+
+/* ----------------------------------------------- GET /api/career/review --- */
+
+/**
+ * The periodic review.
+ *
+ * Every six internship levels. A review that only arrives at the end cannot
+ * change anything, which is the whole argument for having them during.
+ */
+careerRouter.get('/review', async (req, res, next) => {
+  try {
+    const user = req.user
+    const due = reviewDue(user)
+    if (!due) return res.status(403).json({ error: 'Reviews run during the internship.' })
+    if (!due.due) {
+      return res.json({ due: false, nextAt: due.nextAt, level: user.internshipLevel ?? INTERNSHIP_START })
+    }
+
+    const review = performanceReview(user)
+    const written = await writeReview({
+      review,
+      title: `${bandFor(user.internshipLevel).name} intern`,
+      company: user.simCompany ?? 'the company',
+    })
+
+    markReviewed(user.id, user.internshipLevel ?? INTERNSHIP_START)
+
+    res.json({
+      due: true,
+      level: user.internshipLevel,
+      band: bandFor(user.internshipLevel),
+      review,
+      summary: written.summary,
+      feedback: written.feedback,
+      // The one thing to fix before the next review, named specifically.
+      goal: developmentChallenge(user.id),
+      source: written.source,
+    })
+  } catch (err) {
+    next(err)
+  }
 })
 
 /* -------------------------------------------------------- GET /api/career/people */

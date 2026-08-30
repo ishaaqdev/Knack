@@ -76,6 +76,15 @@ export const BEAT_KINDS = {
   dialogue: { label: 'A conversation', seconds: 120 },
 }
 
+/**
+ * When each beat happens.
+ *
+ * A day with times on it reads as a day. Without them the three beats are just
+ * three questions in a row, which is exactly what the whole exercise is trying
+ * not to be.
+ */
+const CLOCK = ['9:40 AM', '1:15 PM', '4:30 PM']
+
 const dayCount = db.prepare('SELECT COUNT(*) AS n FROM workdays WHERE userId = ?')
 const openDay = db.prepare(
   "SELECT * FROM workdays WHERE userId = ? AND status = 'open' ORDER BY id DESC LIMIT 1"
@@ -117,6 +126,28 @@ export function startDay(userId, locationId, plan) {
 export const saveEvents = (dayId, events) => updateDay.run(JSON.stringify(events), dayId)
 
 /**
+ * Difficulty rises with the internship band, so an early intern is not handed a
+ * stakeholder conflict on day two.
+ */
+export const bandPressure = {
+  early: [
+    'you have not been told who owns this',
+    'you are still learning how the team works',
+    'you do not want to look like you cannot cope',
+  ],
+  middle: [
+    'you are already behind on something else',
+    'the deadline moved this morning',
+    'saying yes means something else slips',
+  ],
+  advanced: [
+    'two people who both outrank you want different things',
+    'somebody senior is watching how you handle it',
+    'the decision is yours and nobody will make it for you',
+  ],
+}
+
+/**
  * Plans the shape of a day before any of it is written.
  *
  * The plan is a list of (kind, character, pressure) triples. Sampling the shape
@@ -135,7 +166,7 @@ const PRESSURES = [
   'saying yes means something else slips',
 ]
 
-export function planDay(userId, locationId, seed = 0) {
+export function planDay(userId, locationId, seed = 0, band = 'early') {
   const location = locationFor(locationId)
   const people = listCharacters(userId)
   const world = worldBrief(userId)
@@ -160,11 +191,17 @@ export function planDay(userId, locationId, seed = 0) {
     plan.push({
       index: i,
       kind,
+      at: CLOCK[i] ?? '5:00 PM',
       seconds: BEAT_KINDS[kind].seconds,
       characterId: who?.id ?? null,
       characterName: who?.name ?? null,
       characterRole: who?.role ?? null,
-      pressure: PRESSURES[(seed + i * 5) % PRESSURES.length],
+      // Early beats draw from the band's own pressures; later ones from the
+      // general pool, so a day is not three variations of one worry.
+      pressure:
+        i === 0
+          ? (bandPressure[band] ?? bandPressure.early)[(seed + i) % 3]
+          : PRESSURES[(seed + i * 5) % PRESSURES.length],
       status: 'pending',
       turns: [],
     })

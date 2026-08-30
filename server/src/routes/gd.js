@@ -17,6 +17,15 @@ gdRouter.use(requireOnboarded)
 /** Beats of panel talk before the discussion is closed. */
 const TOTAL_BEATS = 5
 
+/**
+ * How long the trainee has to decide whether to speak.
+ *
+ * Shorter than an interview answer on purpose. A group discussion punishes
+ * hesitation specifically — the window to make a point closes while you are
+ * still deciding whether to make it, and that is the thing being trained.
+ */
+const SECONDS_PER_TURN = 60
+
 const live = new Map()
 const TTL_MS = 2 * 60 * 60 * 1000
 
@@ -106,6 +115,7 @@ gdRouter.post('/start', async (req, res, next) => {
       transcript,
       beat: 1,
       totalBeats: TOTAL_BEATS,
+      seconds: SECONDS_PER_TURN,
       source: opening.source,
       offlineNote: opening.offlineNote ?? null,
     })
@@ -162,6 +172,7 @@ gdRouter.post('/turn', async (req, res, next) => {
       transcript: run.transcript,
       beat: run.beat,
       totalBeats: TOTAL_BEATS,
+      seconds: SECONDS_PER_TURN,
       closed: false,
       source: next_.source,
       offlineNote: next_.offlineNote ?? null,

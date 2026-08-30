@@ -178,6 +178,7 @@ export function Dashboard() {
   const interview = user.interview ?? { totalRuns: 0, cleared: 0, unlocked: 1, maxLevel: 5, readiness: 0 }
   const career = user.career ?? { phase: 'gd', internship: { level: 5, end: 30 } }
   const weak = (user.weakestAttributes ?? []).slice(0, 3)
+  const objective = career.objective
 
   return (
     <Page>
@@ -229,6 +230,30 @@ export function Dashboard() {
             })}
           </Card>
         </section>
+
+        {/*
+          * One sentence saying what to do today.
+          *
+          * The design document asks for a current objective, and it is the
+          * thing a dashboard is actually for: everything else here is a report.
+          */}
+        {objective && (
+          <section>
+            <SectionLabel>Current objective</SectionLabel>
+            <Link to={objective.to} className="card card-tap flex items-center gap-3.5 p-5">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-ember/40 text-ember">
+                <IconCheck size={17} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                  {objective.label}
+                </p>
+                <p className="mt-1 text-[14px] leading-relaxed">{objective.text}</p>
+              </div>
+              <IconArrowRight size={17} className="shrink-0 text-faint" />
+            </Link>
+          </section>
+        )}
 
         {/* the career — one phase, one next action */}
         <section>

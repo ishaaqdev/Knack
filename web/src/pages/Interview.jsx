@@ -22,6 +22,7 @@ import {
   IconLock,
   IconRefresh,
 } from '../components/Icons'
+import { Clock, useCountdown } from '../components/Countdown'
 import { relativeDate, useReducedMotion } from '../lib/ui'
 
 const MIN_WORDS = 12
@@ -176,6 +177,18 @@ function Round({ run, onFinish, submitting, error, onQuit }) {
   const last = at === run.questions.length - 1
   const ready = words >= MIN_WORDS && !submitting
 
+  /*
+   * Out of time moves on with whatever is written. An interviewer does not wait
+   * while you compose, and a blank answer is graded as a blank answer.
+   */
+  const expire = useCallback(() => {
+    if (submitting) return
+    if (last) onFinish(answers)
+    else setAt((i) => i + 1)
+  }, [submitting, last, answers, onFinish])
+
+  const left = useCountdown(run.seconds ?? 120, expire, !submitting)
+
   return (
     <>
       <div className="mb-5 flex items-center gap-3">
@@ -195,7 +208,7 @@ function Round({ run, onFinish, submitting, error, onQuit }) {
             Question {at + 1} of {run.questions.length} · {run.role}
           </p>
         </div>
-        {run.source === 'offline' && <Pill dot={false}>Standard questions</Pill>}
+        <Clock left={left} total={run.seconds ?? 120} />
       </div>
 
       {at === 0 && run.opener && (

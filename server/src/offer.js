@@ -303,24 +303,71 @@ export function decideOffer(userId, accept) {
 /* ------------------------------------------------------- the career after */
 
 /** Where accepting puts you, and what comes next. */
-export const GRADES = [
-  { name: 'Junior Engineer', needs: 0 },
-  { name: 'Engineer', needs: 6 },
-  { name: 'Senior Engineer', needs: 14 },
-  { name: 'Team Lead', needs: 24 },
-  { name: 'Engineering Manager', needs: 36 },
-]
+/**
+ * Career ladders, one per role family.
+ *
+ * A product intern does not get promoted to Senior Engineer. The steps are the
+ * same shape — individual contributor, senior, lead, manager — but the titles
+ * have to be the ones the trainee would actually see on an offer letter, or the
+ * whole phase stops reading as their career.
+ */
+export const LADDERS = {
+  swe: [
+    { name: 'Junior Engineer', needs: 0 },
+    { name: 'Engineer', needs: 6 },
+    { name: 'Senior Engineer', needs: 14 },
+    { name: 'Team Lead', needs: 24 },
+    { name: 'Engineering Manager', needs: 36 },
+  ],
+  data: [
+    { name: 'Junior Data Engineer', needs: 0 },
+    { name: 'Data Engineer', needs: 6 },
+    { name: 'Senior Data Engineer', needs: 14 },
+    { name: 'Lead Data Scientist', needs: 24 },
+    { name: 'Head of Data', needs: 36 },
+  ],
+  product: [
+    { name: 'Associate Product Manager', needs: 0 },
+    { name: 'Product Manager', needs: 6 },
+    { name: 'Senior Product Manager', needs: 14 },
+    { name: 'Group Product Manager', needs: 24 },
+    { name: 'Director of Product', needs: 36 },
+  ],
+  qa: [
+    { name: 'QA Engineer', needs: 0 },
+    { name: 'Senior QA Engineer', needs: 6 },
+    { name: 'SDET', needs: 14 },
+    { name: 'QA Lead', needs: 24 },
+    { name: 'Head of Quality', needs: 36 },
+  ],
+  hr: [
+    { name: 'HR Executive', needs: 0 },
+    { name: 'Senior HR Executive', needs: 6 },
+    { name: 'HR Business Partner', needs: 14 },
+    { name: 'HR Manager', needs: 24 },
+    { name: 'Head of People', needs: 36 },
+  ],
+}
 
-export const gradeAt = (i) => GRADES[Math.max(0, Math.min(GRADES.length - 1, i))]
+export const ladderFor = (user) => LADDERS[user?.simRole] ?? LADDERS.swe
+
+/** Kept as an export because older callers reference it. */
+export const GRADES = LADDERS.swe
+
+export const gradeAt = (i, user) => {
+  const ladder = ladderFor(user)
+  return ladder[Math.max(0, Math.min(ladder.length - 1, i))]
+}
 
 /**
  * Promotion is not a level counter. Levels since hire are necessary but the
  * gate is competency: you do not lead a team on attendance.
  */
 export function promotionCheck(user) {
+  const ladder = ladderFor(user)
   const idx = user.gradeIndex ?? 0
-  const next = GRADES[idx + 1]
-  if (!next) return { grade: gradeAt(idx), next: null, ready: false }
+  const next = ladder[idx + 1]
+  if (!next) return { grade: gradeAt(idx, user), next: null, ready: false, requirements: [] }
 
   const attrs = rawAttributes(user.id) ?? {}
   const leadershipNeeded = 45 + idx * 10
@@ -331,8 +378,9 @@ export function promotionCheck(user) {
   const ready = levels >= next.needs && (attrs.leadership ?? 0) >= leadershipNeeded && mean >= meanNeeded
 
   return {
-    grade: gradeAt(idx),
+    grade: gradeAt(idx, user),
     next: next.name,
+    ladder: ladder.map((g) => g.name),
     ready,
     requirements: [
       { label: 'Levels since joining', have: levels, need: next.needs },
@@ -350,7 +398,7 @@ export function promote(user) {
   const check = promotionCheck(user)
   if (!check.ready) return null
   const idx = (user.gradeIndex ?? 0) + 1
-  const grade = gradeAt(idx)
+  const grade = gradeAt(idx, user)
   const ctc = round1((user.ctc ?? 6) * 1.22)
   promoteStmt.run(idx, grade.name, ctc, user.id)
   return { grade: grade.name, ctc, from: check.grade.name }

@@ -7,7 +7,7 @@ import { contextBrief, maybeRefresh } from '../context.js'
 import { listCharacters, castBrief, recordInteraction } from '../characters.js'
 import { applyAttributeDeltas, derivedDeltas, getAttributes, attributeBrief } from '../attributes.js'
 import { award, checkStateBadges } from '../badges.js'
-import { advanceInternship, careerState, roleFor } from '../career.js'
+import { advanceInternship, careerState, roleFor, bandFor } from '../career.js'
 import { maybeSchedule, fireDue, worldBrief } from '../consequences.js'
 import {
   LOCATIONS,
@@ -117,6 +117,7 @@ function publicBeat(e) {
   return {
     index: e.index,
     kind: e.kind,
+    at: e.at ?? null,
     seconds: e.seconds,
     status: e.status,
     character: e.characterName ? { name: e.characterName, role: e.characterRole } : null,
@@ -151,7 +152,8 @@ workplaceRouter.post('/day', async (req, res, next) => {
 
     const location = locationFor(req.body?.locationId)
     const day = dayNumber(user.id)
-    const plan = planDay(user.id, location.id, day * 3)
+    const band = bandFor(user.internshipLevel ?? 5)
+    const plan = planDay(user.id, location.id, day * 3, band.id)
 
     // Only the first beat is written now. The rest are written as they are
     // reached, so each one can follow from what actually happened.

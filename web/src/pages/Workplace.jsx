@@ -14,6 +14,7 @@ import {
   Spinner,
 } from '../components/primitives'
 import { Avatar } from '../components/Avatar'
+import { Clock, useCountdown } from '../components/Countdown'
 import { AttributeDeltas } from '../components/Attributes'
 import {
   IconArrowLeft,
@@ -51,65 +52,6 @@ const KIND_LABEL = {
   task: 'The work',
   decision: 'A decision',
   dialogue: 'A conversation',
-}
-
-/* --------------------------------------------------------------- timer --- */
-
-/**
- * Counts down and fires once. Deliberately not paused on blur: the point of the
- * pressure is that the clock does not care what else you are doing.
- */
-function useCountdown(seconds, onExpire, active) {
-  const [left, setLeft] = useState(seconds)
-  const fired = useRef(false)
-  const cb = useRef(onExpire)
-  cb.current = onExpire
-
-  useEffect(() => {
-    setLeft(seconds)
-    fired.current = false
-  }, [seconds])
-
-  useEffect(() => {
-    if (!active) return undefined
-    const id = setInterval(() => {
-      setLeft((v) => {
-        if (v <= 1 && !fired.current) {
-          fired.current = true
-          cb.current?.()
-          return 0
-        }
-        return Math.max(0, v - 1)
-      })
-    }, 1000)
-    return () => clearInterval(id)
-  }, [active])
-
-  return left
-}
-
-function Clock({ left, total }) {
-  const low = left <= 15
-  const mm = String(Math.floor(left / 60)).padStart(1, '0')
-  const ss = String(left % 60).padStart(2, '0')
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className={cx('transition-colors', low ? 'text-ember' : 'text-faint')}>
-        <IconClock size={14} />
-      </span>
-      <span className={cx('stat text-[13px] tabular-nums', low ? 'text-ember' : 'text-dim')}>
-        {mm}:{ss}
-      </span>
-      <span className="h-1 w-16 overflow-hidden rounded-full bg-line">
-        <motion.span
-          className={cx('block h-full rounded-full', low ? 'bg-ember' : 'bg-ember-low')}
-          animate={{ width: `${(left / total) * 100}%` }}
-          transition={{ duration: 0.9, ease: 'linear' }}
-        />
-      </span>
-    </div>
-  )
 }
 
 /* ------------------------------------------------------------- the beat -- */
@@ -162,6 +104,7 @@ function Beat({ beat, at, total, onAnswer, onDialogue, busy, error }) {
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-faint">
           <Icon size={13} />
+          {beat.at ? beat.at + ' · ' : ''}
           {KIND_LABEL[beat.kind]} · {at + 1} of {total}
         </div>
         <Clock left={left} total={beat.seconds} />

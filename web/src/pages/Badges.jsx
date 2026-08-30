@@ -14,6 +14,14 @@ import { cx, fullDate, useReducedMotion } from '../lib/ui'
  * rather than a scoreboard.
  */
 
+/** Rarity reads as brightness, so the shelf can be scanned without reading it. */
+const RARITY_TONE = {
+  bronze: 'text-faint',
+  silver: 'text-dim',
+  gold: 'text-ember-hi',
+  platinum: 'text-ember',
+}
+
 const GROUPS = [
   ['gd', 'Group discussion'],
   ['interview', 'Interview'],
@@ -46,6 +54,14 @@ function Badge({ badge, index }) {
       <div className="min-w-0 flex-1">
         <p className={cx('font-display text-[14.5px] font-semibold', !badge.earned && 'text-dim')}>
           {badge.name}
+          <span
+            className={cx(
+              'ml-2 align-middle text-[10px] font-medium uppercase tracking-[0.12em]',
+              RARITY_TONE[badge.rarity] ?? 'text-faint'
+            )}
+          >
+            {badge.rarity}
+          </span>
         </p>
         <p className="mt-0.5 text-[12.5px] leading-relaxed text-dim">
           {badge.earned ? badge.why : badge.hint}
