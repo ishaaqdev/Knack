@@ -89,6 +89,9 @@ li{
   text-align:left;
 }
 li::before{content:'\25CF';position:absolute;left:2px;top:0;font-size:16px;color:var(--ink);}
+/* An ordered list already carries its own marker. Together with the bullet
+   above, every reference was rendering as "4. ●". */
+ol li::before{content:none;}
 li.dash::before{content:'\2022';font-size:24px;left:4px;top:-2px;}
 li b,li strong{font-weight:bold;}
 li ul{margin-top:10px;}
@@ -1869,7 +1872,7 @@ svg{max-width:100%;height:auto;}
 <!-- ==================== 25 · REFERENCES (CONTINUED) =================== -->
 <section class="sl">
   <h1>REFERENCES (CONTINUED)</h1>
-  <ol start="7" style="font-size:15.4px;line-height:1.38;padding-left:30px;margin-bottom:0;">
+  <ol start="9" style="font-size:15.4px;line-height:1.38;padding-left:30px;margin-bottom:0;">
     <li style="margin-bottom:4px;"><b>Mercer-Mettl (2025).</b> India Graduate Skill Index Report. <i>Industry Skill Assessment Report.</i></li>
     <li style="margin-bottom:4px;"><b>Reddy, V., &amp; Sharma, P. (2025).</b> Bridging the Employability Gap Using AI-driven Soft Skill Training. <i>Journal of Vocational Education.</i></li>
     <li style="margin-bottom:4px;"><b>Zheng, L., et al. (2023).</b> Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. <i>Advances in Neural Information Processing Systems 36.</i></li>
