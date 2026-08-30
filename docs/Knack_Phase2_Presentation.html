@@ -55,11 +55,11 @@ body{background:#B8B8B8;font-family:'Times New Roman',Times,serif;}
 /* 4:3, same shape as the Phase 1 deck */
 .sl{
   width:1024px;height:768px;background:#fff;margin:0 auto 16px;position:relative;
-  padding:42px 60px 40px 104px;overflow:hidden;
+  padding:42px 56px 40px 148px;overflow:hidden;
   display:flex;flex-direction:column;
 }
 /* The department template's blue band, edge to edge down the left side. */
-.sl::before{content:'';position:absolute;left:0;top:0;bottom:0;width:56px;background:var(--bar);}
+.sl::before{content:'';position:absolute;left:0;top:0;bottom:0;width:100px;background:var(--bar);}
 
 @media screen{ body{padding:16px 0;} .sl{box-shadow:0 2px 10px rgba(0,0,0,.3);} }
 
@@ -67,8 +67,8 @@ body{background:#B8B8B8;font-family:'Times New Roman',Times,serif;}
 @media print{
   body{background:#fff;padding:0;}
   .sl{width:264mm;height:198mm;margin:6mm auto;box-shadow:none;page-break-after:always;
-      padding:11mm 15mm 10mm 27mm;}
-  .sl::before{width:14mm;}
+      padding:11mm 14mm 10mm 38mm;}
+  .sl::before{width:26mm;}
   .sl:last-child{page-break-after:auto;}
   .no-print{display:none;}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -1851,7 +1851,7 @@ svg{max-width:100%;height:auto;}
 <!-- ========================= 24 · REFERENCES ========================== -->
 <section class="sl">
   <h1>REFERENCES</h1>
-  <ol style="font-size:16px;line-height:1.4;padding-left:30px;margin-bottom:0;">
+  <ol style="font-size:15.4px;line-height:1.38;padding-left:30px;margin-bottom:0;">
     <li style="margin-bottom:4px;"><b>Deterding, S., et al. (2011).</b> From Game Design Elements to Gamefulness: Defining Gamification. <i>Proc. 15th International Academic MindTrek Conference.</i></li>
     <li style="margin-bottom:4px;"><b>Kapp, K. M. (2012).</b> <i>The Gamification of Learning and Instruction.</i> Wiley Publishing.</li>
     <li style="margin-bottom:4px;"><b>Duolingo Research (2020).</b> Effectiveness of Gamified Language Learning and Long-term Retention Strategies. <i>Journal of Computer Assisted Learning.</i></li>
@@ -1860,8 +1860,6 @@ svg{max-width:100%;height:auto;}
     <li style="margin-bottom:4px;"><b>World Economic Forum (2023).</b> The Future of Jobs Report 2023. <i>WEF Strategy Papers.</i></li>
     <li style="margin-bottom:4px;"><b>Lampropoulos, G., et al. (2024).</b> Impact of Gamification on Learning Outcomes: A Systematic Review. <i>Journal of Interactive Learning Environments.</i></li>
     <li style="margin-bottom:4px;"><b>Marengo, A., et al. (2025).</b> Integrating AI and Gamification for Professional Skill Development. <i>Proc. IEEE Int. Conf. on Learning Technologies.</i></li>
-    <li style="margin-bottom:4px;"><b>Mercer-Mettl (2025).</b> India Graduate Skill Index Report. <i>Industry Skill Assessment Report.</i></li>
-    <li style="margin-bottom:4px;"><b>Reddy, V., &amp; Sharma, P. (2025).</b> Bridging the Employability Gap Using AI-driven Soft Skill Training. <i>Journal of Vocational Education.</i></li>
   </ol>
 </section>
 
@@ -1869,7 +1867,9 @@ svg{max-width:100%;height:auto;}
 <!-- ==================== 25 · REFERENCES (CONTINUED) =================== -->
 <section class="sl">
   <h1>REFERENCES (CONTINUED)</h1>
-  <ol start="9" style="font-size:16px;line-height:1.4;padding-left:30px;margin-bottom:0;">
+  <ol start="7" style="font-size:15.4px;line-height:1.38;padding-left:30px;margin-bottom:0;">
+    <li style="margin-bottom:4px;"><b>Mercer-Mettl (2025).</b> India Graduate Skill Index Report. <i>Industry Skill Assessment Report.</i></li>
+    <li style="margin-bottom:4px;"><b>Reddy, V., &amp; Sharma, P. (2025).</b> Bridging the Employability Gap Using AI-driven Soft Skill Training. <i>Journal of Vocational Education.</i></li>
     <li style="margin-bottom:4px;"><b>Zheng, L., et al. (2023).</b> Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. <i>Advances in Neural Information Processing Systems 36.</i></li>
     <li style="margin-bottom:4px;"><b>Park, J. S., et al. (2023).</b> Generative Agents: Interactive Simulacra of Human Behavior. <i>Proc. ACM UIST.</i></li>
     <li style="margin-bottom:4px;"><b>Lewis, P., et al. (2020).</b> Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. <i>NeurIPS 33.</i></li>
