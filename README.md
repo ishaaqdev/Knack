@@ -1,16 +1,24 @@
 # Knack
 
-AI-powered gamified soft-skill training for engineering students.
+An AI career simulation for engineering students. You do not answer questions
+about a workplace; you go to one.
 
-Pick a track and play a **level**: four workplace judgement calls, then one
-situation you have to answer in your own words. Every stage is generated for
-you, the written stage is graded 1–10 with specific feedback, and XP, streaks,
-per-track skill scores and a composite **Professional Readiness Score** turn it
-into a five-minute daily habit rather than a course.
+```
+Group discussion → Interview → Joining → Internship → The offer → Full-time
+```
 
-There is also a **mock interview** — five rounds, from "tell me about yourself"
-through to salary and closing questions, with the questions written from your
-own resume and a debrief that grades every answer.
+Six phases, each gated on performance rather than XP. You sit a group discussion
+against five AI candidates with real personalities, get through five interview
+rounds with someone who has read your resume, join a company, and then work
+there — days made of messages, decisions, and live conversations with colleagues
+who remember how you treated them. At the end there is a performance review, a
+number, and a negotiation you can handle well or badly.
+
+**Ten professional attributes** run underneath all of it, 0–100, and they are
+deliberately not XP. XP is what you get for turning up. An attribute is a claim
+about what you can do, and it goes down. Supporting the room in a group
+discussion without ever taking direction moves Teamwork and Emotional
+Intelligence up and **Leadership down** — that disagreement is the point.
 
 Scenarios are personalised from four independent sources:
 
@@ -28,6 +36,40 @@ Scenarios are personalised from four independent sources:
   feeds forward into both scenario generation and grading, so feedback can say
   *"this is the same gap as last time"* rather than treating every attempt as
   the first.
+
+---
+
+## The simulation
+
+| Piece | What it does | Why it is not decoration |
+|---|---|---|
+| **Ten attributes** (`attributes.js`) | 0–100, tiered, with the specific thing that would move each one | They go **down**. One answer moves different attributes in different directions — never `+5` to everything |
+| **Characters** (`characters.js`) | Five colleagues, created the day you join | They store *what* they remember, not just a number, so the app can say "you helped me when I first joined" and mean something |
+| **Consequences** (`consequences.js`) | Notable decisions are written down with a due count | They fire **2–3 levels later**, reported as a callback with the original cause next to the effect |
+| **The office** (`workplace.js`) | Five locations, three timed beats a day | Where you go decides what happens. Each beat is written *after* the previous one, so a promise made at 10am comes due at 3pm |
+| **Group discussion** (`routes/gd.js`) | Five AI candidates, beat by beat | "Stay quiet" is a first-class button. Never speaking caps you at 25 on every dimension and the verdict says why |
+| **The offer** (`offer.js`) | A number assembled from attributes, level scores and standing | Two negotiation attempts, four outcomes, and only one of them is "you got more money" |
+| **Badges** (`badges.js`) | 24, every one condition-checked | Locked ones are shown with their condition — a milestone nobody knows about motivates nobody |
+
+Phases gate on competency, never on XP: a group discussion clears at 6/10, an
+interview round at 6/10, an internship level advances at 5/10, and a promotion
+needs Leadership rather than attendance.
+
+### The office day
+
+A day is three beats, not the blueprint's nine-item timetable — a daily habit
+that takes forty minutes is a habit nobody keeps, and the same nine beats every
+day is exactly the linear course the design is trying not to be.
+
+Each beat is one of **a message**, **the work**, **a decision** (four options,
+scored 9/6/3/1) or **a conversation** (up to three live exchanges with a
+colleague who responds in character and gets harder work if your relationship
+with them is poor). All four are on a visible timer. Running out of time is an
+answer with its own consequence, not a failure state — real decisions are taken
+before you feel ready.
+
+The company also moves on its own: every third day someone is promoted,
+transfers out, or a new intern starts, and the People directory updates to match.
 
 ---
 
@@ -123,6 +165,21 @@ web/src/
 | `PATCH` | `/api/user` | edit the profile (re-validated against the same rules) |
 | `POST` | `/api/user/reset` | wipes progress and learned context, keeps the profile |
 | `GET` | `/api/history` | `?trackId=&limit=&offset=` — paginated attempts |
+| `GET` | `/api/career` | phase, attributes, cast, badges, company and role options |
+| `POST` | `/api/career/company` | choose the company and role you are aiming at |
+| `POST` | `/api/career/join` | join the company — this is what creates the cast |
+| `GET` `PATCH` | `/api/career/people/:id` | a colleague, and renaming them |
+| `GET` | `/api/gd` | panel, best score, whether it is cleared |
+| `POST` | `/api/gd/start` `/turn` `/finish` | a group discussion, beat by beat |
+| `GET` | `/api/workplace` | the office: locations, team, company news, open day |
+| `POST` | `/api/workplace/day` | start a day at a location |
+| `POST` | `/api/workplace/dialogue` | one exchange in a live conversation |
+| `POST` | `/api/workplace/answer` | grade the current beat and write the next |
+| `POST` | `/api/workplace/close` | end the day, fire consequences, move the company |
+| `GET` | `/api/offer` | performance review and the offer |
+| `POST` | `/api/offer/negotiate` | one negotiation attempt, two allowed |
+| `POST` | `/api/offer/decide` | accept or decline; accepting starts the full-time phase |
+| `POST` | `/api/offer/promote` | take a promotion, if the competency gate is met |
 | `GET` | `/api/health` | server + OpenRouter key status |
 
 Everything under `/api/quest` and `/api/interview` additionally requires a
@@ -317,7 +374,10 @@ Animation is Framer Motion springs, 200–600ms, and every animated element has 
 
 ## Future scope
 
-Badges/achievements, leaderboards, a real skill-tree visualisation, a fully
-built-out AI hallucination-detection track, spoken interview rounds, a group
-discussion with several AI candidates, email verification and password reset,
-and a mobile app — all deliberately out of scope for this version.
+Leaderboards, a real skill-tree visualisation, a fully built-out AI
+hallucination-detection track, spoken interview and group-discussion rounds,
+multiple companies running at once, email verification and password reset, and a
+native mobile app — all deliberately out of scope for this version.
+
+Leaderboards specifically are not coming: ranking classmates on communication
+ability would deter exactly the students who most need the practice.

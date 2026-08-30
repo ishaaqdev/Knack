@@ -132,7 +132,12 @@ function Person({ person, index, pronounOptions, onRenamed }) {
               <span className="truncate font-display text-[15px] font-semibold">{shown.name}</span>
               <span className={cx('shrink-0 text-[11.5px]', TIER_TONE[shown.tier])}>{shown.tier}</span>
             </span>
-            <span className="mt-0.5 block truncate text-[12.5px] text-dim">{shown.role}</span>
+            <span className="mt-0.5 block truncate text-[12.5px] text-dim">
+              {shown.role}
+              {shown.status !== 'active' && (
+                <span className="text-faint"> · {shown.status}</span>
+              )}
+            </span>
             <span className="mt-2 block">
               <SkillBar value={shown.relationship} height={4} delay={0.1 + index * 0.05} />
             </span>

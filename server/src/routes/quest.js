@@ -10,6 +10,8 @@ import { applyAttributeDeltas, derivedDeltas, getAttributes, attributeBrief } fr
 import { listCharacters, recordInteraction } from '../characters.js'
 import { award, checkStateBadges } from '../badges.js'
 import { advanceInternship, careerState } from '../career.js'
+import { maybeSchedule, fireDue, worldBrief, pendingCount } from '../consequences.js'
+import { promotionCheck } from '../offer.js'
 import { sampleShape } from '../variation.js'
 import {
   levelFor,
@@ -292,6 +294,7 @@ questRouter.post('/level/generate', async (req, res, next) => {
       portfolio: portfolioBrief(user),
       resume: resumeBrief(user),
       attributes: attributeBrief(user.id),
+      world: worldBrief(user.id),
     }
 
     const choices = await generateLevel({ track, difficulty, shape, avoid, n, ...context })
@@ -492,6 +495,9 @@ questRouter.post('/level/submit', async (req, res, next) => {
         longestStreak: Math.max(before.longestStreak, streak),
         lastActiveDate: today,
       })
+      if (before.phase === 'fulltime') {
+        db.prepare('UPDATE users SET levelsSinceHire = levelsSinceHire + 1 WHERE id = ?').run(before.id)
+      }
     })()
 
     pendingLevels.delete(levelId)
@@ -525,8 +531,28 @@ questRouter.post('/level/submit', async (req, res, next) => {
       : null
 
     const progress = advanceInternship(before, score)
-
     const newBadges = []
+
+    /*
+     * Anything the trainee did two or three levels ago that was notable enough
+     * to leave a mark arrives now. This is the part that makes a decision a
+     * decision rather than a score: it is reported as a callback, with the
+     * original cause printed next to the effect.
+     */
+    const callbacks = fireDue(before.id)
+    const favour = callbacks.find((c) => c.kind === 'favour')
+    if (favour) {
+      const b = award(before.id, 'long-memory', favour.effect)
+      if (b) newBadges.push(b)
+    }
+
+    // And this level may leave its own mark, due a few levels from now.
+    maybeSchedule(before.id, {
+      character: named ? { id: named.id, name: named.name } : null,
+      score,
+      situation: track.name.toLowerCase(),
+    })
+
     if (score >= 8 && /disagree|criticis|conflict|pushback|argument/i.test(writtenStage.scenarioText)) {
       const b = award(before.id, 'conflict-navigator', `Handled a disagreement at ${score}/10.`)
       if (b) newBadges.push(b)
@@ -574,7 +600,10 @@ questRouter.post('/level/submit', async (req, res, next) => {
       attributes: moved,
       relationship,
       badges: newBadges,
+      callbacks,
+      pendingConsequences: pendingCount(before.id),
       internship: progress,
+      promotion: before.phase === 'fulltime' ? promotionCheck(findUserById(before.id)) : null,
       career: careerState({ ...before, internshipLevel: progress.level, phase: progress.phase }),
     })
 

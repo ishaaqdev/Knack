@@ -194,7 +194,84 @@ db.exec(`
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
   );
 
+  -- The end of the internship: a review, a number, and an argument about it.
+  CREATE TABLE IF NOT EXISTS offers (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId         INTEGER NOT NULL,
+    company        TEXT    NOT NULL DEFAULT '',
+    title          TEXT    NOT NULL DEFAULT '',
+    fixed          REAL    NOT NULL DEFAULT 0,
+    variable       REAL    NOT NULL DEFAULT 0,
+    joiningBonus   REAL    NOT NULL DEFAULT 0,
+    benefits       TEXT    NOT NULL DEFAULT '[]',
+    location       TEXT    NOT NULL DEFAULT '',
+    workingModel   TEXT    NOT NULL DEFAULT '',
+    joiningDate    TEXT    NOT NULL DEFAULT '',
+    probation      TEXT    NOT NULL DEFAULT '',
+    reviewScores   TEXT    NOT NULL DEFAULT '{}',
+    reviewFeedback TEXT    NOT NULL DEFAULT '',
+    reviewSummary  TEXT    NOT NULL DEFAULT '',
+    rounds         TEXT    NOT NULL DEFAULT '[]',
+    status         TEXT    NOT NULL DEFAULT 'open',
+    createdAt      TEXT    NOT NULL,
+    decidedAt      TEXT,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- A decision that has not finished happening yet.
+  --
+  -- The blueprint's demand is that consequences arrive later than the choice
+  -- that caused them, which means they have to be written down at the moment
+  -- of the choice and then waited on. The due count is in completed
+  -- levels, not on a clock: the world moves when the trainee does.
+  CREATE TABLE IF NOT EXISTS consequences (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId      INTEGER NOT NULL,
+    characterId INTEGER,
+    kind        TEXT    NOT NULL,
+    cause       TEXT    NOT NULL DEFAULT '',
+    effect      TEXT    NOT NULL DEFAULT '',
+    weight      INTEGER NOT NULL DEFAULT 0,
+    dueAfter    INTEGER NOT NULL DEFAULT 0,
+    firedAt     TEXT,
+    createdAt   TEXT    NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- A day at work: where you went, what happened, and what it changed.
+  CREATE TABLE IF NOT EXISTS workdays (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId    INTEGER NOT NULL,
+    dayNumber INTEGER NOT NULL,
+    location  TEXT    NOT NULL DEFAULT 'desk',
+    events    TEXT    NOT NULL DEFAULT '[]',
+    summary   TEXT    NOT NULL DEFAULT '{}',
+    status    TEXT    NOT NULL DEFAULT 'open',
+    xpAwarded INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT    NOT NULL,
+    closedAt  TEXT,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- The company continues to exist whether or not the trainee is looking.
+  CREATE TABLE IF NOT EXISTS company_events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId      INTEGER NOT NULL,
+    kind        TEXT    NOT NULL,
+    characterId INTEGER,
+    headline    TEXT    NOT NULL,
+    detail      TEXT    NOT NULL DEFAULT '',
+    atDay       INTEGER NOT NULL DEFAULT 0,
+    seen        INTEGER NOT NULL DEFAULT 0,
+    createdAt   TEXT    NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
   CREATE INDEX IF NOT EXISTS idx_attempts_user_track ON attempts(userId, trackId, id DESC);
+  CREATE INDEX IF NOT EXISTS idx_workdays_user ON workdays(userId, id DESC);
+  CREATE INDEX IF NOT EXISTS idx_compev_user ON company_events(userId, seen, id);
+  CREATE INDEX IF NOT EXISTS idx_offers_user ON offers(userId, id DESC);
+  CREATE INDEX IF NOT EXISTS idx_conseq_user ON consequences(userId, firedAt, dueAfter);
   CREATE INDEX IF NOT EXISTS idx_attrlog_user ON attribute_log(userId, id DESC);
   CREATE INDEX IF NOT EXISTS idx_chars_user ON characters(userId, sortOrder);
   CREATE INDEX IF NOT EXISTS idx_charev_char ON character_events(characterId, id DESC);
@@ -265,6 +342,12 @@ addColumn('users', 'simRole', 'TEXT')
 addColumn('users', 'joinedCompanyAt', 'TEXT')
 addColumn('users', 'internshipLevel', 'INTEGER NOT NULL DEFAULT 5')
 addColumn('users', 'gdCleared', 'INTEGER NOT NULL DEFAULT 0')
+
+// Full-time career, after the offer is accepted.
+addColumn('users', 'jobTitle', 'TEXT')
+addColumn('users', 'ctc', 'REAL')
+addColumn('users', 'gradeIndex', 'INTEGER NOT NULL DEFAULT 0')
+addColumn('users', 'levelsSinceHire', 'INTEGER NOT NULL DEFAULT 0')
 
 // SQLite cannot add a UNIQUE column via ALTER TABLE, so the constraint lives in
 // an index. Partial, because pre-auth legacy rows have a NULL email.
@@ -340,6 +423,9 @@ export function publicUser(row) {
       joinedAt: row.joinedCompanyAt,
       internshipLevel: row.internshipLevel ?? 5,
       gdCleared: !!row.gdCleared,
+      jobTitle: row.jobTitle,
+      ctc: row.ctc,
+      gradeIndex: row.gradeIndex ?? 0,
     },
     resume: row.resumeUpdatedAt
       ? {

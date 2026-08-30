@@ -87,6 +87,20 @@ export const api = {
   attributes: () => req('/career/attributes'),
   badges: () => req('/career/badges'),
 
+  // the workplace
+  workplace: () => req('/workplace'),
+  startWorkday: (locationId) => req('/workplace/day', { method: 'POST', body: { locationId } }),
+  answerBeat: (body) => req('/workplace/answer', { method: 'POST', body }),
+  workplaceDialogue: (text) => req('/workplace/dialogue', { method: 'POST', body: { text } }),
+  closeWorkday: () => req('/workplace/close', { method: 'POST' }),
+  seenNews: () => req('/workplace/news/seen', { method: 'POST' }),
+
+  // the offer, and the argument about it
+  offer: () => req('/offer'),
+  negotiate: (message) => req('/offer/negotiate', { method: 'POST', body: { message } }),
+  decideOffer: (accept) => req('/offer/decide', { method: 'POST', body: { accept } }),
+  promote: () => req('/offer/promote', { method: 'POST' }),
+
   // group discussion
   gd: () => req('/gd'),
   startGd: () => req('/gd/start', { method: 'POST', body: {} }),

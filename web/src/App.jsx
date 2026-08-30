@@ -15,6 +15,8 @@ import { GroupDiscussion } from './pages/GroupDiscussion'
 import { Career } from './pages/Career'
 import { People } from './pages/People'
 import { Badges } from './pages/Badges'
+import { Offer } from './pages/Offer'
+import { Workplace } from './pages/Workplace'
 import { Profile } from './pages/Profile'
 
 function Boot({ children }) {
@@ -84,6 +86,8 @@ export default function App() {
               <Route path="/career" element={<Career />} />
               <Route path="/people" element={<People />} />
               <Route path="/badges" element={<Badges />} />
+              <Route path="/offer" element={<Offer />} />
+              <Route path="/office" element={<Workplace />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
           </Route>

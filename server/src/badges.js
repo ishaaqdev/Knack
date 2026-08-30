@@ -113,6 +113,42 @@ export const BADGES = [
     phase: 'internship',
   },
   {
+    slug: 'promotion-ready',
+    name: 'Promotion Ready',
+    hint: 'Finish the internship and receive an offer.',
+    phase: 'offer',
+  },
+  {
+    slug: 'negotiation-pro',
+    name: 'Negotiation Pro',
+    hint: 'Improve your offer by asking for it properly.',
+    phase: 'offer',
+  },
+  {
+    slug: 'career-launch',
+    name: 'Career Launch',
+    hint: 'Accept your first full-time role.',
+    phase: 'offer',
+  },
+  {
+    slug: 'rising-professional',
+    name: 'Rising Professional',
+    hint: 'Earn a promotion.',
+    phase: 'fulltime',
+  },
+  {
+    slug: 'long-memory',
+    name: 'Long Memory',
+    hint: 'Have a past decision come back to help you.',
+    phase: 'internship',
+  },
+  {
+    slug: 'workplace-explorer',
+    name: 'Workplace Explorer',
+    hint: 'Get through your first day in the office.',
+    phase: 'internship',
+  },
+  {
     slug: 'steady-hand',
     name: 'Steady Hand',
     hint: 'Hold a seven-day streak.',

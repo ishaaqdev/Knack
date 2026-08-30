@@ -537,3 +537,202 @@ export function heuristicGd({ transcript, contributions }) {
     offlineNote: 'Scored by a local rubric while the model was unavailable. Retry later for a proper debrief.',
   }
 }
+
+/* --------------------------------------------------- offline offer path --- */
+
+/** The review, assembled from the numbers when no model can write it. */
+export function heuristicReview(review) {
+  const entries = Object.entries(review.scores).sort((a, b) => b[1] - a[1])
+  const best = entries[0]
+  const worst = entries.at(-1)
+
+  const band =
+    review.meanAttribute >= 70
+      ? 'one of the stronger interns on the team'
+      : review.meanAttribute >= 55
+        ? 'a solid contributor'
+        : 'someone still finding their feet'
+
+  return {
+    summary: `Converted after ${review.levels} levels, averaging ${review.averageLevelScore}/10.`,
+    feedback: `Over the internship you have been ${band}. Your strongest area is ${best[0].toLowerCase()} at ${best[1]}/100, and ${worst[0].toLowerCase()} at ${worst[1]}/100 is where the next year of work is.${
+      review.advocates.length ? ` ${review.advocates[0]} would speak up for you, which counts for more than any single score here.` : ''
+    }`,
+  }
+}
+
+/**
+ * Negotiation without a model.
+ *
+ * Judged on the things that are visible in the text: whether a number was
+ * named, whether any evidence was offered, whether it was asked for or demanded.
+ * Crude, but it separates the four outcomes in the right direction.
+ */
+export function heuristicNegotiation({ message, review }) {
+  const text = String(message || '').trim()
+  const words = text.split(/\s+/).filter(Boolean).length
+
+  const named = /\d+(\.\d+)?\s*(lpa|lakh|l\b|%)/i.test(text)
+  const evidence = /\b(during|delivered|reduced|built|led|shipped|owned|my (work|review|internship))\b/i.test(text)
+  const rude = /\b(deserve|entitled|unfair|insulting|other companies are offering|i will leave|take it or leave)\b/i.test(text)
+  const compares = /\b(than (my|other) (peers|colleagues|teammates))\b/i.test(text)
+  const hedged = /\b(sorry|just wondering|if possible|maybe|hope this is ok|not sure if)\b/i.test(text)
+
+  const scores = {
+    confidence: hedged ? 35 : named ? 75 : 55,
+    communication: words >= 40 ? 72 : words >= 18 ? 58 : 38,
+    professionalism: rude || compares ? 25 : 72,
+    reasoning: evidence ? 76 : 40,
+    strategy: named && evidence ? 74 : named || evidence ? 55 : 35,
+  }
+
+  let result = 'none'
+  if (rude || compares) result = 'backfire'
+  else if (named && evidence && review.meanAttribute >= 60) result = 'success'
+  else if (evidence || named) result = 'partial'
+
+  const reaction =
+    result === 'success'
+      ? 'That is a fair case, and you have made it with something I can take upstairs. I can move the fixed component. Let me get the revised letter out today.'
+      : result === 'partial'
+        ? 'I hear you, and I would like to do something here. The band on the fixed component is set, but there are other parts of the package I can move. Let me see what I can do.'
+        : result === 'backfire'
+          ? 'I am going to be straight with you. That is not how this conversation usually goes, and comparing yourself to colleagues is not something I can act on. The offer stands as it is.'
+          : 'I appreciate you raising it. Without something specific to point at, though, I do not have a case to take to anyone. The offer stands.'
+
+  const coaching =
+    result === 'backfire'
+      ? 'Ask for a number and give a reason from your own work — never a comparison to a colleague or a threat.'
+      : !named
+        ? 'Name the figure you want. An open-ended ask gives the other person nothing to say yes to.'
+        : !evidence
+          ? 'Point at something you actually did during the internship. Wanting more is not a reason.'
+          : 'Solid. Next time, also name what you would accept instead if the base cannot move.'
+
+  return {
+    scores,
+    result,
+    strength: result === 'success' ? 0.6 : 0.3,
+    reaction,
+    coaching,
+    offlineNote: 'The model was unavailable, so this was judged by a local rubric.',
+  }
+}
+
+/* -------------------------------------------------- offline workplace ----- */
+
+const BEAT_TEMPLATES = {
+  message: (who, sys, pressure) => ({
+    headline: 'A message you have to answer',
+    situation: `${who} has left a message asking where things stand on ${sys}. It has been sitting unanswered since yesterday, and ${pressure}.`,
+    prompt: 'Write the reply you would send.',
+  }),
+  task: (who, sys, pressure) => ({
+    headline: 'The work is not going to plan',
+    situation: `Halfway through ${sys} you find something that means the approach everyone agreed on will not work. ${who} is expecting it done. ${pressure.charAt(0).toUpperCase()}${pressure.slice(1)}.`,
+    prompt: 'Write what you do and who you tell.',
+  }),
+  decision: (who, sys, pressure) => ({
+    headline: 'A call that cannot wait',
+    situation: `${who} needs an answer on ${sys} before the end of the day, and ${pressure}.`,
+    prompt: 'What do you do?',
+    options: [
+      { text: 'Give them a straight answer now, and say what you are not sure about.', score: 9, why: 'They can plan around a known unknown; they cannot plan around silence.' },
+      { text: 'Ask for an hour, check properly, then come back with a firm answer.', score: 6, why: 'Careful, but the hour costs them a decision they needed now.' },
+      { text: 'Give a vague answer and hope it does not come back.', score: 3, why: 'It comes back, and it comes back with your name on it.' },
+      { text: 'Say yes to get them off your back and work it out later.', score: 1, why: 'You have just committed someone else to a plan you know may not hold.' },
+    ],
+  }),
+  dialogue: (who, sys, pressure) => ({
+    headline: 'A conversation you cannot dodge',
+    situation: `${who} has caught you about ${sys}. They are not angry, but they want a straight answer, and ${pressure}.`,
+    prompt: 'Reply as you would out loud.',
+    opening: `Have you got a minute? I want to talk about ${sys} — I do not think we are on the same page.`,
+  }),
+}
+
+export function FALLBACK_BEAT({ kind, character, pressure, n = 0 }) {
+  const who = character ? `${character.name}, ${character.role}` : 'a colleague'
+  const sys = pickFrom(SYSTEMS, n)
+  const built = (BEAT_TEMPLATES[kind] ?? BEAT_TEMPLATES.message)(who, sys, pressure)
+  return {
+    ...built,
+    offlineNote: 'The AI model was unavailable, so this beat came from the offline bank.',
+  }
+}
+
+/**
+ * A conversational reply without a model.
+ *
+ * Three canned turns per relationship temperature. Crude, but it keeps the
+ * shape of a conversation — the other person says something, it depends on how
+ * warm they are, and it ends.
+ */
+const DIALOGUE_REPLIES = {
+  cold: [
+    'That is not really an answer. Can you tell me what actually happened?',
+    'Alright. I would rather have heard it earlier than now.',
+    'Fine. Let us leave it there and see how it goes.',
+  ],
+  neutral: [
+    'Okay — so what do you want to do about it?',
+    'That makes sense. What do you need from me?',
+    'Good. Let us go with that and I will follow up on Friday.',
+  ],
+  warm: [
+    'That is fair. I had not thought about it from that angle.',
+    'I appreciate you being straight with me about it.',
+    'Right, let us do it your way. Tell me if it slips.',
+  ],
+}
+
+export function FALLBACK_DIALOGUE_TURN({ character, turnIndex }) {
+  const temp =
+    character.relationship >= 65 ? 'warm' : character.relationship <= 40 ? 'cold' : 'neutral'
+  const bank = DIALOGUE_REPLIES[temp]
+  return {
+    text: bank[Math.min(turnIndex, bank.length - 1)],
+    mood: 'same',
+    offlineNote: 'The model was unavailable, so this reply came from a scripted bank.',
+  }
+}
+
+/** Grading a conversation locally: length, responsiveness, ownership. */
+export function heuristicDialogue({ turns, character }) {
+  const mine = turns.filter((t) => t.who === 'you')
+  const text = mine.map((t) => t.text).join(' ')
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+
+  const responsive = /\b(you said|your point|you mentioned|i hear|agree|understand)\b/i.test(text)
+  const owns = /\bI (will|would|can|should|am going to|take)\b/i.test(text)
+  const concrete = /\b\d+\b|\b(by|before|within)\s+\w+day\b/i.test(text)
+
+  let score = 2
+  if (mine.length >= 2) score = 4
+  if (words >= 45) score += 1
+  if (responsive) score += 1
+  if (owns) score += 1
+  if (concrete) score += 1
+  score = Math.max(1, Math.min(7, score))
+
+  return {
+    score,
+    strengths: mine.length
+      ? `You stayed in the conversation and replied ${mine.length} ${mine.length === 1 ? 'time' : 'times'}${
+          concrete ? ', with something concrete in it' : ''
+        }.`
+      : 'You listened.',
+    gaps: !responsive
+      ? `You did not refer to anything ${character.name} actually said, which reads as talking past them.`
+      : !owns
+        ? 'You did not commit to doing anything, so the conversation ends where it started.'
+        : 'Without the model this can only judge the shape of the exchange, not its content.',
+    suggestion: 'Name what you will do, by when, and check it is what they actually needed.',
+    relationship: score >= 6 ? 2 : score <= 3 ? -2 : 0,
+    consequence:
+      score >= 6
+        ? `${character.name} is more likely to come to you directly next time.`
+        : `${character.name} may go around you next time rather than through you.`,
+    offlineNote: 'Scored by a local rubric while the model was unavailable.',
+  }
+}

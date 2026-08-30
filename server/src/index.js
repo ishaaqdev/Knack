@@ -15,6 +15,8 @@ import { historyRouter } from './routes/history.js'
 import { interviewRouter } from './routes/interview.js'
 import { gdRouter } from './routes/gd.js'
 import { careerRouter } from './routes/career.js'
+import { offerRouter } from './routes/offer.js'
+import { workplaceRouter } from './routes/workplace.js'
 import { health, rateLimitStatus } from './ai.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -37,6 +39,8 @@ app.use('/api/history', historyRouter)
 app.use('/api/interview', interviewRouter)
 app.use('/api/gd', gdRouter)
 app.use('/api/career', careerRouter)
+app.use('/api/offer', offerRouter)
+app.use('/api/workplace', workplaceRouter)
 app.get('/api/health', async (_req, res) =>
   res.json({ ok: true, ai: await health(), rateLimit: rateLimitStatus() })
 )

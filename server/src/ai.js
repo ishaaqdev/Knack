@@ -11,6 +11,11 @@ import {
   gdTurnPrompt,
   gdEvaluationPrompt,
   GD_PANEL,
+  reviewPrompt,
+  negotiationPrompt,
+  workplaceBeatPrompt,
+  dialogueTurnPrompt,
+  dialogueEvaluationPrompt,
 } from './prompts.js'
 import {
   FALLBACK_SCENARIOS,
@@ -20,6 +25,11 @@ import {
   heuristicDebrief,
   FALLBACK_GD_TURN,
   heuristicGd,
+  heuristicReview,
+  heuristicNegotiation,
+  FALLBACK_BEAT,
+  FALLBACK_DIALOGUE_TURN,
+  heuristicDialogue,
 } from './fallback.js'
 
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions'
@@ -241,10 +251,10 @@ async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate
 
 /* --------------------------------------------------------------- public --- */
 
-export async function generateScenario({ track, difficulty, avoid, profile, learner, portfolio, resume, attributes, shape }) {
+export async function generateScenario({ track, difficulty, avoid, profile, learner, portfolio, resume, attributes, world, shape }) {
   try {
     const { data, model } = await askForJson(
-      scenarioPrompt({ track, difficulty, avoid, profile, learner, portfolio, resume, attributes, shape }),
+      scenarioPrompt({ track, difficulty, avoid, profile, learner, portfolio, resume, attributes, world, shape }),
       {
         temperature: 1.0,
         maxTokens: 900,
@@ -459,10 +469,10 @@ function normaliseQuestion(q) {
   }
 }
 
-export async function generateLevel({ track, difficulty, profile, learner, portfolio, resume, attributes, shape, avoid, n = 0 }) {
+export async function generateLevel({ track, difficulty, profile, learner, portfolio, resume, attributes, world, shape, avoid, n = 0 }) {
   try {
     const { data, model } = await askForJson(
-      levelPrompt({ track, difficulty, profile, learner, portfolio, resume, attributes, shape, avoid }),
+      levelPrompt({ track, difficulty, profile, learner, portfolio, resume, attributes, world, shape, avoid }),
       {
         temperature: 1.0,
         maxTokens: 1800,
@@ -688,5 +698,195 @@ export async function evaluateGd({ topic, transcript, contributions, profile }) 
   } catch (err) {
     console.warn('[ai] GD debrief fell back to heuristic |', (err.tried ?? []).join(' | ') || err.message)
     return { ...heuristicGd({ transcript, contributions }), source: 'offline' }
+  }
+}
+
+/* ------------------------------------------------------------- the offer -- */
+
+/**
+ * Strips any name the model made up.
+ *
+ * The review prompt is told not to invent colleagues, and it did anyway — a run
+ * produced "Jordan has spoken up for you" on a team with no Jordan on it. A
+ * fabricated advocate is worse than a bland review, so the sentence carrying an
+ * unknown name is dropped rather than shown.
+ */
+function withoutInventedPeople(text, known) {
+  if (!text) return text
+  const allowed = new Set(known.map((n) => n.toLowerCase()))
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => {
+      const names = sentence.match(/\b[A-Z][a-z]{2,}\b/g) ?? []
+      return !names.some(
+        (n) =>
+          !allowed.has(n.toLowerCase()) &&
+          !COMMON_WORDS.has(n.toLowerCase())
+      )
+    })
+    .join(' ')
+    .trim()
+}
+
+// Sentence-initial words and role nouns that look like names to the regex.
+const COMMON_WORDS = new Set([
+  'you', 'your', 'the', 'this', 'that', 'these', 'those', 'over', 'during', 'after',
+  'before', 'when', 'while', 'they', 'their', 'there', 'here', 'and', 'but', 'for',
+  'with', 'without', 'across', 'against', 'communication', 'leadership', 'teamwork',
+  'professionalism', 'adaptability', 'confidence', 'problem', 'solving', 'decision',
+  'making', 'emotional', 'intelligence', 'relationship', 'building', 'engineer',
+  'engineering', 'software', 'product', 'monday', 'tuesday', 'wednesday', 'thursday',
+  'friday', 'internship', 'intern', 'overall', 'however', 'although', 'given',
+  'moving', 'going', 'keep', 'well', 'good', 'strong', 'nobody', 'someone', 'people',
+])
+
+export async function writeReview({ review, title, company }) {
+  try {
+    const { data, model } = await askForJson(reviewPrompt({ review, title, company }), {
+      temperature: 0.5,
+      maxTokens: 500,
+      budgetMs: 45_000,
+      validate: (d) => typeof d.feedback === 'string' && d.feedback.trim().length > 30,
+    })
+    const known = [...(review.advocates ?? []), ...(review.detractors ?? [])]
+    return {
+      summary: withoutInventedPeople(str(data.summary, 200), known) || str(data.summary, 200),
+      feedback: withoutInventedPeople(str(data.feedback, 600), known),
+      source: 'ai',
+      model,
+    }
+  } catch (err) {
+    console.warn('[ai] review fell back |', (err.tried ?? []).join(' | ') || err.message)
+    return { ...heuristicReview(review), source: 'offline' }
+  }
+}
+
+const NEGOTIATION_RESULTS = new Set(['success', 'partial', 'none', 'backfire'])
+
+export async function judgeNegotiation({ offer, message, review, round, roundsLeft }) {
+  try {
+    const { data, model } = await askForJson(
+      negotiationPrompt({ offer, message, review, round, roundsLeft }),
+      {
+        temperature: 0.35,
+        maxTokens: 800,
+        budgetMs: 55_000,
+        validate: (d) => NEGOTIATION_RESULTS.has(d.result) && d.scores,
+      }
+    )
+
+    const pct = (v) => Math.max(0, Math.min(100, Math.round(Number(v) || 0)))
+    const scores = {
+      confidence: pct(data.scores.confidence),
+      communication: pct(data.scores.communication),
+      professionalism: pct(data.scores.professionalism),
+      reasoning: pct(data.scores.reasoning),
+      strategy: pct(data.scores.strategy),
+    }
+
+    // A "success" the numbers do not support is the grader being generous; the
+    // company's own room is what decides, and it is stated in the prompt.
+    const mean = Object.values(scores).reduce((a, b) => a + b, 0) / 5
+    let result = data.result
+    if (result === 'success' && (mean < 62 || review.meanAttribute < 55)) result = 'partial'
+
+    return {
+      scores,
+      result,
+      strength: Math.max(0, Math.min(1, Number(data.strength) || 0.5)),
+      reaction: str(data.reaction, 500),
+      coaching: str(data.coaching, 300),
+      message,
+      source: 'ai',
+      model,
+    }
+  } catch (err) {
+    console.warn('[ai] negotiation fell back |', (err.tried ?? []).join(' | ') || err.message)
+    return { ...heuristicNegotiation({ message, review }), message, source: 'offline' }
+  }
+}
+
+/* -------------------------------------------------------- the workplace --- */
+
+export async function generateBeat(spec) {
+  try {
+    const { data, model } = await askForJson(workplaceBeatPrompt(spec), {
+      temperature: 1.0,
+      maxTokens: spec.kind === 'decision' ? 1400 : 700,
+      budgetMs: 50_000,
+      validate: (d) =>
+        typeof d.situation === 'string' &&
+        d.situation.trim().length > 30 &&
+        (spec.kind !== 'decision' || (Array.isArray(d.options) && d.options.length >= 3)),
+    })
+
+    const beat = {
+      headline: str(data.headline, 80) || 'Something came up',
+      situation: str(data.situation, 500),
+      prompt: str(data.prompt, 160) || 'Write what you would do.',
+      source: 'ai',
+      model,
+    }
+
+    if (spec.kind === 'decision') {
+      const q = normaliseQuestion({ situation: data.situation, question: data.prompt, options: data.options })
+      if (!q) throw new Error('unusable options')
+      beat.options = q.options
+    }
+    if (spec.kind === 'dialogue') {
+      beat.opening = str(data.opening, 300) || 'Have you got a minute?'
+    }
+    return beat
+  } catch (err) {
+    console.warn('[ai] beat fell back |', (err.tried ?? []).join(' | ') || err.message)
+    return { ...FALLBACK_BEAT(spec), source: 'offline' }
+  }
+}
+
+export async function dialogueTurn({ character, situation, turns, remaining, company }) {
+  try {
+    const { data, model } = await askForJson(
+      dialogueTurnPrompt({ character, situation, turns, remaining, company }),
+      {
+        temperature: 0.95,
+        maxTokens: 400,
+        budgetMs: 40_000,
+        validate: (d) => typeof d.text === 'string' && d.text.trim().length > 5,
+      }
+    )
+    return { text: str(data.text, 300), mood: str(data.mood, 20) || 'same', source: 'ai', model }
+  } catch (err) {
+    console.warn('[ai] dialogue turn fell back |', (err.tried ?? []).join(' | ') || err.message)
+    return {
+      ...FALLBACK_DIALOGUE_TURN({ character, turnIndex: turns.filter((t) => t.who === 'you').length - 1 }),
+      source: 'offline',
+    }
+  }
+}
+
+export async function evaluateDialogue({ character, situation, turns, learner }) {
+  try {
+    const { data, model } = await askForJson(
+      dialogueEvaluationPrompt({ character, situation, turns, learner }),
+      {
+        temperature: 0.3,
+        maxTokens: 900,
+        budgetMs: 55_000,
+        validate: (d) => Number.isFinite(Number(d.score)) && typeof d.strengths === 'string',
+      }
+    )
+    return {
+      score: Math.max(1, Math.min(10, Math.round(Number(data.score)))),
+      strengths: str(data.strengths, 500),
+      gaps: str(data.gaps, 500),
+      suggestion: str(data.suggestion, 400),
+      relationship: Math.max(-6, Math.min(6, Math.round(Number(data.relationship) || 0))),
+      consequence: str(data.consequence, 300),
+      source: 'ai',
+      model,
+    }
+  } catch (err) {
+    console.warn('[ai] dialogue grading fell back |', (err.tried ?? []).join(' | ') || err.message)
+    return { ...heuristicDialogue({ turns, character }), source: 'offline' }
   }
 }

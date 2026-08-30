@@ -314,15 +314,25 @@ export function applyAttributeDeltas(userId, deltas, { reason = '', source = '' 
         source: String(source).slice(0, 40),
         at: now,
       })
-      applied.push({
-        key,
-        name: BY_KEY[key].name,
-        delta: Math.round((after - before) * 10) / 10,
-        before: Math.round(before),
-        after: Math.round(after),
-        tier: tierFor(after).label,
-        crossedUp: tierFor(after).label !== tierFor(before).label && after > before,
-      })
+      /*
+       * Only report a move the reader can actually see.
+       *
+       * Values are kept to one decimal so small movements accumulate rather
+       * than being rounded away, but announcing "Communication 26 -> 26" reads
+       * as a bug. The write always happens; the announcement waits until the
+       * whole point has landed.
+       */
+      if (Math.round(before) !== Math.round(after)) {
+        applied.push({
+          key,
+          name: BY_KEY[key].name,
+          delta: Math.round((after - before) * 10) / 10,
+          before: Math.round(before),
+          after: Math.round(after),
+          tier: tierFor(after).label,
+          crossedUp: tierFor(after).label !== tierFor(before).label && after > before,
+        })
+      }
     }
   })()
 

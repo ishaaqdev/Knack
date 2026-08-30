@@ -1,6 +1,7 @@
 import { randomBytes, scrypt, timingSafeEqual, createHash } from 'node:crypto'
 import { promisify } from 'node:util'
 import { db, findUserById } from './db.js'
+import { seedAttributes } from './attributes.js'
 
 const scryptAsync = promisify(scrypt)
 
@@ -98,10 +99,22 @@ export function requireAuth(req, res, next) {
   next()
 }
 
-/** Routes that need a completed profile — scenario quality depends on it. */
+/**
+ * Gameplay routes.
+ *
+ * The ten attributes are seeded here rather than on whichever screen happens to
+ * be loaded first. They were originally seeded on the dashboard read, which
+ * meant a trainee who went straight from onboarding into a level had no
+ * attribute rows — and every delta written against them was silently dropped,
+ * because there was nothing to update. Seeding at the gate makes that
+ * impossible: nothing can score before the thing it scores into exists.
+ *
+ * Idempotent and cheap: one indexed lookup that returns early once seeded.
+ */
 export function requireOnboarded(req, res, next) {
   if (!req.user) return res.status(401).json({ error: 'Not signed in.' })
   if (!req.user.onboardedAt) return res.status(403).json({ error: 'Finish onboarding first.' })
+  seedAttributes(req.user)
   next()
 }
 

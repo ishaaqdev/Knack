@@ -60,8 +60,8 @@ the human rather than the tool`,
  * you...". The fix is to state explicitly that the profile selects the *setting*
  * and is never surfaced in the text, and to repeat that at the rules.
  */
-function contextBlock({ profile, learner, portfolio, resume, attributes }) {
-  if (!profile && !learner && !portfolio && !resume && !attributes) return ''
+function contextBlock({ profile, learner, portfolio, resume, attributes, world }) {
+  if (!profile && !learner && !portfolio && !resume && !attributes && !world) return ''
 
   const parts = ['\nWHO THIS IS FOR (background only — see the rules)']
 
@@ -91,6 +91,25 @@ function contextBlock({ profile, learner, portfolio, resume, attributes }) {
     parts.push('- Build the situation so it forces the first of those to be used.')
   }
 
+  /*
+   * The state of the room they are walking into.
+   *
+   * A colleague they handled badly should make the next situation harder in a
+   * way they can feel, not be announced to them. So this says who is cold and
+   * who owes them, and the rules below turn that into the shape of the problem.
+   */
+  if (world?.cold?.length) {
+    parts.push(`- Currently unlikely to go out of their way for the trainee: ${world.cold.join(', ')}`)
+  }
+  if (world?.warm?.length) {
+    parts.push(`- Would help the trainee if asked: ${world.warm.join(', ')}`)
+  }
+  if (world?.pending?.length) {
+    parts.push(
+      `- Unfinished business: ${world.pending.map((p) => `${p.character} — ${p.effect}`).join('; ')}`
+    )
+  }
+
   if (learner?.summary) {
     parts.push(`- What their last few attempts showed: ${learner.summary}`)
     if (learner.gaps?.length) {
@@ -102,7 +121,7 @@ function contextBlock({ profile, learner, portfolio, resume, attributes }) {
   return parts.join('\n') + '\n'
 }
 
-export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner, portfolio, resume, attributes, shape }) {
+export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner, portfolio, resume, attributes, world, shape }) {
   const t = TRACK_BRIEF[track.id]
   const avoidBlock = avoid.length
     ? `\nDo NOT reuse these situations — the trainee has already seen them:\n${avoid
@@ -110,7 +129,7 @@ export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner
         .join('\n')}\n`
     : ''
 
-  const personalised = contextBlock({ profile, learner, portfolio, resume, attributes })
+  const personalised = contextBlock({ profile, learner, portfolio, resume, attributes, world })
   const shaped = shape ? `
 ${shapeBlock(shape)}
 ` : ''
@@ -138,6 +157,11 @@ at stake. It is NOT part of the scenario. Never state or hint at the trainee's
 year of study, branch, career goal, confidence, or past performance. Do not open
 with "As a final-year student" or anything like it. Write the situation as it
 would actually be experienced, from inside it.
+
+If someone is listed as unlikely to help, you may build the situation so that
+their help is exactly what the trainee now needs — but write it as an ordinary
+workplace friction, never as a punishment and never by referring to whatever
+happened before. The trainee should recognise it without being told.
 
 The five shape requirements above are not suggestions. Use that person, that
 place, that moment and that pressure. Do NOT default to a team lead asking for a
@@ -325,9 +349,9 @@ Reply with ONLY this JSON object and nothing else:
  * teaches nothing — the interesting workplace choices are the ones that are all
  * defensible and differ by degree.
  */
-export function levelPrompt({ track, difficulty, profile, learner, portfolio, resume, attributes, shape, avoid = [] }) {
+export function levelPrompt({ track, difficulty, profile, learner, portfolio, resume, attributes, world, shape, avoid = [] }) {
   const t = TRACK_BRIEF[track.id]
-  const personalised = contextBlock({ profile, learner, portfolio, resume, attributes })
+  const personalised = contextBlock({ profile, learner, portfolio, resume, attributes, world })
   const shaped = shape ? `\n${shapeBlock(shape)}\n` : ''
   const avoidBlock = avoid.length
     ? `\nThe trainee has recently seen these situations. Do not reuse them:\n${avoid
@@ -690,4 +714,305 @@ RULES
 
 Reply with ONLY this JSON object and nothing else:
 {"scores":{"communication":<0-100>,"confidence":<0-100>,"leadership":<0-100>,"teamwork":<0-100>,"listening":<0-100>},"score":<1-10>,"verdict":"<one sentence>","strengths":"<1-2 sentences>","gaps":"<1-2 sentences>","nextFocus":"<one clause>"}`
+}
+
+/* ------------------------------------------------------- the offer -------- */
+
+/**
+ * The manager's write-up. Grounded in the four review scores so it cannot
+ * contradict the numbers printed next to it.
+ */
+export function reviewPrompt({ review, title, company, months = 6 }) {
+  const lines = Object.entries(review.scores)
+    .map(([k, v]) => `- ${k}: ${v}/100`)
+    .join('\n')
+
+  return `You are an engineering manager writing the end-of-internship review for
+an intern who is about to be offered a full-time ${title} role at ${company}.
+
+THEIR SCORES AFTER ${months} MONTHS
+${lines}
+- Levels completed: ${review.levels}, averaging ${review.averageLevelScore}/10
+- Standing with the team: ${review.meanRelationship}/100
+${
+  review.advocates.length
+    ? `- Would speak up for them: ${review.advocates.join(', ')}`
+    : '- NOBODY on the team would particularly speak up for them yet.'
+}
+${review.detractors.length ? `- Has reservations about them: ${review.detractors.join(', ')}` : ''}
+
+Write the review the way a real manager would say it out loud.
+
+RULES
+- feedback: 2 to 3 sentences, second person, warm but honest. Name the strongest
+  thing and the weakest thing specifically. Do not list all four scores back.
+- summary: one sentence, the line that would go at the top of the form.
+- If a score is below 45, say so plainly rather than softening it — an intern
+  told they were excellent and then not promoted has been let down.
+- If someone is listed above as willing to speak up for them, mention that person
+  by name; it is the part of a review people remember. If the brief says nobody
+  would, do NOT mention anyone. Never use a name that does not appear in this
+  brief — inventing a colleague makes the whole review worthless.
+- Plain text. No markdown, no emoji.
+
+Reply with ONLY this JSON object and nothing else:
+{"summary":"<one sentence>","feedback":"<2-3 sentences>"}`
+}
+
+/**
+ * The salary conversation.
+ *
+ * There is deliberately no single correct sentence. The grader is told to judge
+ * how the ask was made rather than whether it was made, because both an
+ * apologetic ask and an entitled one fail, and they fail differently.
+ */
+export function negotiationPrompt({ offer, message, review, round, roundsLeft }) {
+  return `You are the hiring manager at ${offer.company}. You have made an offer
+to an intern you are converting to a full-time ${offer.title}, and they have just
+replied asking to discuss it. Decide how you respond.
+
+THE OFFER ON THE TABLE
+- Fixed: ${offer.fixed} LPA
+- Variable: ${offer.variable} LPA
+- Total: ${offer.total} LPA${offer.joiningBonus ? `\n- Joining bonus: ${offer.joiningBonus} LPA` : ''}
+- ${offer.location}, ${offer.workingModel}, ${offer.probation} probation
+
+WHAT YOU KNOW ABOUT THEM
+${Object.entries(review.scores).map(([k, v]) => `- ${k}: ${v}/100`).join('\n')}
+- Average level score during the internship: ${review.averageLevelScore}/10
+- Standing with the team: ${review.meanRelationship}/100
+
+HOW MUCH ROOM YOU ACTUALLY HAVE
+${
+  review.meanAttribute >= 70
+    ? 'They are one of the stronger interns you have had. You have real room and you would rather not lose them.'
+    : review.meanAttribute >= 55
+      ? 'They are solid but replaceable. You have a little room and would use it only for a well-made case.'
+      : 'They are below the bar you would normally convert at. You have almost no room, and you know it.'
+}
+
+THIS IS ROUND ${round}. They have ${roundsLeft} further ${roundsLeft === 1 ? 'attempt' : 'attempts'} after this.
+
+WHAT THEY SAID
+"""
+${message}
+"""
+
+Judge how they asked, not whether they asked. Score each 0-100:
+- confidence: did they state a position, or apologise for having one
+- communication: is the ask clear and specific, or vague and hedged
+- professionalism: tone, and whether they respected the relationship
+- reasoning: did they give evidence from their own work, or just want more
+- strategy: did they name what they want and leave you a way to say yes
+
+Then choose exactly one result:
+- "success": a well-made, evidenced case, and you have the room. Fixed pay moves.
+- "partial": a reasonable ask you cannot fully meet. You move a bonus, the
+  variable, or a term instead of the base.
+- "none": the ask was too vague, or you genuinely have no room. Nothing moves,
+  and you say why.
+- "backfire": entitled, threatening, dishonest, or comparing themselves to
+  colleagues by name. Nothing moves and the conversation has cost them something.
+
+Be strict. "I would like more money because I worked hard" is "none", not
+"partial". Most real asks land on "partial" or "none".
+
+RULES
+- reaction: 2 to 3 sentences, spoken as the manager, second person. This is what
+  they actually hear back, so it has to sound like a person, not a verdict.
+- coaching: one sentence, addressed to the trainee, on what would have landed
+  better. Honest even when they did well.
+- strength: 0 to 1, how strong the case was. Only meaningful for "success".
+- Plain text. No markdown, no emoji.
+
+Reply with ONLY this JSON object and nothing else:
+{"scores":{"confidence":<0-100>,"communication":<0-100>,"professionalism":<0-100>,"reasoning":<0-100>,"strategy":<0-100>},"result":"<success|partial|none|backfire>","strength":<0-1>,"reaction":"<2-3 sentences>","coaching":"<one sentence>"}`
+}
+
+/* ------------------------------------------------------- the workplace ---- */
+
+/** The standing brief every workplace beat is written against. */
+function officeBlock({ company, role, location, day, cast, world }) {
+  const parts = [`SETTING: ${company ?? 'the company'} — ${location.name}. Day ${day} of the job.`]
+  if (role) parts.push(`The trainee is a ${role}.`)
+
+  if (cast?.length) {
+    parts.push('\nWHO WORKS HERE')
+    for (const c of cast) {
+      parts.push(
+        `- ${c.name}, ${c.role}. ${c.personality} You are on ${c.relationship.toLowerCase()} terms.${
+          c.remembers?.length ? ` They remember: ${c.remembers.join(' ')}` : ''
+        }`
+      )
+    }
+  }
+
+  if (world?.pending?.length) {
+    parts.push(
+      `\nUNFINISHED: ${world.pending.map((p) => `${p.character} — ${p.effect}`).join('; ')}`
+    )
+  }
+
+  return parts.join('\n')
+}
+
+/**
+ * One beat of a working day.
+ *
+ * The kind, the person and the pressure are all decided by the server and
+ * handed over as requirements, for the same reason the scenario sampler exists:
+ * a model asked to invent a varied day invents the same day.
+ */
+export function workplaceBeatPrompt({
+  kind,
+  character,
+  pressure,
+  location,
+  company,
+  role,
+  day,
+  cast,
+  world,
+  earlier = [],
+}) {
+  const kindBrief = {
+    message: `A message has arrived — Slack, email, or a ticket comment. Short, and it
+needs an answer. The trainee writes the reply.`,
+    task: `The trainee is in the middle of the work itself and something about it
+has gone wrong or become unclear. They have to decide what to do and say so.`,
+    decision: `A moment that needs a call, now. Offer four things a real person
+might actually do.`,
+    dialogue: `A conversation that is happening in real time. Write only the
+other person's opening line — the trainee replies, and you will continue after.`,
+  }[kind]
+
+  const chain = earlier.length
+    ? `\nWHAT HAS ALREADY HAPPENED TODAY
+${earlier.map((e, i) => `${i + 1}. ${e.headline} — the trainee ${e.summary}`).join('\n')}
+
+This beat must follow from that. If they made a promise, this is where it comes
+due. If they pushed something to later, later is now.\n`
+    : ''
+
+  const mcq =
+    kind === 'decision'
+      ? `\nFOR THE OPTIONS
+Give exactly four, each something a real person might do, each under 25 words,
+first person. Score them 9, 6, 3 and 1 — the strongest, a safe one that misses
+the harder half, one that defers the problem, and one that damages something.
+Put them in a DIFFERENT random order each time. why: under 18 words, second
+person, naming the consequence.\n`
+      : ''
+
+  return `You are writing one beat of a working day in a workplace simulation for
+engineering students starting their first job.
+
+${officeBlock({ company, role, location, day, cast, world })}
+${chain}
+THIS BEAT
+- Kind: ${kind}. ${kindBrief}
+- The person involved: ${character ? `${character.name}, ${character.role}` : 'no one in particular'}
+- The pressure on it: ${pressure}
+${mcq}
+RULES
+- headline: under 8 words, what this beat is, for a timeline. No punctuation at the end.
+- situation: 2 to 3 sentences, under 60 words, second person, present tense. End on
+  the moment where the trainee has to act.
+- prompt: 6 to 10 words telling them what to write or decide.
+- Use the named person. Do not invent new colleagues.
+- Never mention the trainee's year of study, course, scores or attributes.
+- Plain professional English. No markdown, no emoji.
+
+Reply with ONLY this JSON object and nothing else:
+${
+  kind === 'decision'
+    ? `{"headline":"<under 8 words>","situation":"<2-3 sentences>","prompt":"<what to decide>","options":[{"text":"<what you do>","score":9,"why":"<consequence>"}]}`
+    : `{"headline":"<under 8 words>","situation":"<2-3 sentences>","prompt":"<what to write>"${
+        kind === 'dialogue' ? ',"opening":"<the first thing they say to you>"' : ''
+      }}`
+}`
+}
+
+/**
+ * The next line in a live conversation.
+ *
+ * The character has to actually respond to what was said — that is the whole
+ * difference between a dialogue and two monologues — and they have to stay the
+ * person the directory says they are, including being harder work when the
+ * relationship is poor.
+ */
+export function dialogueTurnPrompt({ character, situation, turns, remaining, company }) {
+  const script = turns
+    .map((t) => `${t.who === 'you' ? 'TRAINEE' : character.name}: ${t.text}`)
+    .join('\n')
+
+  return `You are ${character.name}, ${character.role} at ${company ?? 'the company'}.
+${character.personality}
+
+Your relationship with the trainee is currently ${character.relationship.toLowerCase()}.
+${
+  character.remembers?.length
+    ? `You remember: ${character.remembers.join(' ')}`
+    : 'You have no strong history with them either way.'
+}
+
+THE SITUATION
+${situation}
+
+THE CONVERSATION SO FAR
+${script}
+
+Write your next line. ${
+    remaining <= 1
+      ? 'This is the end of the exchange — close it off the way this person would, whether or not it is resolved.'
+      : 'The conversation continues after this.'
+  }
+
+RULES
+- 1 to 2 sentences, under 45 words. Spoken, not written.
+- React to what they actually just said. Do not restate your previous line.
+- Stay in character. If your relationship with them is distant or hostile, be
+  harder work — shorter, less willing, more sceptical. Never cartoonishly rude.
+- If they handled it well, let that land. People do change their mind.
+- Never speak for the trainee.
+- Plain spoken English. No markdown, no emoji, no stage directions.
+
+Reply with ONLY this JSON object and nothing else:
+{"text":"<what you say>","mood":"<one word: warmer, same, or cooler>"}`
+}
+
+/** Grading a whole conversation, rather than a single message. */
+export function dialogueEvaluationPrompt({ character, situation, turns, learner }) {
+  const script = turns
+    .map((t) => `${t.who === 'you' ? 'TRAINEE' : character.name}: ${t.text}`)
+    .join('\n')
+
+  return `You are an experienced engineering mentor grading how a trainee handled
+a live conversation with ${character.name}, ${character.role}.
+
+THE SITUATION
+${situation}
+
+THE CONVERSATION
+${script}
+${learner?.summary ? `\nWHAT YOU KNOW ABOUT THIS TRAINEE: ${learner.summary}\n` : ''}
+Judge the conversation as a whole, not line by line. What matters: did they hold
+a position without becoming rigid, did they respond to what ${character.name}
+actually said, did they leave the relationship intact, and did anything get
+resolved.
+
+SCORING (1-10)
+1-2  = did not engage, or made it worse
+3-4  = replied, but talked past them or folded immediately
+5-6  = handled it adequately; nothing resolved or nothing risked
+7-8  = responsive, clear, and moved it somewhere
+9-10 = exceptional — got a result and left the relationship better
+
+RULES
+- Address the trainee as "you". Quote something they actually said.
+- relationship: how ${character.name} feels afterwards, from -6 to +6.
+- Plain text. No markdown, no emoji.
+
+Reply with ONLY this JSON object and nothing else:
+{"score":<1-10>,"strengths":"<what worked>","gaps":"<what was missing>","suggestion":"<one specific improvement>","relationship":<-6 to 6>,"consequence":"<one sentence on what this means later>"}`
 }

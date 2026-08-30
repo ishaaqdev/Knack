@@ -34,7 +34,9 @@ const PHASE_ICON = {
 const PHASE_ROUTE = {
   gd: '/gd',
   interview: '/interview',
-  internship: '/tracks',
+  internship: '/office',
+  offer: '/offer',
+  fulltime: '/office',
 }
 
 /* ----------------------------------------------------------- career map -- */
@@ -259,7 +261,11 @@ export function Career() {
               ? 'Go to the group discussion'
               : career.phase === 'interview'
                 ? 'Go to the interview'
-                : 'Play the next level'}
+                : career.phase === 'offer'
+                  ? 'See your offer'
+                  : career.phase === 'fulltime'
+                    ? 'Go to the office'
+                    : 'Go to the office'}
             <IconArrowRight size={17} />
           </Button>
         ) : (
@@ -320,6 +326,16 @@ export function Career() {
         <Button as={Link} to="/badges" variant="quiet" className="w-full">
           <IconCheck size={16} /> Badges
         </Button>
+        {career.joinedAt && (
+          <Button as={Link} to="/office" variant="quiet" className="col-span-2 w-full">
+            <IconBriefcase size={16} /> The office
+          </Button>
+        )}
+        {(career.phase === 'offer' || career.phase === 'fulltime') && (
+          <Button as={Link} to="/offer" variant="quiet" className="col-span-2 w-full">
+            <IconCheck size={16} /> Your offer
+          </Button>
+        )}
       </div>
     </Page>
   )
