@@ -9,7 +9,8 @@
   ============================================================================
 
   EXPORT
-    Chrome or Edge -> Ctrl+P -> Save as PDF
+    A ready-made PDF sits beside this file: Knack_Phase2_Presentation.pdf
+    To regenerate it by hand: Chrome or Edge -> Ctrl+P -> Save as PDF
     Layout LANDSCAPE · Paper A4 · Margins NONE · Scale 100%
     TICK "Background graphics"    (table rules and diagrams need it)
     UNTICK "Headers and footers"
@@ -102,6 +103,7 @@ table.tight th,table.tight td{padding:5px 8px;font-size:15.5px;}
 table.dense th,table.dense td{padding:4px 8px;font-size:13.6px;line-height:1.28;}
 table.dense th{font-size:14.2px;}
 ul.dense li{font-size:19.5px;margin-bottom:12px;line-height:1.36;}
+ul.dense[style] li{font-size:inherit;line-height:inherit;margin-bottom:10px;}
 
 /* A figure slide is mostly figure: let it take the height the title leaves
    and sit in the middle of it, rather than clinging to the top edge. */
@@ -214,35 +216,40 @@ svg{max-width:100%;height:auto;}
 <!-- =========================== 2 · CONTENTS =========================== -->
 <section class="sl">
   <h1 style="text-align:left;">CONTENTS</h1>
-  <div class="two" style="gap:40px;">
-    <ol style="list-style:none;font-size:20.5px;line-height:1.86;">
-      <li style="padding-left:34px;">1. Introduction</li>
-      <li style="padding-left:34px;">2. Problem Statement</li>
-      <li style="padding-left:34px;">3. Objectives</li>
-      <li style="padding-left:34px;">4. Literature Survey</li>
-      <li style="padding-left:34px;">5. Research Gap</li>
-      <li style="padding-left:34px;">6. Existing System vs Proposed System</li>
-      <li style="padding-left:34px;">7. System Requirements</li>
-      <li style="padding-left:34px;">8. Methodology / Proposed Architecture</li>
-      <li style="padding-left:34px;">9. System Design and Flow Diagram</li>
-      <li style="padding-left:34px;">10. Database Design</li>
+  <div class="two" style="gap:34px;">
+    <ol style="list-style:none;font-size:19px;line-height:1.74;">
+      <li style="padding-left:30px;margin-bottom:0;">1. Introduction</li>
+      <li style="padding-left:30px;margin-bottom:0;">2. Problem Statement</li>
+      <li style="padding-left:30px;margin-bottom:0;">3. Objectives</li>
+      <li style="padding-left:30px;margin-bottom:0;">4. Literature Survey</li>
+      <li style="padding-left:30px;margin-bottom:0;">5. Research Gap</li>
+      <li style="padding-left:30px;margin-bottom:0;">6. Existing System vs Proposed System</li>
+      <li style="padding-left:30px;margin-bottom:0;">7. System Requirements</li>
+      <li style="padding-left:30px;margin-bottom:0;">8. Methodology / Proposed Architecture</li>
+      <li style="padding-left:30px;margin-bottom:0;">9. System Design and Flow Diagram</li>
+      <li style="padding-left:30px;margin-bottom:0;">10. Database Design</li>
+      <li style="padding-left:30px;margin-bottom:0;">11. Modules and Their Functionality</li>
+      <li style="padding-left:30px;margin-bottom:0;">12. Technologies, Tools and Software</li>
+      <li style="padding-left:30px;margin-bottom:0;">13. Deviations from Phase 1</li>
     </ol>
-    <ol style="list-style:none;font-size:20.5px;line-height:1.86;">
-      <li style="padding-left:34px;">11. Modules and Their Functionality</li>
-      <li style="padding-left:34px;">12. Technologies, Tools and Software</li>
-      <li style="padding-left:34px;">13. Deviations from Phase 1</li>
-      <li style="padding-left:34px;">14. Implementation Details</li>
-      <li style="padding-left:34px;">15. Level Structure and Interview Rounds</li>
-      <li style="padding-left:34px;">16. Screenshots of Implemented Modules</li>
-      <li style="padding-left:34px;">17. Results / Current Progress</li>
-      <li style="padding-left:34px;">18. Challenges Faced and Solutions</li>
-      <li style="padding-left:34px;">19. Future Enhancements</li>
-      <li style="padding-left:34px;">20. Conclusion</li>
-      <li style="padding-left:34px;">21. References and Appendices</li>
+    <ol style="list-style:none;font-size:19px;line-height:1.74;">
+      <li style="padding-left:30px;margin-bottom:0;">14. Implementation Details</li>
+      <li style="padding-left:30px;margin-bottom:0;">15. Level Structure and Interview Rounds</li>
+      <li style="padding-left:30px;margin-bottom:0;">16. The Career Simulation</li>
+      <li style="padding-left:30px;margin-bottom:0;">17. Professional Attributes</li>
+      <li style="padding-left:30px;margin-bottom:0;">18. People, Memory and Consequences</li>
+      <li style="padding-left:30px;margin-bottom:0;">19. A Day in the Workplace</li>
+      <li style="padding-left:30px;margin-bottom:0;">20. The Offer and Negotiation</li>
+      <li style="padding-left:30px;margin-bottom:0;">21. Screenshots of Implemented Modules</li>
+      <li style="padding-left:30px;margin-bottom:0;">22. Results / Current Progress</li>
+      <li style="padding-left:30px;margin-bottom:0;">23. Challenges Faced and Solutions</li>
+      <li style="padding-left:30px;margin-bottom:0;">24. Future Enhancements</li>
+      <li style="padding-left:30px;margin-bottom:0;">25. Conclusion</li>
+      <li style="padding-left:30px;margin-bottom:0;">26. References and Appendices</li>
     </ol>
   </div>
   <p class="note" style="margin-top:14px;">
-    Items 1 to 5 carry forward from Phase 1. Items 6 to 20 are new to this stage.
+    Items 1 to 5 carry forward from Phase 1. Items 6 to 25 are new to this stage.
   </p>
 </section>
 
@@ -257,10 +264,15 @@ svg{max-width:100%;height:auto;}
         lack "job-readiness" due to a deficit in soft skill training.</li>
     <li><b>Relevance:</b> Soft skills like communication and situational judgment are the most
         sought-after traits by global employers.</li>
-    <li><b>Status at Phase 2:</b> The platform is <b>fully implemented and running</b>. A trainee
-        registers, completes a profile, uploads a resume, and then trains in two ways: five-stage
-        <b>levels</b> of four judgement calls plus one written response, and a five-round
-        <b>mock interview</b> whose questions are written from their own resume.</li>
+    <li><b>Status at Phase 2:</b> The platform is <b>fully implemented and running</b> as a
+        <b>career simulation</b>. The trainee is not asked questions about a workplace; they are
+        placed inside one. They sit a group discussion, clear five interview rounds, join a company,
+        work there through timed days made of messages, decisions and live conversations with
+        colleagues who remember them, and finish with a performance review, a salary offer and a
+        negotiation.</li>
+    <li><b>What is measured:</b> ten professional attributes on a 0-100 scale that <b>fall as well
+        as rise</b>, kept deliberately separate from XP. XP is what a trainee earns for turning up;
+        an attribute is a claim about what they can actually do.</li>
   </ul>
 </section>
 
@@ -303,6 +315,10 @@ svg{max-width:100%;height:auto;}
         <span style="color:#595959;">(Added at implementation stage.)</span></li>
     <li><b>Rehearse the Real Gate:</b> Give the learner a graded mock interview drawn from their own
         resume, since the placement interview is what the training is ultimately for.
+        <span style="color:#595959;">(Added at implementation stage.)</span></li>
+    <li><b>Teach Through Consequence, Not Correction:</b> Place the learner inside a workplace where
+        decisions affect relationships, opportunities and pay, and let those consequences arrive
+        later than the decision that caused them.
         <span style="color:#595959;">(Added at implementation stage.)</span></li>
   </ul>
 </section>
@@ -454,12 +470,12 @@ svg{max-width:100%;height:auto;}
       <g font-family="Times New Roman" font-size="15">
         <text x="112" y="100" text-anchor="middle" font-style="italic" fill="#595959">Browser · port 5173</text>
         <text x="22" y="126">React 19 + Vite SPA</text>
-        <text x="22" y="150">9 pages, route guards</text>
+        <text x="22" y="150">14 pages, route guards</text>
         <text x="22" y="174">Level flow (5 stages)</text>
         <text x="22" y="198">Interview flow (5 rounds)</text>
-        <text x="22" y="222">Zustand global state</text>
-        <text x="22" y="246">Tailwind CSS v4</text>
-        <text x="22" y="270">Responsive, mobile-first</text>
+        <text x="22" y="222">Office, people, offer</text>
+        <text x="22" y="246">Zustand global state</text>
+        <text x="22" y="270">Tailwind CSS v4, mobile-first</text>
       </g>
 
       <rect x="288" y="50" width="230" height="252" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
@@ -472,9 +488,9 @@ svg{max-width:100%;height:auto;}
         <text x="306" y="174">Resume reader (PDF, DOCX)</text>
         <text x="306" y="198">Memory summariser</text>
         <text x="306" y="222">Scenario shape sampler</text>
-        <text x="306" y="246">Level and interview engines</text>
-        <text x="306" y="270">Gamification engine</text>
-        <text x="306" y="294">Prompt and model adapter</text>
+        <text x="306" y="246">Attribute and badge engines</text>
+        <text x="306" y="270">Character and consequence engines</text>
+        <text x="306" y="294">Workplace, offer and career engines</text>
       </g>
 
       <rect x="586" y="50" width="212" height="118" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
@@ -482,7 +498,7 @@ svg{max-width:100%;height:auto;}
       <text x="692" y="71" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700" fill="#fff">DATA TIER</text>
       <g font-family="Times New Roman" font-size="15">
         <text x="604" y="104">SQLite, WAL mode</text>
-        <text x="604" y="132">6 relations</text>
+        <text x="604" y="132">16 relations</text>
         <text x="604" y="158">Foreign keys enforced</text>
       </g>
 
@@ -591,89 +607,59 @@ svg{max-width:100%;height:auto;}
 <section class="sl">
   <h1>DATABASE DESIGN</h1>
   <div class="figwrap">
-    <svg viewBox="0 0 880 352" width="836">
-      <rect x="292" y="4" width="292" height="124" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
-      <rect x="292" y="4" width="292" height="26" fill="#1A1A1A"/>
-      <text x="438" y="23" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">users</text>
-      <g font-family="Times New Roman" font-size="14">
-        <text x="304" y="46">id, email, passwordHash, name</text>
-        <text x="304" y="64">year, branch, targetRole, workSetting</text>
-        <text x="304" y="82">confidence, focusAreas, githubStack</text>
-        <text x="304" y="100">resumeText, resumeSkills, resumeProjects</text>
-        <text x="304" y="118">xp, streak, longestStreak, interviewLevel</text>
-      </g>
+    <svg viewBox="0 0 880 378" width="880">
 
-      <rect x="8" y="188" width="200" height="88" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
-      <rect x="8" y="188" width="200" height="26" fill="#1A1A1A"/>
-      <text x="108" y="207" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">sessions</text>
-      <g font-family="Times New Roman" font-size="14">
-        <text x="20" y="232">tokenHash (SHA-256)</text>
-        <text x="20" y="252">userId, createdAt</text>
-        <text x="20" y="270">expiresAt</text>
-      </g>
+      <rect x="0" y="34" width="272" height="96" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="0" y="34" width="272" height="26" fill="#1A1A1A"/>
+      <text x="136" y="52" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="14" font-weight="700" fill="#fff">IDENTITY</text>
+      <text x="12" y="82" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">users</tspan>  — account, profile, resume, career</text>
+      <text x="12" y="102" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">sessions</tspan>  — hashed tokens only</text>
 
-      <rect x="8" y="20" width="200" height="106" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
-      <rect x="8" y="20" width="200" height="26" fill="#1A1A1A"/>
-      <text x="108" y="39" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">interview_runs</text>
-      <g font-family="Times New Roman" font-size="14">
-        <text x="20" y="64">level, role, questions</text>
-        <text x="20" y="82">answers, perAnswer</text>
-        <text x="20" y="100">score, verdict, nextFocus</text>
-        <text x="20" y="118">xpAwarded, timestamp</text>
-      </g>
+      <rect x="304" y="34" width="272" height="156" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="304" y="34" width="272" height="26" fill="#1A1A1A"/>
+      <text x="440" y="52" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="14" font-weight="700" fill="#fff">WHAT THEY DID</text>
+      <text x="316" y="82" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">tracks</tspan>  — the three skill tracks</text>
+      <text x="316" y="102" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">attempts</tspan>  — every level and workday</text>
+      <text x="316" y="122" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">learner_context</tspan>  — the 60-word summary</text>
+      <text x="316" y="142" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">interview_runs</tspan>  — one per round</text>
+      <text x="316" y="162" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">gd_runs</tspan>  — one per discussion</text>
 
-      <rect x="292" y="188" width="292" height="104" fill="#FDEFE6" stroke="#000" stroke-width="1.8"/>
-      <rect x="292" y="188" width="292" height="26" fill="#C55A11"/>
-      <text x="438" y="207" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">learner_context</text>
-      <g font-family="Times New Roman" font-size="14">
-        <text x="304" y="232">summary (60 words, rewritten in place)</text>
-        <text x="304" y="252">recurringGaps (at most 3)</text>
-        <text x="304" y="272">pushNext, attemptsAtUpdate, updatedAt</text>
-      </g>
-
-      <rect x="668" y="166" width="204" height="126" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
-      <rect x="668" y="166" width="204" height="26" fill="#1A1A1A"/>
-      <text x="770" y="185" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">attempts</text>
-      <g font-family="Times New Roman" font-size="14">
-        <text x="680" y="208">scenarioText, userResponse</text>
-        <text x="680" y="226">score, strengths, gaps</text>
-        <text x="680" y="244">suggestion, xpAwarded</text>
-        <text x="680" y="262">kind, detail (stage breakdown)</text>
-        <text x="680" y="280">source, timestamp</text>
-      </g>
-
-      <rect x="668" y="20" width="204" height="78" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
-      <rect x="668" y="20" width="204" height="26" fill="#1A1A1A"/>
-      <text x="770" y="39" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">tracks</text>
-      <g font-family="Times New Roman" font-size="14">
-        <text x="680" y="64">3 rows, seeded at startup</text>
-        <text x="680" y="86">id, name, description</text>
-      </g>
+      <rect x="608" y="34" width="272" height="236" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="608" y="34" width="272" height="26" fill="#1A1A1A"/>
+      <text x="744" y="52" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="14" font-weight="700" fill="#fff">THE WORLD IT HAPPENED IN</text>
+      <text x="620" y="82" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">attributes</tspan>  — the ten scores</text>
+      <text x="620" y="102" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">attribute_log</tspan>  — why each one moved</text>
+      <text x="620" y="122" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">characters</tspan>  — five colleagues</text>
+      <text x="620" y="142" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">character_events</tspan>  — what they remember</text>
+      <text x="620" y="162" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">consequences</tspan>  — not yet resolved</text>
+      <text x="620" y="182" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">workdays</tspan>  — a day in the office</text>
+      <text x="620" y="202" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">company_events</tspan>  — promotions, exits</text>
+      <text x="620" y="222" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">badges</tspan>  — earned, with the reason</text>
+      <text x="620" y="242" font-family="Times New Roman" font-size="13.5"><tspan font-weight="700">offers</tspan>  — terms and negotiation</text>
 
       <g stroke="#000" stroke-width="1.3" fill="none">
-        <path d="M292,60 L212,60"/>
-        <path d="M292,110 L244,110 L244,232 L212,232"/>
-        <path d="M584,112 L628,112 L628,206 L664,206"/>
-        <path d="M770,98 L770,162"/>
+        <path d="M272,72 L304,72"/>
+        <path d="M576,72 L608,72"/>
       </g>
-      <path d="M438,132 L438,184" stroke="#C55A11" stroke-width="2.2" fill="none"/>
-
-      <g font-family="Times New Roman" font-size="13" font-style="italic" fill="#595959">
-        <text x="240" y="54">1 : N</text>
-        <text x="256" y="180">1 : N</text>
-        <text x="596" y="128">1 : N</text>
-        <text x="776" y="150">1 : N</text>
+      <g font-family="Times New Roman" font-size="12.5" font-style="italic" fill="#595959">
+        <text x="288" y="66" text-anchor="middle">1:N</text>
+        <text x="592" y="66" text-anchor="middle">1:N</text>
       </g>
-      <text x="448" y="160" font-family="Times New Roman" font-size="14" font-style="italic" fill="#C55A11">1 : 1</text>
 
-      <text x="440" y="320" text-anchor="middle" font-family="Times New Roman" font-size="16">
-        The one-to-one link is deliberate: history is compressed into a single evolving row, not accumulated.
+      <text x="0" y="300" font-family="Times New Roman" font-size="15.5">
+        <tspan font-weight="700">16 relations, SQLite in WAL mode, foreign keys enforced.</tspan> Every child row
       </text>
-      <text x="440" y="342" text-anchor="middle" font-family="Times New Roman" font-size="16">
-        Interview rounds are kept apart from attempts, so a mock interview never moves a track score.
+      <text x="0" y="320" font-family="Times New Roman" font-size="15.5">
+        cascades from the account, so deleting a trainee removes their whole simulation.
+      </text>
+      <text x="0" y="344" font-family="Times New Roman" font-size="15.5" fill="#595959">
+        Two design rules: history is compressed rather than accumulated, and an interview or
+      </text>
+      <text x="0" y="364" font-family="Times New Roman" font-size="15.5" fill="#595959">
+        discussion is kept apart from attempts so it can never move a track score.
       </text>
     </svg>
-    <div class="figcap">Figure 3. Entity-relationship design (6 relations, foreign keys enforced)</div>
+    <div class="figcap">Figure 3. Schema by purpose — identity, the training record, and the simulated world</div>
   </div>
 </section>
 
@@ -697,6 +683,33 @@ svg{max-width:100%;height:auto;}
             choices are submitted</td></tr>
     <tr><td><b>Interview Engine</b></td><td>Five rounds of mock interview questions and a graded debrief</td>
         <td>The next round unlocks on performance, not on XP, so a round cannot be ground through</td></tr>
+    <tr><td><b>Attribute Engine</b></td><td>Ten permanent 0-100 attributes, their tiers and their movement</td>
+        <td>Every delta is capped and written with a reason, so no single answer is decisive and
+            every change can be explained rather than merely displayed</td></tr>
+  </table>
+  <p class="note" style="font-size:16px;">The seven modules above carry the platform. The seven overleaf carry the career simulation.</p>
+</section>
+
+
+<!-- MODULES — THE SIMULATION LAYER -->
+<section class="sl">
+  <h1>MODULES — THE SIMULATION LAYER</h1>
+  <table class="tight dense">
+    <tr><th style="width:19%">Module</th><th style="width:37%">Functionality</th><th>Key design decision</th></tr>
+    <tr><td><b>Character Engine</b></td><td>Five persistent colleagues, their relationships and their memory</td>
+        <td>Stores what a colleague remembers, not just a score — a number cannot produce the
+            sentence "you helped me when I first joined"</td></tr>
+    <tr><td><b>Consequence Engine</b></td><td>Schedules and later fires the results of notable decisions</td>
+        <td>Due counts are in completed levels rather than days: the world moves when the trainee
+            does, not while the app is closed</td></tr>
+    <tr><td><b>Discussion Engine</b></td><td>Group discussion with five AI candidates, beat by beat</td>
+        <td>Volume is explicitly not rewarded; a candidate who never speaks is capped at 25 on
+            every dimension and told why</td></tr>
+    <tr><td><b>Workplace Engine</b></td><td>Rooms, timed beats, live dialogue and the daily summary</td>
+        <td>Each beat is generated after the previous one resolves, so the day can follow from
+            itself rather than being written all at once</td></tr>
+    <tr><td><b>Career and Offer Engine</b></td><td>Phases, compensation, negotiation and promotion</td>
+        <td>Every gate is a competency check; promotion needs Leadership, not attendance</td></tr>
     <tr><td><b>Memory Controller</b></td><td>Rewrites the learner summary every three attempts</td>
         <td>Runs after the response is sent, so it never adds to perceived latency</td></tr>
     <tr><td><b>Scenario Sampler</b></td><td>Selects the shape of each scenario before generation</td>
@@ -726,7 +739,7 @@ svg{max-width:100%;height:auto;}
     <tr><td><b>Security</b></td><td>scrypt from Node's built-in crypto module</td>
         <td>Memory-hard password hashing without an extra dependency</td></tr>
     <tr><td><b>Database</b></td><td>SQLite via better-sqlite3, WAL mode</td>
-        <td>Local transactional storage, six relations</td></tr>
+        <td>Local transactional storage, sixteen relations</td></tr>
     <tr><td><b>Document parsing</b></td><td>zlib from Node's standard library</td>
         <td>PDF and DOCX text extraction with no third-party parser</td></tr>
     <tr><td><b>AI engine</b></td><td>A four-model fallback chain on OpenRouter's free tier (MiniMax M2.7,
@@ -759,6 +772,17 @@ svg{max-width:100%;height:auto;}
         <td>A single local database removes an external dependency for a purely date-based rule</td></tr>
     <tr><td><b>Tracks</b></td><td>Four, including Situational Judgment</td><td>Three</td>
         <td>Situational judgment is exercised inside all three tracks rather than isolated as its own</td></tr>
+  </table>
+  <p class="note" style="font-size:16px;">The six above reduced external dependencies or running cost.</p>
+</section>
+
+
+<!-- DEVIATIONS — SCOPE AND ADDITIONS -->
+<section class="sl">
+  <h1>DEVIATIONS — SCOPE AND ADDITIONS</h1>
+  <table class="tight dense">
+    <tr><th style="width:17%">Area</th><th style="width:22%">Phase 1 proposal</th>
+        <th style="width:22%">Implemented</th><th>Reason for the change</th></tr>
     <tr><td><b>Assessment format</b></td><td>One written scenario per session</td>
         <td>A level: four multiple-choice calls plus one written stage</td>
         <td>Choosing the right move and being able to write it are different skills. One question
@@ -771,12 +795,21 @@ svg{max-width:100%;height:auto;}
         <td>Five graded mock-interview rounds</td>
         <td>The placement interview is the gate the training exists for; practising the skills
             without ever rehearsing the gate leaves the loop open</td></tr>
-    <tr><td><b>Badges, skill tree</b></td><td>Planned</td><td>Deferred</td>
-        <td>Deprioritised in favour of grading quality and the memory mechanism</td></tr>
+    <tr><td><b>Scope</b></td><td>A gamified quiz over three tracks</td>
+        <td>A six-phase career simulation</td>
+        <td>The design document's central argument: questions about a workplace teach less than
+            being placed inside one. The tracks survive as the practice mode</td></tr>
+    <tr><td><b>What is measured</b></td><td>XP, levels, per-track scores</td>
+        <td>Ten attributes that also fall, kept separate from XP</td>
+        <td>XP measures attendance. Separating the two is what stops the app rewarding a trainee
+            who turns up daily and learns nothing</td></tr>
+    <tr><td><b>Badges, skill tree</b></td><td>Planned</td><td>24 badges built; skill tree deferred</td>
+        <td>Badges became meaningful once there were phases and relationships to attach them to</td></tr>
   </table>
   <p class="note" style="font-size:17.5px;">
-    Rows 1 to 6 reduced external dependencies or running cost. Rows 7 to 9 are additions made once
-    the core loop worked. No proposed objective was dropped.
+    Rows 1 to 6 reduced external dependencies or running cost. The rest are additions made once
+    the core loop worked and the scope was widened to the full design document. No proposed
+    objective was dropped.
   </p>
 </section>
 
@@ -961,9 +994,462 @@ svg{max-width:100%;height:auto;}
 </section>
 
 
+<!-- ==================== 16 · THE CAREER SIMULATION ==================== -->
+<section class="sl">
+  <h1>THE CAREER SIMULATION</h1>
+  <div class="figwrap">
+    <svg viewBox="0 0 880 400" width="880">
+      <defs>
+        <marker id="c1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#C55A11"/></marker>
+      </defs>
+
+      <text x="0" y="30" font-family="Carlito,Calibri,sans-serif" font-size="17" font-weight="700">
+        SIX PHASES — each one entered by clearing the last, never by earning XP
+      </text>
+
+      <rect x="0" y="60" width="128" height="104" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="0" y="60" width="128" height="26" fill="#1A1A1A"/>
+      <text x="64" y="78" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="13" font-weight="700" fill="#fff">1. DISCUSSION</text>
+      <text x="64" y="112" text-anchor="middle" font-family="Times New Roman" font-size="14">5 candidates,</text>
+      <text x="64" y="132" text-anchor="middle" font-family="Times New Roman" font-size="14">one motion</text>
+      <text x="64" y="154" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#C55A11">clears at 6/10</text>
+
+      <rect x="150" y="60" width="128" height="104" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="150" y="60" width="128" height="26" fill="#1A1A1A"/>
+      <text x="214" y="78" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="13" font-weight="700" fill="#fff">2. INTERVIEW</text>
+      <text x="214" y="112" text-anchor="middle" font-family="Times New Roman" font-size="14">5 rounds from</text>
+      <text x="214" y="132" text-anchor="middle" font-family="Times New Roman" font-size="14">your resume</text>
+      <text x="214" y="154" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#C55A11">each at 6/10</text>
+
+      <rect x="300" y="60" width="128" height="104" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="300" y="60" width="128" height="26" fill="#1A1A1A"/>
+      <text x="364" y="78" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="13" font-weight="700" fill="#fff">3. JOINING</text>
+      <text x="364" y="112" text-anchor="middle" font-family="Times New Roman" font-size="14">you meet the</text>
+      <text x="364" y="132" text-anchor="middle" font-family="Times New Roman" font-size="14">team</text>
+      <text x="364" y="154" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#C55A11">cast created</text>
+
+      <rect x="450" y="60" width="128" height="104" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="450" y="60" width="128" height="26" fill="#1A1A1A"/>
+      <text x="514" y="78" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="13" font-weight="700" fill="#fff">4. INTERNSHIP</text>
+      <text x="514" y="112" text-anchor="middle" font-family="Times New Roman" font-size="14">levels 5 to 30</text>
+      <text x="514" y="132" text-anchor="middle" font-family="Times New Roman" font-size="14">in the office</text>
+      <text x="514" y="154" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#C55A11">advance at 5/10</text>
+
+      <rect x="600" y="60" width="128" height="104" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="600" y="60" width="128" height="26" fill="#1A1A1A"/>
+      <text x="664" y="78" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="13" font-weight="700" fill="#fff">5. THE OFFER</text>
+      <text x="664" y="112" text-anchor="middle" font-family="Times New Roman" font-size="14">review, number,</text>
+      <text x="664" y="132" text-anchor="middle" font-family="Times New Roman" font-size="14">negotiation</text>
+      <text x="664" y="154" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#C55A11">accept or not</text>
+
+      <rect x="750" y="60" width="128" height="104" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="750" y="60" width="128" height="26" fill="#1A1A1A"/>
+      <text x="814" y="78" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="13" font-weight="700" fill="#fff">6. FULL-TIME</text>
+      <text x="814" y="112" text-anchor="middle" font-family="Times New Roman" font-size="14">5 grades to</text>
+      <text x="814" y="132" text-anchor="middle" font-family="Times New Roman" font-size="14">Manager</text>
+      <text x="814" y="154" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#C55A11">Leadership gates</text>
+
+      <line x1="128" y1="112" x2="146" y2="112" stroke="#C55A11" stroke-width="1.8" marker-end="url(#c1)"/>
+      <line x1="278" y1="112" x2="296" y2="112" stroke="#C55A11" stroke-width="1.8" marker-end="url(#c1)"/>
+      <line x1="428" y1="112" x2="446" y2="112" stroke="#C55A11" stroke-width="1.8" marker-end="url(#c1)"/>
+      <line x1="578" y1="112" x2="596" y2="112" stroke="#C55A11" stroke-width="1.8" marker-end="url(#c1)"/>
+      <line x1="728" y1="112" x2="746" y2="112" stroke="#C55A11" stroke-width="1.8" marker-end="url(#c1)"/>
+
+      <line x1="0" y1="196" x2="880" y2="196" stroke="#595959" stroke-width="1"/>
+
+      <text x="0" y="228" font-family="Times New Roman" font-size="17">
+        <tspan font-weight="700">Why gate on performance rather than XP.</tspan> XP is a currency you accumulate by
+      </text>
+      <text x="0" y="250" font-family="Times New Roman" font-size="17">
+        turning up. A phase gate is a claim that the trainee can do the thing. Keeping them
+      </text>
+      <text x="0" y="272" font-family="Times New Roman" font-size="17">
+        separate is what stops the simulation from rewarding attendance: a weak round repeated
+      </text>
+      <text x="0" y="294" font-family="Times New Roman" font-size="17">
+        ten times leaves the candidate exactly where they started.
+      </text>
+
+      <text x="0" y="334" font-family="Times New Roman" font-size="17">
+        <tspan font-weight="700">The world persists across all six.</tspan> The colleagues met at phase three are the same
+      </text>
+      <text x="0" y="356" font-family="Times New Roman" font-size="17">
+        people who appear in phase four, remember phase four in phase five, and decide whether
+      </text>
+      <text x="0" y="378" font-family="Times New Roman" font-size="17">
+        anyone argues for the trainee's salary band when the offer is written.
+      </text>
+    </svg>
+    <div class="figcap">Figure 6. The career spine. Nothing in it can be skipped or bought with XP.</div>
+  </div>
+</section>
+
+
+<!-- ===================== 17 · PROFESSIONAL ATTRIBUTES ================= -->
+<section class="sl">
+  <h1>PROFESSIONAL ATTRIBUTES</h1>
+  <div class="figwrap">
+    <svg viewBox="0 0 880 462" width="880">
+      <text x="0" y="16" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700">
+        TEN PERMANENT ATTRIBUTES, 0-100 — one trainee's profile, ranked
+      </text>
+
+      <text x="0" y="50" font-family="Times New Roman" font-size="15">Professionalism</text>
+      <rect x="230" y="37" width="300" height="12" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="230" y="37" width="246" height="12" fill="#C55A11"/>
+      <text x="542" y="50" font-family="Times New Roman" font-size="15" font-weight="700">82</text>
+      <text x="578" y="50" font-family="Times New Roman" font-size="14" fill="#595959">Strong</text>
+
+      <text x="0" y="77" font-family="Times New Roman" font-size="15">Teamwork</text>
+      <rect x="230" y="64" width="300" height="12" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="230" y="64" width="234" height="12" fill="#C55A11"/>
+      <text x="542" y="77" font-family="Times New Roman" font-size="15" font-weight="700">78</text>
+      <text x="578" y="77" font-family="Times New Roman" font-size="14" fill="#595959">Strong</text>
+
+      <text x="0" y="104" font-family="Times New Roman" font-size="15">Problem-Solving</text>
+      <rect x="230" y="91" width="300" height="12" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="230" y="91" width="222" height="12" fill="#C55A11"/>
+      <text x="542" y="104" font-family="Times New Roman" font-size="15" font-weight="700">74</text>
+      <text x="578" y="104" font-family="Times New Roman" font-size="14" fill="#595959">Competent</text>
+
+      <text x="0" y="131" font-family="Times New Roman" font-size="15">Communication</text>
+      <rect x="230" y="118" width="300" height="12" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="230" y="118" width="213" height="12" fill="#C55A11"/>
+      <text x="542" y="131" font-family="Times New Roman" font-size="15" font-weight="700">71</text>
+      <text x="578" y="131" font-family="Times New Roman" font-size="14" fill="#595959">Competent</text>
+
+      <text x="0" y="158" font-family="Times New Roman" font-size="15">Emotional Intelligence</text>
+      <rect x="230" y="145" width="300" height="12" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="230" y="145" width="192" height="12" fill="#C55A11"/>
+      <text x="542" y="158" font-family="Times New Roman" font-size="15" font-weight="700">64</text>
+      <text x="578" y="158" font-family="Times New Roman" font-size="14" fill="#595959">Competent</text>
+
+      <text x="0" y="185" font-family="Times New Roman" font-size="15">Decision-Making</text>
+      <rect x="230" y="172" width="300" height="12" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="230" y="172" width="183" height="12" fill="#C55A11"/>
+      <text x="542" y="185" font-family="Times New Roman" font-size="15" font-weight="700">61</text>
+      <text x="578" y="185" font-family="Times New Roman" font-size="14" fill="#595959">Competent</text>
+
+      <text x="0" y="212" font-family="Times New Roman" font-size="15">Confidence</text>
+      <rect x="230" y="199" width="300" height="12" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="230" y="199" width="174" height="12" fill="#C55A11"/>
+      <text x="542" y="212" font-family="Times New Roman" font-size="15" font-weight="700">58</text>
+      <text x="578" y="212" font-family="Times New Roman" font-size="14" fill="#595959">Developing</text>
+
+      <text x="0" y="239" font-family="Times New Roman" font-size="15">Adaptability</text>
+      <rect x="230" y="226" width="300" height="12" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="230" y="226" width="165" height="12" fill="#C55A11"/>
+      <text x="542" y="239" font-family="Times New Roman" font-size="15" font-weight="700">55</text>
+      <text x="578" y="239" font-family="Times New Roman" font-size="14" fill="#595959">Developing</text>
+
+      <text x="0" y="266" font-family="Times New Roman" font-size="15">Relationship Building</text>
+      <rect x="230" y="253" width="300" height="12" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="230" y="253" width="147" height="12" fill="#C55A11"/>
+      <text x="542" y="266" font-family="Times New Roman" font-size="15" font-weight="700">49</text>
+      <text x="578" y="266" font-family="Times New Roman" font-size="14" fill="#595959">Developing</text>
+
+      <text x="0" y="293" font-family="Times New Roman" font-size="15">Leadership</text>
+      <rect x="230" y="280" width="300" height="12" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="230" y="280" width="102" height="12" fill="#C55A11"/>
+      <text x="542" y="293" font-family="Times New Roman" font-size="15" font-weight="700">34</text>
+      <text x="578" y="293" font-family="Times New Roman" font-size="14" fill="#595959">Needs Development</text>
+
+      <line x1="0" y1="322" x2="880" y2="322" stroke="#595959" stroke-width="1"/>
+
+      <text x="0" y="352" font-family="Times New Roman" font-size="17">
+        <tspan font-weight="700">These are deliberately not XP, and they fall.</tspan> XP measures attendance; an attribute is
+      </text>
+      <text x="0" y="374" font-family="Times New Roman" font-size="17">
+        a claim about capability. A trainee can end a month with a great deal of XP and a worse
+      </text>
+      <text x="0" y="396" font-family="Times New Roman" font-size="17">
+        Professionalism score than they started with, and the two numbers disagreeing is the point.
+      </text>
+
+      <text x="0" y="428" font-family="Times New Roman" font-size="16.5" fill="#C55A11">
+        Measured: one discussion where the candidate supported the room but never led moved Teamwork
+      </text>
+      <text x="0" y="450" font-family="Times New Roman" font-size="16.5" fill="#C55A11">
+        +2.1, Emotional Intelligence +2.5, and Leadership -0.4.
+      </text>
+    </svg>
+    <div class="figcap">Figure 7. Each attribute carries a tier and, below 60, the specific actions that move it</div>
+  </div>
+</section>
+
+
+<!-- =========== 18 · PEOPLE, MEMORY AND CONSEQUENCES =================== -->
+<section class="sl">
+  <h1 class="sm">PEOPLE, MEMORY AND CONSEQUENCES</h1>
+  <div class="figwrap">
+    <svg viewBox="0 0 880 420" width="880">
+      <defs>
+        <marker id="p1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#C55A11"/></marker>
+      </defs>
+
+      <text x="0" y="26" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700">
+        FIVE PERSISTENT COLLEAGUES — created the day the trainee joins
+      </text>
+
+      <rect x="0" y="52" width="128" height="92" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="64" y="76" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="14.5" font-weight="700">Hema</text>
+      <text x="64" y="96" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#595959">Manager</text>
+      <rect x="10" y="108" width="108" height="9" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="10" y="108" width="80" height="9" fill="#C55A11"/>
+      <text x="64" y="134" text-anchor="middle" font-family="Times New Roman" font-size="13">74 · Positive</text>
+
+      <rect x="150" y="52" width="128" height="92" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="214" y="76" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="14.5" font-weight="700">Arun</text>
+      <text x="214" y="96" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#595959">Senior Engineer</text>
+      <rect x="160" y="108" width="108" height="9" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="160" y="108" width="44" height="9" fill="#C55A11"/>
+      <text x="214" y="134" text-anchor="middle" font-family="Times New Roman" font-size="13">41 · Neutral</text>
+
+      <rect x="300" y="52" width="128" height="92" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="364" y="76" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="14.5" font-weight="700">Kiran</text>
+      <text x="364" y="96" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#595959">Fellow Intern</text>
+      <rect x="310" y="108" width="108" height="9" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="310" y="108" width="95" height="9" fill="#C55A11"/>
+      <text x="364" y="134" text-anchor="middle" font-family="Times New Roman" font-size="13">88 · Trusted</text>
+
+      <rect x="450" y="52" width="128" height="92" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="514" y="76" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="14.5" font-weight="700">Meera</text>
+      <text x="514" y="96" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#595959">Product Manager</text>
+      <rect x="460" y="108" width="108" height="9" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="460" y="108" width="56" height="9" fill="#C55A11"/>
+      <text x="514" y="134" text-anchor="middle" font-family="Times New Roman" font-size="13">52 · Neutral</text>
+
+      <rect x="600" y="52" width="128" height="92" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="664" y="76" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="14.5" font-weight="700">Farhan</text>
+      <text x="664" y="96" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#595959">HR Partner</text>
+      <rect x="610" y="108" width="108" height="9" fill="#EDEDED" stroke="#999" stroke-width="0.8"/>
+      <rect x="610" y="108" width="32" height="9" fill="#C55A11"/>
+      <text x="664" y="134" text-anchor="middle" font-family="Times New Roman" font-size="13">30 · Distant</text>
+
+      <text x="756" y="86" font-family="Times New Roman" font-size="14">Each stores</text>
+      <text x="756" y="106" font-family="Times New Roman" font-size="14">what they</text>
+      <text x="756" y="126" font-family="Times New Roman" font-size="14">remember, not</text>
+      <text x="756" y="146" font-family="Times New Roman" font-size="14">just a number.</text>
+
+      <line x1="0" y1="172" x2="880" y2="172" stroke="#595959" stroke-width="1"/>
+
+      <text x="0" y="202" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700">
+        THE CONSEQUENCE ENGINE — a decision finishes happening later than it is made
+      </text>
+
+      <rect x="0" y="222" width="238" height="76" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="119" y="248" text-anchor="middle" font-family="Times New Roman" font-size="15">Level 4 — you handle</text>
+      <text x="119" y="268" text-anchor="middle" font-family="Times New Roman" font-size="15">Farhan badly (2/10)</text>
+      <text x="119" y="290" text-anchor="middle" font-family="Times New Roman" font-size="13.5" fill="#595959">written down, due in 3</text>
+
+      <line x1="238" y1="260" x2="286" y2="260" stroke="#C55A11" stroke-width="1.8" marker-end="url(#p1)"/>
+      <text x="262" y="250" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#C55A11">wait</text>
+
+      <rect x="292" y="222" width="238" height="76" fill="#FDEFE6" stroke="#C55A11" stroke-width="1.6"/>
+      <text x="411" y="248" text-anchor="middle" font-family="Times New Roman" font-size="15">Levels 5 and 6 — the</text>
+      <text x="411" y="268" text-anchor="middle" font-family="Times New Roman" font-size="15">world says nothing</text>
+      <text x="411" y="290" text-anchor="middle" font-family="Times New Roman" font-size="13.5" fill="#595959">but the debt is standing</text>
+
+      <line x1="530" y1="260" x2="578" y2="260" stroke="#C55A11" stroke-width="1.8" marker-end="url(#p1)"/>
+
+      <rect x="584" y="222" width="296" height="76" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="732" y="248" text-anchor="middle" font-family="Times New Roman" font-size="15">Level 7 — Farhan is slower to</text>
+      <text x="732" y="268" text-anchor="middle" font-family="Times New Roman" font-size="15">help than they would have been</text>
+      <text x="732" y="290" text-anchor="middle" font-family="Times New Roman" font-size="13.5" fill="#C55A11">shown with the original cause</text>
+
+      <text x="0" y="336" font-family="Times New Roman" font-size="17">
+        <tspan font-weight="700">A cost paid at the moment of the decision is a score, not a consequence.</tspan> The delay is
+      </text>
+      <text x="0" y="358" font-family="Times New Roman" font-size="17">
+        what makes it one — far enough that it lands as a callback, near enough that the trainee
+      </text>
+      <text x="0" y="380" font-family="Times New Roman" font-size="17">
+        still remembers what they did. The count is in completed levels, not days: the world moves
+      </text>
+      <text x="0" y="402" font-family="Times New Roman" font-size="17">
+        when the trainee does. A grudge also reshapes the next situation instead of being announced.
+      </text>
+    </svg>
+    <div class="figcap">Figure 8. Relationships persist; decisions come back</div>
+  </div>
+</section>
+
+
+<!-- ================= 19 · A DAY IN THE WORKPLACE ====================== -->
+<section class="sl">
+  <h1>A DAY IN THE WORKPLACE</h1>
+  <div class="figwrap">
+    <svg viewBox="0 0 880 430" width="880">
+      <defs>
+        <marker id="w1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#000"/></marker>
+      </defs>
+
+      <text x="0" y="30" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700">
+        STEP 1 — CHOOSE A ROOM. Where you go decides what happens in the day.
+      </text>
+
+      <rect x="0" y="52" width="164" height="42" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="82" y="79" text-anchor="middle" font-family="Times New Roman" font-size="15">Your desk</text>
+
+      <rect x="179" y="52" width="164" height="42" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="261" y="79" text-anchor="middle" font-family="Times New Roman" font-size="15">Manager's office</text>
+
+      <rect x="358" y="52" width="164" height="42" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="440" y="79" text-anchor="middle" font-family="Times New Roman" font-size="15">Meeting room</text>
+
+      <rect x="537" y="52" width="164" height="42" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="619" y="79" text-anchor="middle" font-family="Times New Roman" font-size="15">Cafeteria</text>
+
+      <rect x="716" y="52" width="164" height="42" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="798" y="79" text-anchor="middle" font-family="Times New Roman" font-size="15">HR</text>
+
+      <text x="0" y="140" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700">
+        STEP 2 — THREE BEATS, EACH WRITTEN AFTER THE LAST ONE RESOLVES
+      </text>
+
+      <rect x="0" y="164" width="200" height="96" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="0" y="164" width="200" height="26" fill="#1A1A1A"/>
+      <text x="100" y="182" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="13.5" font-weight="700" fill="#fff">A MESSAGE</text>
+      <text x="100" y="210" text-anchor="middle" font-family="Times New Roman" font-size="14">something needs</text>
+      <text x="100" y="230" text-anchor="middle" font-family="Times New Roman" font-size="14">a written reply</text>
+      <text x="100" y="252" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#C55A11">90 seconds</text>
+
+      <rect x="227" y="164" width="200" height="96" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="227" y="164" width="200" height="26" fill="#1A1A1A"/>
+      <text x="327" y="182" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="13.5" font-weight="700" fill="#fff">A DECISION</text>
+      <text x="327" y="210" text-anchor="middle" font-family="Times New Roman" font-size="14">four options,</text>
+      <text x="327" y="230" text-anchor="middle" font-family="Times New Roman" font-size="14">scored 9 / 6 / 3 / 1</text>
+      <text x="327" y="252" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#C55A11">60 seconds</text>
+
+      <rect x="454" y="164" width="200" height="96" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <rect x="454" y="164" width="200" height="26" fill="#1A1A1A"/>
+      <text x="554" y="182" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="13.5" font-weight="700" fill="#fff">A CONVERSATION</text>
+      <text x="554" y="210" text-anchor="middle" font-family="Times New Roman" font-size="14">up to 3 live turns,</text>
+      <text x="554" y="230" text-anchor="middle" font-family="Times New Roman" font-size="14">they answer in character</text>
+      <text x="554" y="252" text-anchor="middle" font-family="Times New Roman" font-size="13" fill="#C55A11">120 seconds</text>
+
+      <rect x="690" y="164" width="190" height="96" fill="#FDEFE6" stroke="#C55A11" stroke-width="1.6"/>
+      <text x="785" y="196" text-anchor="middle" font-family="Times New Roman" font-size="14">Running out of time</text>
+      <text x="785" y="216" text-anchor="middle" font-family="Times New Roman" font-size="14">is an answer, with</text>
+      <text x="785" y="236" text-anchor="middle" font-family="Times New Roman" font-size="14">its own consequence.</text>
+
+      <g stroke="#000" stroke-width="1.4" marker-end="url(#w1)">
+        <line x1="202" y1="212" x2="223" y2="212"/>
+        <line x1="429" y1="212" x2="450" y2="212"/>
+      </g>
+
+      <line x1="0" y1="288" x2="880" y2="288" stroke="#595959" stroke-width="1"/>
+
+      <text x="0" y="318" font-family="Times New Roman" font-size="17">
+        <tspan font-weight="700">Three beats, not the nine-item timetable the design document sketches.</tspan> A daily habit
+      </text>
+      <text x="0" y="340" font-family="Times New Roman" font-size="17">
+        that takes forty minutes is a habit nobody keeps, and the same nine beats every day is
+      </text>
+      <text x="0" y="362" font-family="Times New Roman" font-size="17">
+        exactly the linear course the project set out not to build.
+      </text>
+
+      <text x="0" y="398" font-family="Times New Roman" font-size="17">
+        <tspan font-weight="700">Each beat is generated after the previous one is answered</tspan>, with what already happened in
+      </text>
+      <text x="0" y="420" font-family="Times New Roman" font-size="17">
+        the prompt — so a promise made at ten in the morning comes due at three in the afternoon.
+      </text>
+    </svg>
+    <div class="figcap">Figure 9. The daily loop, and why it is short</div>
+  </div>
+</section>
+
+
+<!-- ================= 20 · THE OFFER AND NEGOTIATION =================== -->
+<section class="sl">
+  <h1>THE OFFER AND NEGOTIATION</h1>
+  <div class="figwrap">
+    <svg viewBox="0 0 880 420" width="880">
+      <defs>
+        <marker id="o1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#000"/></marker>
+      </defs>
+
+      <text x="0" y="20" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700">
+        THE NUMBER IS ASSEMBLED, NOT AWARDED
+      </text>
+
+      <rect x="0" y="36" width="252" height="52" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="12" y="58" font-family="Times New Roman" font-size="15" font-weight="700">Ten attributes</text>
+      <text x="12" y="78" font-family="Times New Roman" font-size="13.5" fill="#595959">the largest single weight</text>
+      <line x1="252" y1="62" x2="292" y2="62" stroke="#000" stroke-width="1.3" marker-end="url(#o1)"/>
+
+      <rect x="0" y="96" width="252" height="52" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="12" y="118" font-family="Times New Roman" font-size="15" font-weight="700">Level scores</text>
+      <text x="12" y="138" font-family="Times New Roman" font-size="13.5" fill="#595959">how the internship actually went</text>
+      <line x1="252" y1="122" x2="292" y2="122" stroke="#000" stroke-width="1.3" marker-end="url(#o1)"/>
+
+      <rect x="0" y="156" width="252" height="52" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="12" y="178" font-family="Times New Roman" font-size="15" font-weight="700">Standing with the team</text>
+      <text x="12" y="198" font-family="Times New Roman" font-size="13.5" fill="#595959">whether anyone argues for you</text>
+      <line x1="252" y1="182" x2="292" y2="182" stroke="#000" stroke-width="1.3" marker-end="url(#o1)"/>
+
+      <rect x="292" y="60" width="164" height="140" fill="#1A1A1A"/>
+      <text x="374" y="112" text-anchor="middle" font-family="Carlito,Calibri,sans-serif" font-size="15" font-weight="700" fill="#fff">ROLE BAND</text>
+      <text x="374" y="138" text-anchor="middle" font-family="Times New Roman" font-size="14" fill="#fff">× performance</text>
+      <text x="374" y="160" text-anchor="middle" font-family="Times New Roman" font-size="14" fill="#fff">multiplier</text>
+
+      <text x="0" y="230" font-family="Times New Roman" font-size="15.5" fill="#595959">
+        A trainee who ground through thirty levels carelessly receives a visibly worse offer than one who did twenty well.
+      </text>
+
+      <text x="486" y="20" font-family="Carlito,Calibri,sans-serif" font-size="16" font-weight="700">
+        TWO ATTEMPTS, FOUR OUTCOMES
+      </text>
+
+      <rect x="486" y="36" width="394" height="46" fill="#FDEFE6" stroke="#C55A11" stroke-width="1.6"/>
+      <text x="498" y="56" font-family="Times New Roman" font-size="15" font-weight="700">Success</text>
+      <text x="498" y="74" font-family="Times New Roman" font-size="13.5" fill="#595959">a specific, evidenced case — the fixed pay moves</text>
+
+      <rect x="486" y="92" width="394" height="46" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="498" y="112" font-family="Times New Roman" font-size="15" font-weight="700">Partial</text>
+      <text x="498" y="130" font-family="Times New Roman" font-size="13.5" fill="#595959">reasonable, but the band is set — a bonus or a term moves instead</text>
+
+      <rect x="486" y="148" width="394" height="46" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="498" y="168" font-family="Times New Roman" font-size="15" font-weight="700">No movement</text>
+      <text x="498" y="186" font-family="Times New Roman" font-size="13.5" fill="#595959">too vague, or the company genuinely has no room</text>
+
+      <rect x="486" y="204" width="394" height="46" fill="#F2F2F2" stroke="#000" stroke-width="1.4"/>
+      <text x="498" y="224" font-family="Times New Roman" font-size="15" font-weight="700">Backfire</text>
+      <text x="498" y="242" font-family="Times New Roman" font-size="13.5" fill="#595959">entitled or comparing yourself to colleagues — it costs standing</text>
+
+      <line x1="0" y1="272" x2="880" y2="272" stroke="#595959" stroke-width="1"/>
+
+      <text x="0" y="302" font-family="Times New Roman" font-size="17">
+        <tspan font-weight="700">Only one of the four outcomes is "you got more money."</tspan> A badly made ask costs standing
+      </text>
+      <text x="0" y="324" font-family="Times New Roman" font-size="17">
+        with the manager who sat through it. Otherwise negotiating would be free — and the one
+      </text>
+      <text x="0" y="346" font-family="Times New Roman" font-size="17">
+        thing every graduate needs to learn about it is that it is not.
+      </text>
+
+      <text x="0" y="382" font-family="Times New Roman" font-size="17" fill="#C55A11">
+        Measured: a vague ask scored 30/25/20 and moved nothing. The same trainee asking for a named
+      </text>
+      <text x="0" y="404" font-family="Times New Roman" font-size="17" fill="#C55A11">
+        figure with two pieces of evidence scored 75/80/70 — the grader clearly separates the two.
+      </text>
+    </svg>
+    <div class="figcap">Figure 10. Compensation, and the conversation about it</div>
+  </div>
+</section>
+
+
 <!-- ===================== 19 · SCREENSHOTS ============================= -->
 <section class="sl">
-  <h1 class="sm">SCREENSHOTS OF IMPLEMENTED MODULES</h1>
+  <h1 class="sm">SCREENSHOTS — THE TRAINING PLATFORM</h1>
   <div class="phones">
 
     <div class="ph2"><div class="dev"><div class="scr">
@@ -1039,6 +1525,15 @@ svg{max-width:100%;height:auto;}
       <div class="snav"><div class="on">Home</div><div>Quest</div><div>Interview</div><div>Profile</div></div>
     </div></div><div class="cap">Dashboard</div></div>
 
+  </div>
+  <p class="note" style="text-align:center;margin-top:14px;font-size:17px;">Mobile-first throughout. XP and streak stay visible on every screen; one primary action per page.</p>
+</section>
+
+
+<!-- SCREENSHOTS · SIMULATION -->
+<section class="sl">
+  <h1 class="sm">SCREENSHOTS — THE SIMULATION</h1>
+  <div class="phones">
 
     <div class="ph2"><div class="dev"><div class="scr">
       <div class="sh"><div class="sav">MI</div><div class="sbr">Knack</div><div class="ssp"></div>
@@ -1106,10 +1601,63 @@ svg{max-width:100%;height:auto;}
         <div style="font-size:6.2px;color:#9A9AA5;line-height:1.5;">
           Prepare a two-minute pitch with one specific reason for this role.</div></div>
     </div></div><div class="cap">Interview debrief</div></div>
+
+    <div class="ph2"><div class="dev"><div class="scr">
+      <div class="sh"><div class="sav">AR</div><div class="sbr">Knack</div><div class="ssp"></div>
+        <div class="sxp">1840<i> XP</i></div><div class="sfl">6</div></div>
+      <div style="color:#FF7A35;font-size:5.5px;letter-spacing:.14em;font-weight:bold;">DAY 12</div>
+      <div class="sh1" style="font-size:12px;">The office</div>
+      <div class="ssub">Pick where you spend it.</div>
+      <div class="sc" style="display:flex;gap:5px;align-items:flex-start;">
+        <span style="width:14px;height:14px;border:1px solid #26262D;"></span>
+        <span style="flex:1;font-size:6.5px;"><b>Your desk</b><br>
+          <span style="color:#63636E;">Messages and the work</span></span></div>
+      <div class="sc" style="display:flex;gap:5px;align-items:flex-start;">
+        <span style="width:14px;height:14px;border:1px solid #26262D;"></span>
+        <span style="flex:1;font-size:6.5px;"><b>Manager's office</b><br>
+          <span style="color:#63636E;">The conversations that decide</span></span></div>
+      <div class="sc" style="display:flex;gap:5px;align-items:flex-start;">
+        <span style="width:14px;height:14px;border:1px solid #26262D;"></span>
+        <span style="flex:1;font-size:6.5px;"><b>The cafeteria</b><br>
+          <span style="color:#63636E;">Where you find things out</span></span></div>
+      <div class="snav"><div>Home</div><div>Quest</div><div class="on">Career</div><div>Profile</div></div>
+    </div></div><div class="cap">The office</div></div>
+
+    <div class="ph2"><div class="dev"><div class="scr">
+      <div class="sh"><div class="sav">AR</div><div class="sbr">Knack</div><div class="ssp"></div>
+        <div class="sxp">1840<i> XP</i></div><div class="sfl">6</div></div>
+      <div class="sh1" style="font-size:12px;">People</div>
+      <div class="ssub">They remember how you handled them.</div>
+      <div class="sc"><div class="srow"><b>Hema — Manager</b><span style="color:#FF7A35">74</span></div>
+        <div class="sbar"><i style="width:74%"></i></div>
+        <div style="font-size:5.6px;color:#63636E;margin-top:3px;">Positive</div></div>
+      <div class="sc"><div class="srow"><b>Kiran — Intern</b><span style="color:#FF7A35">88</span></div>
+        <div class="sbar"><i style="width:88%"></i></div>
+        <div style="font-size:5.6px;color:#63636E;margin-top:3px;">Trusted · "You stayed late to unblock them."</div></div>
+      <div class="sc"><div class="srow"><b>Farhan — HR</b><span style="color:#9A9AA5">30</span></div>
+        <div class="sbar"><i style="width:30%;background:#8A4A24"></i></div>
+        <div style="font-size:5.6px;color:#63636E;margin-top:3px;">Distant · "You went around them."</div></div>
+    </div></div><div class="cap">People and memory</div></div>
+
+    <div class="ph2"><div class="dev"><div class="scr">
+      <div class="sh"><div class="sav">AR</div><div class="sbr">Knack</div><div class="ssp"></div>
+        <div class="sxp">1840<i> XP</i></div><div class="sfl">6</div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <span style="font-size:5.5px;letter-spacing:.12em;color:#63636E;">A DECISION · 2 OF 3</span>
+        <span style="font-size:6.5px;color:#FF7A35;font-weight:bold;">0:18</span></div>
+      <div class="sc"><div style="font-size:5.5px;color:#63636E;">HEMA · ENGINEERING MANAGER</div>
+        <div class="sbrief" style="margin-top:4px;">A call that cannot wait. Hema needs an answer on the
+        notification worker before the end of the day.</div></div>
+      <div style="border:1px solid #26262D;padding:4px;font-size:6px;color:#9A9AA5;margin-bottom:3px;">
+        <b style="color:#63636E;">A</b>&nbsp; Give a straight answer, and say what you are unsure of</div>
+      <div style="border:1px solid #FF7A35;background:rgba(255,122,53,.10);padding:4px;font-size:6px;margin-bottom:3px;">
+        <b style="color:#FF7A35;">B</b>&nbsp; Ask for an hour, then come back with a firm answer</div>
+      <div style="border:1px solid #26262D;padding:4px;font-size:6px;color:#9A9AA5;">
+        <b style="color:#63636E;">C</b>&nbsp; Give a vague answer and hope it does not come back</div>
+    </div></div><div class="cap">A timed beat</div></div>
+
   </div>
-  <p class="note" style="text-align:center;margin-top:12px;font-size:17.5px;">
-    Mobile-first interface. XP and streak remain visible on every screen; one primary action per page.
-  </p>
+  <p class="note" style="text-align:center;margin-top:14px;font-size:17px;">The office, the people who remember you, and a decision on a timer.</p>
 </section>
 
 
@@ -1132,6 +1680,16 @@ svg{max-width:100%;height:auto;}
         <td>Grader replied <b>"This is the same gap as last time"</b></td></tr>
     <tr><td><b>Data isolation</b></td><td>Second account created while the first held attempts</td>
         <td>Account B saw 0 quests; account A saw 4</td></tr>
+  </table>
+  <p class="note" style="font-size:16px;">Personalisation and assessment, verified live. The simulation results follow.</p>
+</section>
+
+
+<!-- RESULTS — THE SIMULATION -->
+<section class="sl">
+  <h1>RESULTS — THE SIMULATION</h1>
+  <table class="tight dense">
+    <tr><th style="width:23%">Property tested</th><th style="width:28%">Method</th><th>Observed result</th></tr>
     <tr><td><b>Scenario variety</b></td><td>Six generations, same track and difficulty</td>
         <td>Before the fix: 7/9 distinct, 2 identical pairs. After: <b>6/6 distinct</b>, no duplicates,
             six different counterpart roles</td></tr>
@@ -1144,6 +1702,19 @@ svg{max-width:100%;height:auto;}
     <tr><td><b>Interview gating</b></td><td>Round 1 answered strongly, weakly, and not at all</td>
         <td>Round scored <b>4/10</b>, below the 6/10 gate, and round 2 stayed locked. Verdict named the
             unanswered question as the reason</td></tr>
+    <tr><td><b>Attributes disagree with XP</b></td><td>A group discussion where the candidate supported others but never led</td>
+        <td>Teamwork <b>+2.1</b>, Emotional Intelligence <b>+2.5</b>, Leadership <b>-0.4</b> from one
+            performance. XP rose throughout. This is the behaviour a single score cannot produce</td></tr>
+    <tr><td><b>Discussion assessment</b></td><td>Two well-timed contributions, two deliberate silences</td>
+        <td>Scored 7/10 and cleared. Listening 85, Teamwork 80, Leadership 45 — the assessor
+            identified that the candidate built on others but never shaped direction</td></tr>
+    <tr><td><b>Day chaining</b></td><td>Three beats in one workplace day</td>
+        <td>Beat 2 opened <i>"You are already behind on the code review you promised to finish by
+            noon"</i> — a commitment made in beat 1. The model never sees the whole day at once</td></tr>
+    <tr><td><b>Negotiation discrimination</b></td><td>The same trainee asking vaguely, then specifically</td>
+        <td>Vague ask scored 30/25/20 and moved nothing. Named figure with two pieces of evidence
+            scored <b>75/80/70</b>; it still moved nothing, because the company had no room at that
+            performance — which is the honest outcome</td></tr>
   </table>
   <p class="note" style="font-size:17.5px;">
     <b>Stated honestly:</b> assessment uses a single grader that has not been checked against human
@@ -1155,7 +1726,7 @@ svg{max-width:100%;height:auto;}
 
 <!-- ============ 21 · CHALLENGES FACED AND SOLUTIONS =================== -->
 <section class="sl">
-  <h1>CHALLENGES FACED AND SOLUTIONS ADOPTED</h1>
+  <h1 class="sm">CHALLENGES FACED AND SOLUTIONS ADOPTED</h1>
   <table class="tight dense">
     <tr><th style="width:24%">Challenge</th><th style="width:36%">Cause identified</th><th>Solution adopted</th></tr>
     <tr><td><b>Free AI quota exhausted within hours</b></td>
@@ -1173,6 +1744,16 @@ svg{max-width:100%;height:auto;}
     <tr><td><b>Profile read back in the scenario</b></td>
         <td>Scenarios opened "As a final-year CSE student aiming for…".</td>
         <td>Explicit rule: background sets the scene and must never appear in it</td></tr>
+  </table>
+  <p class="note" style="font-size:16px;">Five faced while building the platform. Five more overleaf, from the simulation work.</p>
+</section>
+
+
+<!-- CHALLENGES — THE SIMULATION STAGE -->
+<section class="sl">
+  <h1>CHALLENGES — THE SIMULATION STAGE</h1>
+  <table class="tight dense">
+    <tr><th style="width:24%">Challenge</th><th style="width:36%">Cause identified</th><th>Solution adopted</th></tr>
     <tr><td><b>Some models returned no output</b></td>
         <td>Nearly every free model now reasons before answering, and those hidden tokens are
             charged against the output ceiling. One spent 2,691 of them and returned nothing.</td>
@@ -1183,6 +1764,18 @@ svg{max-width:100%;height:auto;}
             zero, so every candidate saw criticism of a paragraph they had not written.</td>
         <td>Index base detected from the returned values; unanswered questions graded locally,
             never sent to the model</td></tr>
+    <tr><td><b>Attribute changes were silently discarded</b></td>
+        <td>The ten attributes were seeded on the dashboard read, so a trainee who went from
+            onboarding straight into a level had no attribute rows at all, and every delta written
+            against them updated nothing.</td>
+        <td>Seeding moved to the gameplay gate, where nothing can score before the thing it scores
+            into exists. Found by an end-to-end run in which a 9/10 moved a relationship but no
+            attributes</td></tr>
+    <tr><td><b>The review invented a colleague</b></td>
+        <td>The end-of-internship review produced "Jordan has spoken up for you" on a team with no
+            Jordan on it, despite the prompt forbidding it.</td>
+        <td>Any sentence naming someone not on the team is dropped before display; a rule in a
+            prompt is a request, and this one mattered too much to be one</td></tr>
     <tr><td><b>A level took longer than anyone would wait</b></td>
         <td>Two model calls issued together queue behind each other on a free provider.</td>
         <td>The written stage is started when the level is served and collected while the trainee
@@ -1222,7 +1815,7 @@ svg{max-width:100%;height:auto;}
 <!-- ========================= 23 · CONCLUSION ========================== -->
 <section class="sl">
   <h1>CONCLUSION</h1>
-  <ul class="dense">
+  <ul class="dense" style="font-size:18px;line-height:1.32;">
     <li><b>Objectives met.</b> A working platform delivers AI-generated, personalised workplace
         scenarios, grades free-text responses on a calibrated rubric, and tracks progress through XP,
         levels, streaks and a Professional Readiness Score.</li>
@@ -1233,6 +1826,11 @@ svg{max-width:100%;height:auto;}
     <li><b>Two skills are measured, not one.</b> A level asks the learner to recognise the right move
         four times and then to write it once, and weights the writing higher — recognising good
         communication and producing it are not the same ability.</li>
+    <li><b>The simulation is the contribution.</b> Ten attributes that fall as well as rise,
+        colleagues who remember specific interactions, consequences that arrive two or three levels
+        after the decision that caused them, and a salary negotiation with four possible outcomes.
+        Together these produce something a quiz cannot: a trainee who accumulates XP while their
+        Leadership score falls, and can see exactly why.</li>
     <li><b>The principal contribution is bounded memory.</b> By rewriting a short summary every three
         attempts rather than accumulating history, the system carries forward what it has learned at a
         constant cost. Its effect is visible in feedback that says <b>"this is the same gap as last
@@ -1249,7 +1847,7 @@ svg{max-width:100%;height:auto;}
 <!-- ========================= 24 · REFERENCES ========================== -->
 <section class="sl">
   <h1>REFERENCES</h1>
-  <ol style="font-size:16.6px;line-height:1.42;padding-left:30px;">
+  <ol style="font-size:16.6px;line-height:1.42;padding-left:30px;margin-bottom:0;">
     <li style="margin-bottom:6px;"><b>Deterding, S., et al. (2011).</b> From Game Design Elements to Gamefulness: Defining Gamification. <i>Proc. 15th International Academic MindTrek Conference.</i></li>
     <li style="margin-bottom:6px;"><b>Kapp, K. M. (2012).</b> <i>The Gamification of Learning and Instruction.</i> Wiley Publishing.</li>
     <li style="margin-bottom:6px;"><b>Duolingo Research (2020).</b> Effectiveness of Gamified Language Learning and Long-term Retention Strategies. <i>Journal of Computer Assisted Learning.</i></li>
@@ -1267,7 +1865,7 @@ svg{max-width:100%;height:auto;}
 <!-- ==================== 25 · REFERENCES (CONTINUED) =================== -->
 <section class="sl">
   <h1>REFERENCES (CONTINUED)</h1>
-  <ol start="9" style="font-size:16.6px;line-height:1.42;padding-left:30px;">
+  <ol start="9" style="font-size:16.6px;line-height:1.42;padding-left:30px;margin-bottom:0;">
     <li style="margin-bottom:6px;"><b>Zheng, L., et al. (2023).</b> Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. <i>Advances in Neural Information Processing Systems 36.</i></li>
     <li style="margin-bottom:6px;"><b>Park, J. S., et al. (2023).</b> Generative Agents: Interactive Simulacra of Human Behavior. <i>Proc. ACM UIST.</i></li>
     <li style="margin-bottom:6px;"><b>Lewis, P., et al. (2020).</b> Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. <i>NeurIPS 33.</i></li>
