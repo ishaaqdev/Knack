@@ -15,6 +15,29 @@ async function req(path, options = {}) {
   return data
 }
 
+/**
+ * Binary upload. Deliberately not multipart: one file, no fields, and the server
+ * reads the raw body — a form parser would be a dependency for no gain.
+ */
+async function upload(path, file) {
+  const res = await fetch(`/api${path}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/octet-stream',
+      'x-resume-filename': file.name.replace(/[^\w.\- ]/g, ''),
+    },
+    body: file,
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const err = new Error(data.error || `Upload failed (${res.status})`)
+    err.status = res.status
+    throw err
+  }
+  return data
+}
+
 export const api = {
   // auth
   me: () => req('/auth/me'),
@@ -26,6 +49,11 @@ export const api = {
   linkGithub: (username) => req('/auth/github', { method: 'POST', body: { username } }),
   unlinkGithub: () => req('/auth/github', { method: 'DELETE' }),
 
+  // resume
+  pasteResume: (text) => req('/auth/resume', { method: 'POST', body: { text } }),
+  uploadResume: (file) => upload('/auth/resume/file', file),
+  removeResume: () => req('/auth/resume', { method: 'DELETE' }),
+
   // profile + progress
   user: () => req('/user'),
   updateProfile: (body) => req('/user', { method: 'PATCH', body }),
@@ -35,6 +63,18 @@ export const api = {
   generate: (trackId, difficulty) =>
     req('/quest/generate', { method: 'POST', body: { trackId, difficulty } }),
   evaluate: (payload) => req('/quest/evaluate', { method: 'POST', body: payload }),
+
+  // levels: four judgement calls, then one written stage
+  generateLevel: (trackId, difficulty) =>
+    req('/quest/level/generate', { method: 'POST', body: { trackId, difficulty } }),
+  writtenStage: (levelId) => req(`/quest/level/written/${levelId}`),
+  submitLevel: (payload) => req('/quest/level/submit', { method: 'POST', body: payload }),
+
+  // interview
+  interview: () => req('/interview'),
+  startInterview: (level) => req('/interview/start', { method: 'POST', body: { level } }),
+  submitInterview: (payload) => req('/interview/submit', { method: 'POST', body: payload }),
+  interviewRun: (id) => req(`/interview/runs/${id}`),
 
   history: ({ trackId = 'all', limit = 50, offset = 0 } = {}) =>
     req(`/history?trackId=${encodeURIComponent(trackId)}&limit=${limit}&offset=${offset}`),

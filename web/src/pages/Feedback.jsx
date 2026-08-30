@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useKnack } from '../store/useKnack'
 import { Button, Card, Page, Pill } from '../components/primitives'
 import { ScoreDial } from '../components/ScoreDial'
 import { LevelUpModal } from '../components/LevelUpModal'
 import { CountUp } from '../components/CountUp'
 import { Burst } from '../components/Burst'
-import { IconArrowRight, IconFlame } from '../components/Icons'
+import { IconArrowRight, IconFlame, IconCheck, IconClose, IconPen } from '../components/Icons'
 import { streakMessage, useReducedMotion } from '../lib/ui'
 
 function Section({ label, children, delay, accent }) {
@@ -27,9 +27,104 @@ function Section({ label, children, delay, accent }) {
   )
 }
 
+/**
+ * The four judgement calls, replayed.
+ *
+ * A score on its own teaches nothing — what teaches is seeing the option you
+ * picked next to the one that scored highest, with the reason for both.
+ */
+function StageReview({ stages }) {
+  const reduced = useReducedMotion()
+  const [open, setOpen] = useState(null)
+
+  return (
+    <Card className="mt-5">
+      <div className="mb-3 flex items-baseline justify-between">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+          Your four calls
+        </p>
+        <span className="stat text-[11px] text-faint">
+          {stages.reduce((n, s) => n + (s.chosen === s.best ? 1 : 0), 0)}/{stages.length} best
+        </span>
+      </div>
+
+      <div className="space-y-2">
+        {stages.map((st, i) => {
+          const wrote = st.chosen === null && st.custom
+          const bestPick = st.chosen === st.best
+          const isOpen = open === i
+
+          return (
+            <div key={i} className="rounded-tile border border-line bg-surface">
+              <button
+                type="button"
+                onClick={() => setOpen(isOpen ? null : i)}
+                className="flex w-full items-center gap-3 px-3.5 py-3 text-left"
+              >
+                <span
+                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full ${
+                    st.score >= 8
+                      ? 'bg-ember text-[#160c05]'
+                      : st.score >= 5
+                        ? 'border border-ember/40 text-ember-hi'
+                        : 'border border-line text-faint'
+                  }`}
+                >
+                  {wrote ? <IconPen size={12} /> : bestPick ? <IconCheck size={13} /> : <IconClose size={12} />}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[13px] text-dim">
+                  {st.question}
+                </span>
+                <span className="stat shrink-0 text-[12.5px] text-text">{st.score}/10</span>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    initial={reduced ? false : { height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={reduced ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-3 border-t border-hair px-3.5 py-3">
+                      <p className="text-[12.5px] leading-relaxed text-faint">{st.situation}</p>
+
+                      <div>
+                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                          {wrote ? 'What you wrote' : 'What you picked'}
+                        </p>
+                        <p className="text-[13.5px] leading-relaxed text-text">
+                          {wrote ? st.custom : st.options[st.chosen]}
+                        </p>
+                        <p className="mt-1.5 text-[12.5px] leading-relaxed text-dim">{st.why}</p>
+                      </div>
+
+                      {!bestPick && (
+                        <div>
+                          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                            Strongest option
+                          </p>
+                          <p className="text-[13.5px] leading-relaxed text-ember-hi">
+                            {st.options[st.best]}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
 export function Feedback() {
   const result = useKnack((s) => s.result)
-  const quest = useKnack((s) => s.quest)
+  const level = useKnack((s) => s.level)
   const clearSession = useKnack((s) => s.clearSession)
   const navigate = useNavigate()
   const reduced = useReducedMotion()
@@ -50,7 +145,7 @@ export function Feedback() {
   // A hard refresh drops the in-memory result — send the user somewhere useful.
   if (!result) return <Navigate to="/dashboard" replace />
 
-  const nextTrack = result.nudge?.id ?? quest?.trackId
+  const nextTrack = result.nudge?.id ?? level?.trackId
 
   return (
     <Page className="pb-12">
@@ -101,10 +196,17 @@ export function Feedback() {
         {streakMessage(result.streak.event, result.streak.value)}
       </motion.p>
 
-      {/* feedback */}
+      {result.stages?.length > 0 && <StageReview stages={result.stages} />}
+
+      {/* feedback on the written stage */}
       <Card className="mt-5 space-y-4">
         {result.source === 'offline' && (
           <Pill dot={false}>Offline scoring — model was unreachable</Pill>
+        )}
+        {result.stages?.length > 0 && (
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+            Your written response — {result.writtenScore}/10
+          </p>
         )}
         <Section label="What worked" delay={reduced ? 0 : 1.0}>
           {result.strengths}

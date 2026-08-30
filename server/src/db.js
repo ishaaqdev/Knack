@@ -74,7 +74,30 @@ db.exec(`
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
   );
 
+  -- One completed interview round per row. Kept out of the attempts table
+  -- because an interview is not a track and must not move the track scores.
+  CREATE TABLE IF NOT EXISTS interview_runs (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId     INTEGER NOT NULL,
+    level      INTEGER NOT NULL,
+    role       TEXT    NOT NULL DEFAULT '',
+    questions  TEXT    NOT NULL DEFAULT '[]',
+    answers    TEXT    NOT NULL DEFAULT '[]',
+    perAnswer  TEXT    NOT NULL DEFAULT '[]',
+    score      INTEGER NOT NULL,
+    verdict    TEXT    NOT NULL DEFAULT '',
+    strengths  TEXT    NOT NULL DEFAULT '',
+    gaps       TEXT    NOT NULL DEFAULT '',
+    nextFocus  TEXT    NOT NULL DEFAULT '',
+    xpAwarded  INTEGER NOT NULL DEFAULT 0,
+    source     TEXT    NOT NULL DEFAULT 'ai',
+    timestamp  TEXT    NOT NULL,
+    localDate  TEXT    NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
   CREATE INDEX IF NOT EXISTS idx_attempts_user_track ON attempts(userId, trackId, id DESC);
+  CREATE INDEX IF NOT EXISTS idx_interview_user ON interview_runs(userId, id DESC);
   CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(userId, id DESC);
   CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(userId);
 `)
@@ -109,6 +132,26 @@ addColumn('users', 'githubDomains', "TEXT NOT NULL DEFAULT '[]'")
 addColumn('users', 'githubLevel', 'TEXT')
 addColumn('users', 'githubRepoCount', 'INTEGER')
 addColumn('users', 'githubSyncedAt', 'TEXT')
+
+// The resume — the third personalisation source. `resumeText` is the extracted
+// plain text, kept because an interviewer needs the actual document; the
+// distilled fields are what reach a scenario prompt.
+addColumn('users', 'resumeText', 'TEXT')
+addColumn('users', 'resumeBrief', 'TEXT')
+addColumn('users', 'resumeSkills', "TEXT NOT NULL DEFAULT '[]'")
+addColumn('users', 'resumeProjects', "TEXT NOT NULL DEFAULT '[]'")
+addColumn('users', 'resumeHighlights', "TEXT NOT NULL DEFAULT '[]'")
+addColumn('users', 'resumeFileName', 'TEXT')
+addColumn('users', 'resumeUpdatedAt', 'TEXT')
+
+// Interview mode progression. Separate from track XP on purpose — see §
+// interview.js: clearing a round is a competency gate, not an XP threshold.
+addColumn('users', 'interviewLevel', 'INTEGER NOT NULL DEFAULT 1')
+
+// A quest is now a five-stage level (4 MCQ + 1 written). Older rows stay
+// readable: kind defaults to the single-scenario shape they were written in.
+addColumn('attempts', 'kind', "TEXT NOT NULL DEFAULT 'open'")
+addColumn('attempts', 'detail', "TEXT NOT NULL DEFAULT ''")
 
 // SQLite cannot add a UNIQUE column via ALTER TABLE, so the constraint lives in
 // an index. Partial, because pre-auth legacy rows have a NULL email.
@@ -169,12 +212,24 @@ export const findUserByEmail = (email) =>
 /** Strips secrets and parses the JSON profile columns for API responses. */
 export function publicUser(row) {
   if (!row) return null
-  const { passwordHash, ...rest } = row
+  // resumeText is the whole document — it stays server-side.
+  const { passwordHash, resumeText, ...rest } = row
   return {
     ...rest,
     confidence: safeParse(row.confidence, {}),
     focusAreas: safeParse(row.focusAreas, []),
     onboarded: !!row.onboardedAt,
+    resume: row.resumeUpdatedAt
+      ? {
+          brief: row.resumeBrief,
+          skills: safeParse(row.resumeSkills, []),
+          projects: safeParse(row.resumeProjects, []),
+          highlights: safeParse(row.resumeHighlights, []),
+          fileName: row.resumeFileName,
+          updatedAt: row.resumeUpdatedAt,
+          words: row.resumeText ? row.resumeText.split(/\s+/).length : 0,
+        }
+      : null,
     github: row.githubUsername
       ? {
           username: row.githubUsername,

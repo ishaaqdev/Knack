@@ -12,6 +12,7 @@ import { authRouter } from './routes/auth.js'
 import { questRouter } from './routes/quest.js'
 import { userRouter } from './routes/user.js'
 import { historyRouter } from './routes/history.js'
+import { interviewRouter } from './routes/interview.js'
 import { health, rateLimitStatus } from './ai.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -31,6 +32,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/quest', questRouter)
 app.use('/api/user', userRouter)
 app.use('/api/history', historyRouter)
+app.use('/api/interview', interviewRouter)
 app.get('/api/health', async (_req, res) =>
   res.json({ ok: true, ai: await health(), rateLimit: rateLimitStatus() })
 )

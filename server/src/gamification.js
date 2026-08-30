@@ -3,11 +3,14 @@ import { startingDifficulty } from './profile.js'
 
 /* ---------------------------------------------------------------- levels -- */
 
+// Rebalanced when a quest became a five-stage level. A level pays up to ~200 XP
+// against the ~100 a single written scenario paid, so the bands were widened by
+// the same factor — the number of sessions to Expert is unchanged.
 export const LEVELS = [
-  { name: 'Novice', title: 'Quest Rookie', min: 0, max: 150 },
-  { name: 'Intermediate', title: 'Steady Hand', min: 150, max: 400 },
-  { name: 'Advanced', title: 'Sharp Operator', min: 400, max: 800 },
-  { name: 'Expert', title: 'Knack for It', min: 800, max: Infinity },
+  { name: 'Novice', title: 'Quest Rookie', min: 0, max: 400 },
+  { name: 'Intermediate', title: 'Steady Hand', min: 400, max: 1200 },
+  { name: 'Advanced', title: 'Sharp Operator', min: 1200, max: 2600 },
+  { name: 'Expert', title: 'Knack for It', min: 2600, max: Infinity },
 ]
 
 export function levelFor(xp) {
@@ -37,6 +40,30 @@ export function xpFor(score, streakAfter) {
   const base = score * 10
   const bonus = STREAK_BONUS(streakAfter)
   return { base, bonus, total: base + bonus }
+}
+
+/**
+ * A five-stage level: four judgement calls plus one written response.
+ *
+ * The written stage is worth as much as all four choices together. Picking the
+ * right option shows recognition; writing the message shows you can actually do
+ * it, and that is the harder half.
+ */
+export const MCQ_XP = (score) => Math.round(Math.max(0, Math.min(10, score)) * 2.5)
+
+export function levelXp(mcqScores, writtenScore, streakAfter) {
+  const mcq = mcqScores.reduce((sum, s) => sum + MCQ_XP(s), 0)
+  const written = Math.max(0, Math.min(10, writtenScore)) * 10
+  const bonus = STREAK_BONUS(streakAfter)
+  return { mcq, written, base: mcq + written, bonus, total: mcq + written + bonus }
+}
+
+/** Weighted level score on the same 1-10 scale every other score uses. */
+export function levelScore(mcqScores, writtenScore) {
+  const mean = mcqScores.length
+    ? mcqScores.reduce((a, b) => a + b, 0) / mcqScores.length
+    : writtenScore
+  return Math.max(1, Math.min(10, Math.round(0.4 * mean + 0.6 * writtenScore)))
 }
 
 /* --------------------------------------------------------------- streaks -- */

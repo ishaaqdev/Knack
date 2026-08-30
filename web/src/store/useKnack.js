@@ -6,9 +6,9 @@ export const useKnack = create((set, get) => ({
   loading: true,
   error: null,
 
-  /** In-flight quest and its result — kept in memory so Quest → Feedback needs
+  /** In-flight level and its result — kept in memory so Quest → Feedback needs
    *  no round trip. A hard refresh on /feedback drops these and redirects. */
-  quest: null,
+  level: null,
   result: null,
 
   /**
@@ -49,7 +49,7 @@ export const useKnack = create((set, get) => ({
 
   async logout() {
     await api.logout()
-    set({ user: null, quest: null, result: null })
+    set({ user: null, level: null, result: null })
   },
 
   async completeOnboarding(profile) {
@@ -72,9 +72,25 @@ export const useKnack = create((set, get) => ({
     return get().load()
   },
 
-  setQuest: (quest) => set({ quest, result: null }),
+  setLevel: (level) => set({ level, result: null }),
   setResult: (result) => set({ result }),
-  clearSession: () => set({ quest: null, result: null }),
+  clearSession: () => set({ level: null, result: null }),
+
+  /** Resume: upload by paste or by file, and remove. All reload the user. */
+  async saveResumeText(text) {
+    await api.pasteResume(text)
+    return get().load()
+  },
+
+  async saveResumeFile(file) {
+    await api.uploadResume(file)
+    return get().load()
+  },
+
+  async removeResume() {
+    await api.removeResume()
+    return get().load()
+  },
 
   /** Apply the evaluate response optimistically so the header animates the new
    *  XP/streak immediately, then reconcile with the server. */
@@ -90,10 +106,16 @@ export const useKnack = create((set, get) => ({
           longestStreak: Math.max(user.longestStreak, result.streak.value),
           doneToday: true,
           streakAtRisk: false,
-          totalQuests: user.totalQuests + 1,
-          trackScores: result.trackScores,
-          readinessScore: result.readinessScore,
-          tracks: user.tracks.map((t) => ({ ...t, ...result.trackScores[t.id] })),
+          totalQuests: user.totalQuests + (result.kind === 'interview' ? 0 : 1),
+          // An interview round moves XP and the streak but never a track score.
+          ...(result.trackScores
+            ? {
+                trackScores: result.trackScores,
+                readinessScore: result.readinessScore,
+                tracks: user.tracks.map((t) => ({ ...t, ...result.trackScores[t.id] })),
+              }
+            : {}),
+          ...(result.progress ? { interview: result.progress } : {}),
         },
       })
     }
@@ -103,7 +125,7 @@ export const useKnack = create((set, get) => ({
 
   async reset() {
     await api.resetProgress()
-    set({ quest: null, result: null })
+    set({ level: null, result: null })
     return get().load()
   },
 }))

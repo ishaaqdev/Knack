@@ -3,6 +3,7 @@ import { db, findUserById, listTracks, publicUser } from '../db.js'
 import { requireAuth } from '../auth.js'
 import { validateProfile } from '../profile.js'
 import { getContext } from '../context.js'
+import { interviewProgress } from '../interview.js'
 import {
   levelFor,
   localDate,
@@ -74,6 +75,10 @@ userRouter.get('/', (req, res) => {
     weakestTrack: s.quests ? weakestTrack(scores).id : null,
     recent: recent.all(user.id),
 
+    // Interview mode keeps its own progression; it deliberately does not move
+    // the three track scores.
+    interview: interviewProgress(user),
+
     // What the app has worked out about them — surfaced so it is legible
     // rather than a black box.
     insight: ctx.summary
@@ -88,8 +93,10 @@ userRouter.post('/reset', (req, res) => {
   db.transaction(() => {
     db.prepare('DELETE FROM attempts WHERE userId = ?').run(req.user.id)
     db.prepare('DELETE FROM learner_context WHERE userId = ?').run(req.user.id)
+    db.prepare('DELETE FROM interview_runs WHERE userId = ?').run(req.user.id)
     db.prepare(
-      `UPDATE users SET xp = 0, streak = 0, longestStreak = 0, lastActiveDate = NULL
+      `UPDATE users SET xp = 0, streak = 0, longestStreak = 0, lastActiveDate = NULL,
+              interviewLevel = 1
        WHERE id = ?`
     ).run(req.user.id)
   })()

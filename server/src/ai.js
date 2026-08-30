@@ -3,8 +3,19 @@ import {
   evaluationPrompt,
   learnerSummaryPrompt,
   portfolioPrompt,
+  resumeDistilPrompt,
+  levelPrompt,
+  levelEvaluationPrompt,
+  interviewPrompt,
+  interviewDebriefPrompt,
 } from './prompts.js'
-import { FALLBACK_SCENARIOS, heuristicEvaluation } from './fallback.js'
+import {
+  FALLBACK_SCENARIOS,
+  FALLBACK_LEVEL,
+  FALLBACK_INTERVIEW,
+  heuristicEvaluation,
+  heuristicDebrief,
+} from './fallback.js'
 
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
@@ -18,6 +29,17 @@ const models = () =>
   ].filter((v, i, a) => a.indexOf(v) === i)
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * Budget added to every max_tokens for a reasoning model's hidden trace.
+ *
+ * Nearly every model on the free tier in 2026 reasons before it answers, and
+ * those tokens are charged against max_tokens even when the trace is hidden.
+ * Measured: MiniMax spent 2,691 of them on one level prompt and returned an
+ * empty message. A ceiling is not a target — a model that stops early is not
+ * billed for the headroom — so this is generous on purpose.
+ */
+const REASONING_HEADROOM = 3000
 
 /**
  * Pull the first JSON object out of a model reply. Gemma will sometimes wrap it
@@ -122,11 +144,14 @@ async function callOnce(model, prompt, { temperature, maxTokens, signal }) {
       model,
       messages: [{ role: 'user', content: prompt }],
       temperature,
-      max_tokens: maxTokens,
-      // Reasoning models (Nemotron) otherwise emit their visible chain of
-      // thought first and hit the token ceiling before the JSON is written.
-      // Ignored by providers that do not support it.
-      reasoning: { exclude: true },
+      // Reasoning tokens are billed against max_tokens even when they are
+      // hidden, and MiniMax will happily spend 800 of them thinking before it
+      // writes a character. Excluding the trace is not enough on its own, so
+      // the ceiling carries an allowance the caller does not have to know about.
+      max_tokens: maxTokens + REASONING_HEADROOM,
+      // effort:low shortens the trace where the provider supports it; the whole
+      // object is ignored by providers that do not.
+      reasoning: { effort: 'low', exclude: true },
     }),
   })
 
@@ -139,7 +164,13 @@ async function callOnce(model, prompt, { temperature, maxTokens, signal }) {
   }
 
   const data = await res.json()
-  if (data.error) throw new Error(`OpenRouter: ${data.error.message}`)
+  // A 200 can still carry an upstream failure in the body. Surface its code so
+  // the retry rules above apply to it as they would to a real HTTP status.
+  if (data.error) {
+    const err = new Error(`OpenRouter: ${data.error.message}`)
+    err.status = Number(data.error.code) || 502
+    throw err
+  }
   return data.choices?.[0]?.message?.content ?? ''
 }
 
@@ -148,7 +179,7 @@ async function callOnce(model, prompt, { temperature, maxTokens, signal }) {
  * for genuinely transient failures (timeouts, 5xx) — never for rate limits,
  * where retrying is exactly the wrong move.
  */
-async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate } = {}) {
+async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate, budgetMs = 70_000 } = {}) {
   if (!process.env.OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY is not set — check server/.env')
   }
@@ -161,6 +192,7 @@ async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate
   }
 
   const TRANSIENT = new Set([408, 500, 502, 503, 504])
+  const deadline = Date.now() + budgetMs
   let last
   const tried = []
 
@@ -169,10 +201,16 @@ async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate
       tried.push(`${model}: cooling down`)
       continue
     }
+    // Walking four models at 30s each is slower than any trainee will wait.
+    // Past the budget the offline bank is the better answer.
+    if (Date.now() > deadline) {
+      tried.push(`${model}: skipped, out of time`)
+      continue
+    }
 
     for (let attempt = 0; attempt < 2; attempt++) {
       const ac = new AbortController()
-      const timer = setTimeout(() => ac.abort(), 45_000)
+      const timer = setTimeout(() => ac.abort(), Math.max(8_000, Math.min(30_000, deadline - Date.now())))
       try {
         const text = await callOnce(model, prompt, { temperature, maxTokens, signal: ac.signal })
         const parsed = extractJson(text)
@@ -187,7 +225,8 @@ async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate
       } finally {
         clearTimeout(timer)
       }
-      if (attempt === 0) await sleep(700)
+      if (attempt === 0 && Date.now() < deadline) await sleep(700)
+      else break
     }
   }
   const err = last ?? new Error('No response from any model')
@@ -197,13 +236,14 @@ async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate
 
 /* --------------------------------------------------------------- public --- */
 
-export async function generateScenario({ track, difficulty, avoid, profile, learner, portfolio, shape }) {
+export async function generateScenario({ track, difficulty, avoid, profile, learner, portfolio, resume, shape }) {
   try {
     const { data, model } = await askForJson(
-      scenarioPrompt({ track, difficulty, avoid, profile, learner, portfolio, shape }),
+      scenarioPrompt({ track, difficulty, avoid, profile, learner, portfolio, resume, shape }),
       {
         temperature: 1.0,
         maxTokens: 900,
+        budgetMs: 45_000,
         validate: (d) => typeof d.scenario === 'string' && d.scenario.trim().length > 40,
       }
     )
@@ -227,6 +267,7 @@ export async function evaluateResponse({ track, difficulty, scenarioText, userRe
       {
         temperature: 0.3,
         maxTokens: 1100,
+        budgetMs: 60_000,
         validate: (d) => Number.isFinite(Number(d.score)) && typeof d.strengths === 'string',
       }
     )
@@ -306,5 +347,264 @@ export async function health() {
     return { ok: res.ok, status: res.status, models: models() }
   } catch (e) {
     return { ok: false, error: e.message, models: models() }
+  }
+}
+
+/* ------------------------------------------------------------- resume ----- */
+
+const str = (v, cap) => String(v ?? '').trim().slice(0, cap)
+/**
+ * Re-key a model's per-item array onto our own indices.
+ *
+ * Graders are asked for an `i` on every entry and they do return one — but
+ * whether it counts from zero or from one depends on the model, and a transcript
+ * labelled "Q1, Q2, Q3" pulls them towards one. Getting this wrong is silent and
+ * ugly: every critique lands on the wrong answer, and the reader sees feedback
+ * about a paragraph they did not write.
+ *
+ * So the base is detected from the values themselves rather than assumed, with
+ * plain position as the last resort.
+ */
+function alignByIndex(items, count) {
+  const list = Array.isArray(items) ? items : []
+  const given = list.map((x) => Number(x?.i)).filter(Number.isInteger)
+
+  // Nothing claiming index 0 means the model counted from one.
+  const oneBased = given.length > 0 && !given.includes(0)
+  const byIndex = new Map()
+  for (const item of list) {
+    const i = Number(item?.i)
+    if (Number.isInteger(i)) byIndex.set(oneBased ? i - 1 : i, item)
+  }
+
+  // Position is a fallback only when no entry carried an index at all. Once the
+  // model has said where things belong, guessing at the gaps would put real
+  // criticism against an answer nobody wrote, which is worse than a blank.
+  const positional = given.length === 0
+  return Array.from(
+    { length: count },
+    (_, i) => byIndex.get(i) ?? (positional ? list[i] : null) ?? {}
+  )
+}
+
+const strList = (v, max, cap) =>
+  (Array.isArray(v) ? v : [])
+    .filter((x) => typeof x === 'string' && x.trim())
+    .slice(0, max)
+    .map((x) => x.trim().slice(0, cap))
+
+/**
+ * Distils an uploaded resume. Throws rather than falling back — an unread
+ * resume is honest, an invented one silently corrupts every later prompt.
+ */
+export async function summariseResume({ text, name }) {
+  const { data, model } = await askForJson(resumeDistilPrompt({ text, name }), {
+    temperature: 0.2,
+    maxTokens: 800,
+    budgetMs: 60_000,
+    validate: (d) => typeof d.brief === 'string' && d.brief.trim().length > 15,
+  })
+
+  return {
+    brief: str(data.brief, 400),
+    skills: strList(data.skills, 10, 30),
+    projects: (Array.isArray(data.projects) ? data.projects : [])
+      .filter((p) => p && typeof p.name === 'string' && p.name.trim())
+      .slice(0, 4)
+      .map((p) => ({ name: str(p.name, 60), what: str(p.what, 120) })),
+    highlights: strList(data.highlights, 3, 120),
+    model,
+  }
+}
+
+/* -------------------------------------------------------------- level ----- */
+
+const SCORE_LADDER = [9, 6, 3, 1]
+
+/**
+ * Normalises one generated question.
+ *
+ * The prompt dictates the 9/6/3/1 gradient, but a small model will occasionally
+ * return four nines or five options. Rather than reject the whole level for it,
+ * the options are re-graded by their stated rank — the model's *ordering* is
+ * reliable even when its numbers are not.
+ */
+function normaliseQuestion(q) {
+  const options = (Array.isArray(q?.options) ? q.options : [])
+    .filter((o) => o && typeof o.text === 'string' && o.text.trim())
+    .slice(0, 4)
+  if (options.length < 3) return null
+
+  const graded = [...options]
+    .map((o, i) => ({ o, i, raw: Number(o.score) }))
+    .sort((a, b) => (Number.isFinite(b.raw) ? b.raw : 0) - (Number.isFinite(a.raw) ? a.raw : 0))
+
+  graded.forEach((g, rank) => {
+    g.o.score = SCORE_LADDER[Math.min(rank, SCORE_LADDER.length - 1)]
+  })
+
+  return {
+    situation: str(q.situation, 400),
+    question: str(q.question, 200) || 'What do you do?',
+    options: options.map((o) => ({
+      text: str(o.text, 220),
+      score: o.score,
+      why: str(o.why, 200),
+    })),
+  }
+}
+
+export async function generateLevel({ track, difficulty, profile, learner, portfolio, resume, shape, avoid, n = 0 }) {
+  try {
+    const { data, model } = await askForJson(
+      levelPrompt({ track, difficulty, profile, learner, portfolio, resume, shape, avoid }),
+      {
+        temperature: 1.0,
+        maxTokens: 1800,
+        budgetMs: 55_000,
+        validate: (d) => Array.isArray(d.questions) && d.questions.length >= 3,
+      }
+    )
+
+    const questions = data.questions.map(normaliseQuestion).filter(Boolean).slice(0, 4)
+    if (questions.length < 3) throw new Error('too few usable questions')
+
+    return { setting: str(data.setting, 400), questions, source: 'ai', model }
+  } catch (err) {
+    console.warn('[ai] level fell back to offline bank |', (err.tried ?? []).join(' | ') || err.message)
+    return { ...FALLBACK_LEVEL(track.id, n), source: 'offline' }
+  }
+}
+
+export async function evaluateLevel({ track, difficulty, scenarioText, userResponse, customs = [], learner }) {
+  try {
+    const { data, model } = await askForJson(
+      levelEvaluationPrompt({ track, difficulty, scenarioText, userResponse, customs, learner }),
+      {
+        temperature: 0.3,
+        maxTokens: 1300,
+        budgetMs: 60_000,
+        validate: (d) => Number.isFinite(Number(d.score)) && typeof d.strengths === 'string',
+      }
+    )
+
+    const clamp = (v) => Math.min(10, Math.max(1, Math.round(Number(v) || 1)))
+    const custom = alignByIndex(data.custom, customs.length).map((c, i) => ({
+      i,
+      score: clamp(c.score),
+      why: str(c.why, 200),
+    }))
+
+    const strengths = str(data.strengths, 600)
+    const gaps = str(data.gaps, 600)
+
+    return {
+      score: clamp(data.score),
+      strengths,
+      gaps,
+      suggestion: str(data.suggestion, 400),
+      feedback: [strengths, gaps].filter(Boolean).join(' '),
+      custom,
+      source: 'ai',
+      model,
+    }
+  } catch (err) {
+    console.warn('[ai] level evaluation fell back to heuristic |', (err.tried ?? []).join(' | ') || err.message)
+    const base = heuristicEvaluation({ track, userResponse })
+    // Free-text answers still need a number. The same rubric, applied per answer.
+    const custom = customs.map((c, i) => {
+      const h = heuristicEvaluation({ track, userResponse: c.answer })
+      return { i, score: h.score, why: 'Scored locally — the model was unavailable.' }
+    })
+    return { ...base, custom, source: 'offline' }
+  }
+}
+
+/* ---------------------------------------------------------- interview ----- */
+
+export async function generateInterview({ round, role, company, profile, resume, portfolio, asked, n = 3 }) {
+  try {
+    const { data, model } = await askForJson(
+      interviewPrompt({ round, role, company, profile, resume, portfolio, asked, n }),
+      {
+        temperature: 0.95,
+        maxTokens: 900,
+        budgetMs: 50_000,
+        validate: (d) => Array.isArray(d.questions) && d.questions.length >= 2,
+      }
+    )
+
+    const questions = data.questions
+      .filter((q) => q && typeof q.text === 'string' && q.text.trim().length > 12)
+      .slice(0, n)
+      .map((q) => ({ text: str(q.text, 300), hint: str(q.hint, 120) }))
+
+    if (questions.length < 2) throw new Error('too few usable questions')
+
+    return {
+      opener: str(data.opener, 200) || 'Thanks for making the time. Shall we start?',
+      questions,
+      source: 'ai',
+      model,
+    }
+  } catch (err) {
+    console.warn('[ai] interview fell back to the question bank |', (err.tried ?? []).join(' | ') || err.message)
+    return { ...FALLBACK_INTERVIEW(round.level, n), source: 'offline' }
+  }
+}
+
+export async function debriefInterview({ round, role, profile, resume, portfolio, pairs }) {
+  try {
+    const { data, model } = await askForJson(
+      interviewDebriefPrompt({ round, role, profile, resume, portfolio, pairs }),
+      {
+        temperature: 0.3,
+        maxTokens: 1600,
+        budgetMs: 70_000,
+        validate: (d) => Array.isArray(d.answers) && Number.isFinite(Number(d.score)),
+      }
+    )
+
+    const clamp = (v) => Math.min(10, Math.max(1, Math.round(Number(v) || 1)))
+
+    const aligned = alignByIndex(data.answers, pairs.length)
+
+    const answers = pairs.map((pair, i) => {
+      const a = aligned[i]
+      // An unanswered question is graded here, not by the model. There is
+      // nothing to read, so there is nothing for it to be generous about.
+      if (!pair.answer?.trim()) {
+        return {
+          i,
+          score: 1,
+          worked: 'You did not answer this one.',
+          improve:
+            'Say something. In a real interview, silence reads as either unprepared or unwilling, and both cost you the round.',
+          better:
+            'Even "I have not hit that situation yet, but here is how I would approach it" keeps the conversation alive.',
+        }
+      }
+      return {
+        i,
+        score: clamp(a.score),
+        worked: str(a.worked, 400),
+        improve: str(a.improve, 400),
+        better: str(a.better, 400),
+      }
+    })
+
+    return {
+      answers,
+      score: clamp(data.score),
+      verdict: str(data.verdict, 300),
+      strengths: str(data.strengths, 600),
+      gaps: str(data.gaps, 600),
+      nextFocus: str(data.nextFocus, 200),
+      source: 'ai',
+      model,
+    }
+  } catch (err) {
+    console.warn('[ai] debrief fell back to heuristic |', (err.tried ?? []).join(' | ') || err.message)
+    return { ...heuristicDebrief({ pairs }), source: 'offline' }
   }
 }

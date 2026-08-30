@@ -28,7 +28,8 @@ export function TrackSelect() {
       </div>
 
       <p className="mt-6 text-center text-[12px] leading-relaxed text-faint">
-        One quest is about two minutes. XP is scored out of 10 and multiplied by ten.
+        A level is four judgement calls and one written response — about five minutes. The
+        written stage is worth as much as all four choices together.
       </p>
     </Page>
   )

@@ -60,8 +60,8 @@ the human rather than the tool`,
  * you...". The fix is to state explicitly that the profile selects the *setting*
  * and is never surfaced in the text, and to repeat that at the rules.
  */
-function contextBlock({ profile, learner, portfolio }) {
-  if (!profile && !learner && !portfolio) return ''
+function contextBlock({ profile, learner, portfolio, resume }) {
+  if (!profile && !learner && !portfolio && !resume) return ''
 
   const parts = ['\nWHO THIS IS FOR (background only — see the rules)']
 
@@ -73,8 +73,11 @@ function contextBlock({ profile, learner, portfolio }) {
     }
   }
 
-  if (portfolio?.stack?.length) {
-    parts.push(`- Technologies they actually know: ${portfolio.stack.join(', ')}`)
+  // Resume skills and GitHub stack answer the same question, so they are
+  // merged and de-duplicated rather than listed twice.
+  const known = [...new Set([...(resume?.skills ?? []), ...(portfolio?.stack ?? [])])].slice(0, 10)
+  if (known.length) {
+    parts.push(`- Technologies they actually know: ${known.join(', ')}`)
   }
   if (portfolio?.domains?.length) {
     parts.push(`- Kinds of work they have done: ${portfolio.domains.join(', ')}`)
@@ -91,7 +94,7 @@ function contextBlock({ profile, learner, portfolio }) {
   return parts.join('\n') + '\n'
 }
 
-export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner, portfolio, shape }) {
+export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner, portfolio, resume, shape }) {
   const t = TRACK_BRIEF[track.id]
   const avoidBlock = avoid.length
     ? `\nDo NOT reuse these situations — the trainee has already seen them:\n${avoid
@@ -99,7 +102,7 @@ export function scenarioPrompt({ track, difficulty, avoid = [], profile, learner
         .join('\n')}\n`
     : ''
 
-  const personalised = contextBlock({ profile, learner, portfolio })
+  const personalised = contextBlock({ profile, learner, portfolio, resume })
   const shaped = shape ? `
 ${shapeBlock(shape)}
 ` : ''
@@ -266,4 +269,292 @@ RULES
 
 Reply with ONLY this JSON object and nothing else:
 {"summary":"<under 60 words>","recurringGaps":["<phrase>"],"pushNext":"<one clause>"}`
+}
+
+/* ------------------------------------------------------------- resume ----- */
+
+/**
+ * Distils an uploaded resume once, at upload time. The raw document is kept for
+ * the interviewer; everything else downstream reads only these fields.
+ */
+export function resumeDistilPrompt({ text, name }) {
+  return `You are reading an engineering student's resume so a training app can
+make its practice scenarios and mock interviews specific to them.
+
+RESUME TEXT (extracted from the uploaded file, so the layout is lost)
+"""
+${text}
+"""
+
+Work out what this person has actually done. Be accurate and unflattering — a
+college project is a college project. If a section is missing from the text, omit
+it rather than inventing it.
+
+RULES
+- brief: under 45 words, third person, using "they" — never guess a gender from
+  the name. What they have built and studied, at what level. Concrete, not
+  promotional.
+- skills: up to 10 technologies, tools or languages they genuinely list. Real
+  names only (React, Python, TensorFlow, Figma). No soft skills, no "web".
+- projects: up to 4 items. Each is {"name": "<as written on the resume>", "what":
+  "<under 15 words on what it does>"}. Only projects actually described.
+- highlights: up to 3 short factual claims worth being asked about in an
+  interview — a metric, an award, an internship, a responsibility. Under 15 words
+  each. Empty array if the resume has none.
+- Plain text. No markdown, no emoji.${name ? `\n- The candidate's name is ${name}; never put it in the brief.` : ''}
+
+Reply with ONLY this JSON object and nothing else:
+{"brief":"<under 45 words>","skills":["<tech>"],"projects":[{"name":"<name>","what":"<what it does>"}],"highlights":["<claim>"]}`
+}
+
+/* ---------------------------------------------------------- MCQ level ----- */
+
+/**
+ * The four multiple-choice stages of a level.
+ *
+ * The scoring gradient is dictated rather than left to the model. Asked freely,
+ * a small model writes one obviously correct option and three strawmen, which
+ * teaches nothing — the interesting workplace choices are the ones that are all
+ * defensible and differ by degree.
+ */
+export function levelPrompt({ track, difficulty, profile, learner, portfolio, resume, shape, avoid = [] }) {
+  const t = TRACK_BRIEF[track.id]
+  const personalised = contextBlock({ profile, learner, portfolio, resume })
+  const shaped = shape ? `\n${shapeBlock(shape)}\n` : ''
+  const avoidBlock = avoid.length
+    ? `\nThe trainee has recently seen these situations. Do not reuse them:\n${avoid
+        .map((a, i) => `${i + 1}. ${a}`)
+        .join('\n')}\n`
+    : ''
+
+  return `You write multiple-choice workplace judgement questions for a
+soft-skills app used by engineering students in India starting their first job.
+
+TRACK: ${track.name} — ${t.focus}
+DIFFICULTY: ${DIFFICULTY_BRIEF[difficulty]}
+${personalised}
+Draw the situations from this space: ${t.situations}.
+${shaped}${avoidBlock}
+Write ONE short setting, then FOUR separate moments inside it. Each moment is a
+question with four possible responses.
+
+SETTING
+- 2 sentences. Establishes the company, the team and what is going on this week.
+- Name the people. Reuse the same names in all four questions.
+
+EACH QUESTION
+- situation: 1-2 sentences. A specific moment. Under 45 words.
+- question: one line asking what the trainee does or says next.
+- options: exactly four. Each is something a real person might actually do,
+  written in first person ("Tell Priya I will...", "Ship it and flag it after").
+  Under 25 words each. No option may be a joke or obviously self-destructive.
+
+SCORING — this is mandatory and the whole point
+Give the four options these four scores, in a DIFFERENT random order each time:
+  one option scores 9   — what a thoughtful senior would actually do
+  one option scores 6   — reasonable, safe, but misses the harder half
+  one option scores 3   — avoids the real problem or defers it
+  one option scores 1   — actively damages trust, quality or the relationship
+Never put the 9 first every time. Vary which position holds the best answer.
+- why: under 18 words, second person, explaining the consequence of that choice.
+  For the 9 say what it gets right; for the 1 say what it costs.
+
+RULES
+- Plain professional English. No markdown, no emoji, no letters or numbering
+  inside the option text.
+- Never mention the trainee's year of study, branch, career goal or past scores.
+- The four questions must test four different things, not the same one restated.
+
+Reply with ONLY this JSON object and nothing else:
+{"setting":"<2 sentences>","questions":[{"situation":"<1-2 sentences>","question":"<one line>","options":[{"text":"<what you do>","score":9,"why":"<consequence>"}]}]}`
+}
+
+/**
+ * The end-of-level grader. Handles the written stage and, in the same call, any
+ * free-text answers the trainee typed instead of picking an option — batching
+ * them keeps a level at two model calls regardless of how many they wrote.
+ */
+export function levelEvaluationPrompt({ track, difficulty, scenarioText, userResponse, customs = [], learner }) {
+  const t = TRACK_BRIEF[track.id]
+
+  const history = learner?.summary
+    ? `\nWHAT YOU KNOW ABOUT THIS TRAINEE ALREADY
+${learner.summary}${learner.gaps?.length ? `\nRecurring weaknesses: ${learner.gaps.join('; ')}` : ''}
+If they repeated a flagged mistake, say so plainly. Do not invent history.
+`
+    : ''
+
+  const customBlock = customs.length
+    ? `\nThey also wrote their own answer instead of picking an option on ${
+        customs.length === 1 ? 'one question' : `${customs.length} questions`
+      }. Score each on the same 1-10 scale.
+${customs
+  .map(
+    (c, i) => `[${i}] Situation: ${c.situation}
+    Question: ${c.question}
+    They wrote: ${c.answer}`
+  )
+  .join('\n')}
+`
+    : ''
+
+  return `You are a fair, experienced engineering mentor grading the written
+stage of a training level. Be encouraging but honest — inflated scores make the
+training worthless.
+
+TRACK: ${track.name} — ${t.focus}
+DIFFICULTY: ${difficulty}
+${history}
+SCENARIO
+"""
+${scenarioText}
+"""
+
+TRAINEE'S WRITTEN RESPONSE
+"""
+${userResponse}
+"""
+${customBlock}
+Judge specifically on: ${t.judge}.
+
+SCORING (1-10, be calibrated)
+1-2  = did not engage, off-topic, or a single throwaway line
+3-4  = understood the situation but is vague or avoids the hard part
+5-6  = reasonable and safe; handles the basics, misses nuance
+7-8  = clear, specific, handles the tension well; minor gaps
+9-10 = exceptional — precise, and does what a thoughtful senior would do
+A very short or empty response cannot score above 3, no matter how polite.
+
+RULES
+- Address the trainee as "you". Quote or paraphrase something they actually wrote.
+- Never invent things they did not say.
+- strengths / gaps: 1-2 sentences each. suggestion: one concrete rewrite or move
+  for next time, not generic advice.
+- custom[].i is the ZERO-BASED number in brackets above, exactly as written.
+- custom[].why: under 20 words, second person.
+- Plain text only. No markdown, no emoji.
+
+Reply with ONLY this JSON object and nothing else:
+{"score":<1-10>,"strengths":"<what worked>","gaps":"<what was missing>","suggestion":"<one specific improvement>","custom":[{"i":<index>,"score":<1-10>,"why":"<short reason>"}]}`
+}
+
+/* ---------------------------------------------------------- interview ----- */
+
+/** Renders the candidate dossier the interviewer is allowed to have read. */
+function dossier({ profile, resume, portfolio }) {
+  const parts = []
+  if (profile) parts.push(`Background: ${profile.who}`)
+  if (resume?.brief) parts.push(`Resume summary: ${resume.brief}`)
+  if (resume?.skills?.length) parts.push(`Skills claimed: ${resume.skills.join(', ')}`)
+  if (resume?.projects?.length) {
+    parts.push(
+      `Projects on the resume:\n${resume.projects
+        .map((p) => `  - ${p.name}: ${p.what}`)
+        .join('\n')}`
+    )
+  }
+  if (resume?.highlights?.length) {
+    parts.push(`Claims worth probing: ${resume.highlights.join('; ')}`)
+  }
+  if (portfolio?.stack?.length) parts.push(`GitHub stack: ${portfolio.stack.join(', ')}`)
+  if (portfolio?.domains?.length) parts.push(`GitHub domains: ${portfolio.domains.join(', ')}`)
+  return parts.length ? parts.join('\n') : 'No resume on file — ask general questions for the role.'
+}
+
+export function interviewPrompt({ round, role, company, profile, resume, portfolio, asked = [], n = 3 }) {
+  const avoidBlock = asked.length
+    ? `\nYou have already asked this candidate the following. Ask something new:\n${asked
+        .map((q, i) => `${i + 1}. ${q}`)
+        .join('\n')}\n`
+    : ''
+
+  return `You are conducting a mock job interview for an entry-level ${role} role
+at ${company}. You are the interviewer, and you have read the candidate's file.
+
+CANDIDATE FILE
+${dossier({ profile, resume, portfolio })}
+
+ROUND ${round.level} of 5 — ${round.name.toUpperCase()}
+${round.brief}
+
+YOUR TASK
+${round.ask}
+${avoidBlock}
+Write exactly ${n} questions, in the order you would ask them.
+
+RULES
+- Each question is 1-2 sentences, spoken aloud as an interviewer would say it.
+  Under 40 words.
+- Ground them in the candidate file. If a project or skill is listed, name it —
+  a generic question wastes the round. If the file is thin, ask about the role
+  instead of inventing experience the candidate never claimed.
+- Never invent achievements, companies or numbers the file does not contain.
+- One question per idea. No compound questions with three parts.
+- hint: under 12 words, telling the candidate what a good answer needs to contain
+  (e.g. "Name the trade-off you chose and why"). Not the answer itself.
+- Plain spoken English. No markdown, no emoji, no numbering in the text.
+
+Reply with ONLY this JSON object and nothing else:
+{"opener":"<one line the interviewer says to start the round, under 25 words>","questions":[{"text":"<the question>","hint":"<what a good answer needs>"}]}`
+}
+
+/**
+ * The debrief. One call grades every answer in the round, which keeps an
+ * interview at two model calls and lets the grader see the answers as a set —
+ * the same story told twice is only visible from there.
+ */
+export function interviewDebriefPrompt({ round, role, profile, resume, portfolio, pairs }) {
+  const transcript = pairs
+    .map(
+      (p, i) => `Q${i + 1}: ${p.question}
+A${i + 1}: ${p.answer || '(no answer given)'}`
+    )
+    .join('\n\n')
+
+  return `You are an experienced interviewer debriefing a candidate after a mock
+interview for an entry-level ${role} role. Be honest and useful — a candidate who
+is told they were great and then fails a real interview has been let down.
+
+CANDIDATE FILE
+${dossier({ profile, resume, portfolio })}
+
+ROUND ${round.level} of 5 — ${round.name.toUpperCase()}
+This round tests: ${round.focus}.
+
+TRANSCRIPT
+${transcript}
+
+Grade each answer, then the round as a whole.
+
+SCORING (1-10 per answer, be calibrated)
+1-2  = did not answer, or one throwaway line
+3-4  = on topic but generic; could be any candidate; no evidence
+5-6  = a real answer with some substance; structure or specifics missing
+7-8  = specific, structured, evidenced; would pass a real screen
+9-10 = exceptional — precise, self-aware, and makes the interviewer want more
+An answer with no concrete example cannot score above 5.
+An empty or one-word answer scores 1.
+
+FOR EACH ANSWER
+- worked: one sentence on what was genuinely good. If nothing was, say so plainly.
+- improve: one sentence on the single biggest thing missing.
+- better: one sentence showing a stronger way to frame the SAME answer using what
+  they actually said. Never write a whole model answer for them, and never
+  attribute experience to them that they did not mention.
+
+FOR THE ROUND
+- score: 1-10 overall. It should sit near the mean of the answers, but a serious
+  failure (bluffing, defensiveness, no examples anywhere) pulls it down.
+- verdict: one sentence, the honest bottom line.
+- strengths / gaps: 1-2 sentences each, about the pattern across answers.
+- nextFocus: one clause naming the single thing to work on before the next round.
+
+RULES
+- Address the candidate as "you". Quote or paraphrase what they actually said.
+- answers[].i is the ZERO-BASED position of the question: Q1 is i=0, Q2 is i=1.
+  Return one entry per question, in order.
+- Plain text only. No markdown, no emoji.
+
+Reply with ONLY this JSON object and nothing else:
+{"answers":[{"i":<index>,"score":<1-10>,"worked":"<one sentence>","improve":"<one sentence>","better":"<one sentence>"}],"score":<1-10>,"verdict":"<one sentence>","strengths":"<1-2 sentences>","gaps":"<1-2 sentences>","nextFocus":"<one clause>"}`
 }

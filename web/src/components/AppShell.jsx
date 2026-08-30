@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Header } from './Header'
-import { IconHome, IconQuest, IconUser } from './Icons'
+import { IconHome, IconQuest, IconBriefcase, IconUser } from './Icons'
 import { cx } from '../lib/ui'
 
 const NAV = [
   { to: '/dashboard', label: 'Home', Icon: IconHome },
   { to: '/tracks', label: 'Quest', Icon: IconQuest },
+  { to: '/interview', label: 'Interview', Icon: IconBriefcase },
   { to: '/profile', label: 'Profile', Icon: IconUser },
 ]
 

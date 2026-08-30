@@ -10,6 +10,7 @@ import { Dashboard } from './pages/Dashboard'
 import { TrackSelect } from './pages/TrackSelect'
 import { QuestSession } from './pages/QuestSession'
 import { Feedback } from './pages/Feedback'
+import { Interview } from './pages/Interview'
 import { Profile } from './pages/Profile'
 
 function Boot({ children }) {
@@ -74,6 +75,7 @@ export default function App() {
               <Route path="/tracks" element={<TrackSelect />} />
               <Route path="/quest/:trackId" element={<QuestSession />} />
               <Route path="/feedback" element={<Feedback />} />
+              <Route path="/interview" element={<Interview />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
           </Route>

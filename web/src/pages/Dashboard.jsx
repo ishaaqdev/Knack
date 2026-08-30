@@ -5,7 +5,7 @@ import { Button, Card, Empty, Page, Pill, SectionLabel, SkillBar } from '../comp
 import { Gauge } from '../components/Ring'
 import { Insight } from '../components/Insight'
 import { CountUp } from '../components/CountUp'
-import { TRACK_ICONS, IconArrowRight, IconCheck, IconFlame } from '../components/Icons'
+import { TRACK_ICONS, IconArrowRight, IconBriefcase, IconCheck, IconFlame } from '../components/Icons'
 import { relativeDate, useReducedMotion } from '../lib/ui'
 
 /* ------------------------------------------------------- today's status --- */
@@ -136,6 +136,8 @@ export function Dashboard() {
   const user = useKnack((s) => s.user)
   if (!user) return null
 
+  const interview = user.interview ?? { totalRuns: 0, cleared: 0, unlocked: 1, maxLevel: 5, readiness: 0 }
+
   return (
     <Page>
       <div className="mb-5">
@@ -185,6 +187,29 @@ export function Dashboard() {
               )
             })}
           </Card>
+        </section>
+
+        {/* interview prep — its own progression, so its own entry point */}
+        <section>
+          <SectionLabel>Interview prep</SectionLabel>
+          <Link to="/interview" className="card flex items-center gap-3.5 p-5 hover:border-dim">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-ember/40 text-ember">
+              <IconBriefcase size={17} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-[15px] font-semibold">
+                {interview.totalRuns === 0
+                  ? 'Sit a mock interview'
+                  : `Round ${Math.min(interview.unlocked, interview.maxLevel)} of ${interview.maxLevel}`}
+              </p>
+              <p className="mt-0.5 text-[12.5px] leading-relaxed text-dim">
+                {interview.totalRuns === 0
+                  ? 'Five rounds, questions written from your resume.'
+                  : `${interview.cleared} cleared · readiness ${interview.readiness}`}
+              </p>
+            </div>
+            <IconArrowRight size={17} className="shrink-0 text-faint" />
+          </Link>
         </section>
 
         {/* recent */}

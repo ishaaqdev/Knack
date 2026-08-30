@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { db } from '../db.js'
+import { db, safeParse } from '../db.js'
 import { requireAuth } from '../auth.js'
 
 export const historyRouter = Router()
@@ -18,7 +18,7 @@ historyRouter.get('/', (req, res) => {
     .prepare(
       `SELECT a.id, a.trackId, t.name AS trackName, a.difficulty, a.scenarioText,
               a.userResponse, a.score, a.feedback, a.strengths, a.gaps,
-              a.suggestion, a.xpAwarded, a.source, a.timestamp
+              a.suggestion, a.xpAwarded, a.source, a.kind, a.detail, a.timestamp
        FROM attempts a JOIN tracks t ON t.id = a.trackId
        WHERE a.userId = @userId ${trackFilter}
        ORDER BY a.id DESC LIMIT @limit OFFSET @offset`
@@ -32,5 +32,9 @@ historyRouter.get('/', (req, res) => {
     )
     .get({ userId: req.user.id, trackId })
 
-  res.json({ attempts: rows, total, limit, offset })
+  // detail is stored as JSON so the client can render a level breakdown
+  // without a second round trip; older single-scenario rows have none.
+  const attempts = rows.map((r) => ({ ...r, detail: r.detail ? safeParse(r.detail, null) : null }))
+
+  res.json({ attempts, total, limit, offset })
 })

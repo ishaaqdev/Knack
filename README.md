@@ -2,12 +2,17 @@
 
 AI-powered gamified soft-skill training for engineering students.
 
-Pick a track, get an AI-generated workplace scenario **written for you**, write
-how you would actually respond, and get scored 1–10 with specific feedback. XP,
-streaks, per-track skill scores and a composite **Professional Readiness Score**
-turn it into a five-minute daily habit rather than a course.
+Pick a track and play a **level**: four workplace judgement calls, then one
+situation you have to answer in your own words. Every stage is generated for
+you, the written stage is graded 1–10 with specific feedback, and XP, streaks,
+per-track skill scores and a composite **Professional Readiness Score** turn it
+into a five-minute daily habit rather than a course.
 
-Scenarios are personalised from three independent sources:
+There is also a **mock interview** — five rounds, from "tell me about yourself"
+through to salary and closing questions, with the questions written from your
+own resume and a debrief that grades every answer.
+
+Scenarios are personalised from four independent sources:
 
 - **Stated profile** — an 8-field onboarding (year, branch, target role,
   experience, work setting, what you find hard, and self-rated confidence per
@@ -102,16 +107,31 @@ web/src/
 | `POST` | `/api/auth/onboarding` | saves the 8-field profile |
 | `POST` | `/api/auth/github` | links a public GitHub, distils it, stores the brief |
 | `DELETE` | `/api/auth/github` | unlinks and clears the stored portfolio |
-| `POST` | `/api/quest/generate` | `{ scenarioText, taskPrompt, difficulty, source }` |
-| `POST` | `/api/quest/evaluate` | `{ score, strengths, gaps, suggestion, xp, streak, levelUp, trackScores, readinessScore, nudge }` |
+| `POST` | `/api/auth/resume` | distils pasted resume text |
+| `POST` | `/api/auth/resume/file` | same, from a raw PDF/DOCX/TXT body |
+| `DELETE` | `/api/auth/resume` | removes the resume and everything derived from it |
+| `POST` | `/api/quest/level/generate` | `{ levelId, setting, stages[4], difficulty }` — option scores stay server-side |
+| `GET` | `/api/quest/level/written/:levelId` | the fifth stage, generated in the background since the level was served |
+| `POST` | `/api/quest/level/submit` | `{ score, stages[], writtenScore, xp, streak, levelUp, trackScores, nudge }` |
+| `GET` | `/api/interview` | rounds, which are unlocked, best score each, readiness |
+| `POST` | `/api/interview/start` | `{ runId, opener, questions[3] }` |
+| `POST` | `/api/interview/submit` | per-answer grades, round verdict, XP, unlock |
+| `GET` | `/api/interview/runs/:id` | a past round in full |
+| `POST` | `/api/quest/generate` | single scenario — the pre-level route, still live |
+| `POST` | `/api/quest/evaluate` | grades a single scenario |
 | `GET` | `/api/user` | profile, XP, level, streak, per-track scores, readiness, derived insight, last 5 attempts |
 | `PATCH` | `/api/user` | edit the profile (re-validated against the same rules) |
 | `POST` | `/api/user/reset` | wipes progress and learned context, keeps the profile |
 | `GET` | `/api/history` | `?trackId=&limit=&offset=` — paginated attempts |
 | `GET` | `/api/health` | server + OpenRouter key status |
 
-Everything under `/api/quest` additionally requires a completed profile —
-scenario quality depends on it, so the route refuses rather than degrading.
+Everything under `/api/quest` and `/api/interview` additionally requires a
+completed profile — scenario quality depends on it, so the route refuses rather
+than degrading.
+
+A level in progress is held in server memory, not in the browser. The generated
+options carry their own scores, so round-tripping them through the client would
+hand the score sheet to the person being scored.
 
 ### Data model
 
@@ -122,15 +142,27 @@ users            id, email, passwordHash, name,
                  githubUsername, githubBrief, githubStack (JSON),
                  githubDomains (JSON), githubLevel, githubRepoCount,
                  githubSyncedAt,
-                 xp, streak, longestStreak, lastActiveDate, createdAt
+                 resumeText, resumeBrief, resumeSkills (JSON),
+                 resumeProjects (JSON), resumeHighlights (JSON),
+                 resumeFileName, resumeUpdatedAt,
+                 xp, streak, longestStreak, lastActiveDate, interviewLevel,
+                 createdAt
 sessions         tokenHash, userId, createdAt, expiresAt
 learner_context  userId, summary, recurringGaps (JSON), pushNext,
                  attemptsAtUpdate, updatedAt
 tracks           id, name, description, blurb, sortOrder
 attempts         id, userId, trackId, difficulty, scenarioText, userResponse,
                  score, feedback, strengths, gaps, suggestion, xpAwarded,
-                 source, timestamp, localDate
+                 source, kind, detail (JSON), timestamp, localDate
+interview_runs   id, userId, level, role, questions (JSON), answers (JSON),
+                 perAnswer (JSON), score, verdict, strengths, gaps, nextFocus,
+                 xpAwarded, source, timestamp, localDate
 ```
+
+`attempts.kind` is `level` for the five-stage format and `open` for the older
+single-scenario rows; `detail` holds the per-stage breakdown. Interview rounds
+live in their own table because an interview is not a track, and must never move
+a track score.
 
 ### Auth
 
@@ -160,8 +192,10 @@ the API on the network.
 
 | Mechanic | Rule |
 |---|---|
-| **XP** | `score × 10`, plus `+5` at a 3-day streak and `+10` at 7 days |
-| **Levels** | Novice 0–150 · Intermediate 150–400 · Advanced 400–800 · Expert 800+ |
+| **XP** | Each judgement call `score × 2.5` (max 25); the written stage `score × 10` (max 100); plus `+5` at a 3-day streak and `+10` at 7 days |
+| **Level score** | `0.4 × mean(four choices) + 0.6 × written` — recognising the right move counts, producing it counts more |
+| **Levels** | Novice 0–400 · Intermediate 400–1200 · Advanced 1200–2600 · Expert 2600+ |
+| **Interview** | `score × 5` per answer, so up to 150 a round. A round unlocks the next at 6/10 — XP never does |
 | **Streak** | +1 per calendar day with ≥1 quest; 0 after a full day missed |
 | **Track skill** | Rolling mean of the last 5 scores in that track, scaled to 0–100 |
 | **Difficulty** | <45 easy · 45–74 medium · 75+ hard, nudged ±1 by recent trend. Before any attempts exist, self-rated confidence picks the entry point |
@@ -171,7 +205,7 @@ the API on the network.
 
 ## Personalisation
 
-The three sources are kept deliberately separate.
+The four sources are kept deliberately separate.
 
 **Stated profile** (`profile.js`) is collected once and editable in Profile. Each
 option carries a `prompt` string — the phrasing handed to the model — so the UI
@@ -200,6 +234,19 @@ Scenario generation also de-duplicates against recently *served* scenarios, not
 just completed attempts — otherwise "Different scenario" hands back a near-copy,
 since nothing was stored.
 
+**Resume** (`resume.js`) is read on this machine and never uploaded anywhere but
+your own server. PDF and DOCX are both zlib containers, and Node already ships
+zlib, so extraction is about 200 lines rather than a dependency: inflate the
+content streams, pull the text-showing operators, infer spaces from the kerning
+numbers. A scanned PDF has no text layer at all, so the result is gated on
+whether it actually reads as prose — the wrong answer here is not an error
+message but silently storing mojibake that then poisons every prompt downstream.
+
+The same anchoring rule as GitHub applies, for the same reason: the scenario
+generator sees only the skill list. The projects and the claims worth defending
+go to the **interviewer**, which is the one place naming your actual work is the
+whole point.
+
 **Derived context** (`context.js`) is the most interesting source. The naive approach —
 stuffing past attempts into every prompt — grows without bound and degrades
 output on a small model. Instead the model rewrites a compact summary every
@@ -208,8 +255,9 @@ Prompt cost stays flat no matter how long someone trains. The refresh runs
 fire-and-forget after the response is sent, so it never sits on the request path;
 a failure just means the summary is one cycle stale.
 
-Both are surfaced in the UI (the "What Knack has picked up" card) rather than
-hidden — personalisation the user cannot see reads as a black box.
+All of them are surfaced in the UI — the resume and GitHub cards on Profile, the
+derived summary in "What Knack has picked up" — rather than hidden.
+Personalisation the user cannot see reads as a black box.
 
 **The failure mode to know about:** hand a small model a profile and it recites
 it back — every scenario opening *"As a final-year CSE student…"*. The prompts
@@ -270,5 +318,6 @@ Animation is Framer Motion springs, 200–600ms, and every animated element has 
 ## Future scope
 
 Badges/achievements, leaderboards, a real skill-tree visualisation, a fully
-built-out AI hallucination-detection track, email verification and password
-reset, and a mobile app — all deliberately out of scope for this version.
+built-out AI hallucination-detection track, spoken interview rounds, a group
+discussion with several AI candidates, email verification and password reset,
+and a mobile app — all deliberately out of scope for this version.

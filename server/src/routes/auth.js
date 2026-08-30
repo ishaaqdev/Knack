@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import express, { Router } from 'express'
 import { db, findUserByEmail, findUserById, publicUser } from '../db.js'
 import {
   SESSION_COOKIE,
@@ -12,7 +12,14 @@ import {
 } from '../auth.js'
 import { FIELDS, CONFIDENCE_FIELD, MAX_FOCUS_AREAS, validateProfile } from '../profile.js'
 import { fetchProfile, profileForPrompt, GitHubError } from '../github.js'
-import { summarisePortfolio } from '../ai.js'
+import { summarisePortfolio, summariseResume } from '../ai.js'
+import {
+  extractResumeText,
+  cleanResumeText,
+  looksLikeProse,
+  ResumeError,
+  MAX_UPLOAD_BYTES,
+} from '../resume.js'
 
 export const authRouter = Router()
 
@@ -206,6 +213,99 @@ authRouter.delete('/github', requireAuth, (req, res) => {
     `UPDATE users SET githubUsername = NULL, githubBrief = NULL, githubStack = '[]',
                       githubDomains = '[]', githubLevel = NULL, githubRepoCount = NULL,
                       githubSyncedAt = NULL
+     WHERE id = ?`
+  ).run(req.user.id)
+  res.json({ user: publicUser(findUserById(req.user.id)) })
+})
+
+/* ----------------------------------------------- POST /api/auth/resume --- */
+
+const saveResume = db.prepare(`
+  UPDATE users SET resumeText = @resumeText, resumeBrief = @resumeBrief,
+                   resumeSkills = @resumeSkills, resumeProjects = @resumeProjects,
+                   resumeHighlights = @resumeHighlights, resumeFileName = @resumeFileName,
+                   resumeUpdatedAt = @resumeUpdatedAt
+  WHERE id = @id
+`)
+
+/**
+ * Distils and stores an extracted resume.
+ *
+ * The raw text is kept because the mock interviewer legitimately needs the whole
+ * document; everything else reads the distilled fields. A model failure saves
+ * nothing — an unread resume is honest, a fabricated one is not.
+ */
+async function ingestResume(req, res, text, fileName) {
+  if (!looksLikeProse(text)) {
+    return res.status(422).json({
+      error: 'That does not look like enough resume text to work with. Paste the whole thing — education, skills and projects.',
+    })
+  }
+
+  try {
+    const summary = await summariseResume({ text, name: req.user.name })
+
+    saveResume.run({
+      id: req.user.id,
+      resumeText: text,
+      resumeBrief: summary.brief,
+      resumeSkills: JSON.stringify(summary.skills),
+      resumeProjects: JSON.stringify(summary.projects),
+      resumeHighlights: JSON.stringify(summary.highlights),
+      resumeFileName: fileName || null,
+      resumeUpdatedAt: new Date().toISOString(),
+    })
+
+    res.json({ user: publicUser(findUserById(req.user.id)) })
+  } catch (err) {
+    console.warn('[resume] distillation failed |', (err.tried ?? []).join(' | ') || err.message)
+    res.status(503).json({
+      error: 'Read your resume, but the model was busy summarising it. Try again in a moment.',
+    })
+  }
+}
+
+/** Pasted text. */
+authRouter.post('/resume', requireAuth, async (req, res, next) => {
+  try {
+    const text = cleanResumeText(req.body?.text)
+    if (!text) return res.status(400).json({ error: 'Paste your resume text first.' })
+    await ingestResume(req, res, text, null)
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * Uploaded file. Raw body rather than a multipart parser — one file, no fields,
+ * and no dependency. The name travels in a header.
+ */
+authRouter.post(
+  '/resume/file',
+  requireAuth,
+  express.raw({ type: () => true, limit: MAX_UPLOAD_BYTES }),
+  async (req, res, next) => {
+    try {
+      const fileName = String(req.get('x-resume-filename') ?? '')
+        .replace(/[^\w.\- ]/g, '')
+        .slice(0, 80)
+
+      const text = extractResumeText(req.body, fileName)
+      await ingestResume(req, res, text, fileName)
+    } catch (err) {
+      if (err instanceof ResumeError) return res.status(err.status).json({ error: err.message })
+      next(err)
+    }
+  }
+)
+
+/* --------------------------------------------- DELETE /api/auth/resume --- */
+
+authRouter.delete('/resume', requireAuth, (req, res) => {
+  db.prepare(
+    `UPDATE users SET resumeText = NULL, resumeBrief = NULL, resumeSkills = '[]',
+                      resumeProjects = '[]', resumeHighlights = '[]',
+                      resumeFileName = NULL, resumeUpdatedAt = NULL
      WHERE id = ?`
   ).run(req.user.id)
   res.json({ user: publicUser(findUserById(req.user.id)) })
