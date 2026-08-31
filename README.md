@@ -31,6 +31,10 @@ Scenarios are personalised from four independent sources:
   non-forked repositories, then trains you on the stack you actually use. An
   embedded/IoT student gets TensorFlow Lite latency and Arduino calibration
   arguments; a web student gets schema and deployment ones.
+- **Resume** (optional) — upload a PDF, DOCX or TXT and it is read on this
+  machine, then reduced to skills, projects and claims worth defending. Only the
+  skills reach a scenario; the projects go to the interviewer, who is the one
+  who should be asking about them.
 - **Derived context** — a rolling summary the model rewrites every three
   attempts, describing what you reliably do well and what you keep missing. It
   feeds forward into both scenario generation and grading, so feedback can say
@@ -75,8 +79,30 @@ transfers out, or a new intern starts, and the People directory updates to match
 
 ## Run it
 
+**You need:** Node 20 or newer (built on 24), and a free OpenRouter account.
+
+**1 — Install**
+
 ```bash
-npm run install:all     # first time only
+git clone https://github.com/ishaaqdev/Knack.git
+cd Knack
+npm run install:all
+```
+
+**2 — Add your API key.** This is the only required configuration; without it
+every generation falls back to the offline bank.
+
+```bash
+cp server/.env.example server/.env
+```
+
+Then open `server/.env` and paste a key from
+[openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) into
+`OPENROUTER_API_KEY`. The file is gitignored and never leaves your machine.
+
+**3 — Run**
+
+```bash
 npm run dev
 ```
 
@@ -84,6 +110,10 @@ npm run dev
 |---|---|
 | **App** | **http://localhost:5173** |
 | API | http://127.0.0.1:5190 (loopback only) |
+
+**4 — Sign up**, answer the eight onboarding questions, and you start at the
+group discussion. Optionally add a resume and a GitHub username on the Profile
+page — both make the scenarios and the interview specific to you.
 
 Testing on a phone? The Vite dev server binds `0.0.0.0`, so open
 `http://<your-lan-ip>:5173` on any device on the same Wi-Fi. `/api` is proxied
@@ -99,13 +129,30 @@ npm run build && npm start   # everything on http://localhost:5190
 > On npm 11+, `better-sqlite3` needs its native binary approved once:
 > `cd server && npm approve-scripts better-sqlite3 && npm rebuild better-sqlite3`
 
+### If the AI is not responding
+
+OpenRouter's free tier allows **50 requests per day, account-wide** across every
+`:free` model. When it runs out, everything still works — scenarios come from the
+offline bank and grading from a local rubric — and the interface says so rather
+than pretending otherwise.
+
+```bash
+curl http://localhost:5173/api/health     # model chain and any active cooldown
+```
+
+Free model availability also drifts. Models silently become paid-only and start
+returning 404; if the chain in `server/.env` stops working, replace it from the
+current free list at [openrouter.ai/models](https://openrouter.ai/models?q=free).
+Adding $10 of credit raises the limit to 1000/day and is not consumed by
+`:free` models.
+
 ---
 
 ## Stack
 
 - **Frontend** — React 19 + Vite, Tailwind CSS v4, Framer Motion, React Router, Zustand
 - **Backend** — Node + Express 5
-- **AI** — `google/gemma-4-31b-it:free` via OpenRouter, with a fallback model chain
+- **AI** — OpenRouter free tier, a four-model fallback chain under a time budget
 - **Storage** — SQLite (`better-sqlite3`), file at `server/data/knack.db`
 
 Config lives in `server/.env`. Prompt templates are isolated in
@@ -118,23 +165,43 @@ Config lives in `server/.env`. Prompt templates are isolated in
 ```
 server/src/
   index.js          Express app, static SPA in production
-  db.js             SQLite schema, additive migrations, track seed
-  auth.js           scrypt password hashing, session tokens, route guards
+  db.js             SQLite schema (16 relations), additive migrations, track seed
+  auth.js           scrypt hashing, session tokens, route guards, attribute seeding
+
+  — who the trainee is
   profile.js        The 8 onboarding fields — options, validation, prompt phrasing
+  resume.js         PDF and DOCX text extraction via zlib, then distillation
   github.js         Public GitHub reader — repo filtering, README extraction
   context.js        Derived learner context: when to refresh, what to inject
+
+  — the simulation
+  attributes.js     The ten permanent attributes, tiers, deltas, and their log
+  characters.js     Persistent colleagues, relationships, what they remember
+  consequences.js   Decisions scheduled now and fired several levels later
+  career.js         The six-phase spine, gates, bands, objective, challenges
+  workplace.js      Rooms, the shape of a day, company evolution, day summary
+  offer.js          Compensation, the review, negotiation outcomes, promotion
+  badges.js         24 achievements, rarity, and the conditions behind them
+  interview.js      The five interview rounds and their unlock rules
   gamification.js   XP, levels, streaks, rolling skill scores, readiness, difficulty
-  prompts.js        Gemma prompt templates (tune here)
-  ai.js             OpenRouter client — retries, model fallback, JSON extraction
-  fallback.js       Offline scenario bank + rubric for when the model is down
-  routes/           auth.js · quest.js · user.js · history.js
+  variation.js      Scenario shape sampling — 18,480 combinations
+
+  — talking to the model
+  prompts.js        Every prompt template (tune here, not in routes)
+  ai.js             OpenRouter client — time budget, model fallback, JSON extraction
+  fallback.js       Offline banks and rubrics for when the model is unreachable
+
+  routes/           auth · quest · interview · gd · career · workplace · offer ·
+                    user · history
 
 web/src/
   pages/            Home · Auth · Onboarding · Dashboard · TrackSelect ·
-                    QuestSession · Feedback · Profile
-  components/       Header · Ring · ScoreDial · TrackCard · Insight ·
-                    ProfileEditor · AttemptDetail · …
-  store/useKnack.js Auth, profile, XP/streak and quest-session state
+                    QuestSession · Feedback · Interview · GroupDiscussion ·
+                    Career · Joining · People · Workplace · Offer · Badges ·
+                    Profile
+  components/       Header · Avatar · Attributes · Countdown · Ring · ScoreDial ·
+                    TrackCard · Insight · ResumeCard · GithubCard · primitives · …
+  store/useKnack.js Auth, profile, XP/streak, level and career state
 ```
 
 ### API
@@ -203,7 +270,9 @@ users            id, email, passwordHash, name,
                  resumeProjects (JSON), resumeHighlights (JSON),
                  resumeFileName, resumeUpdatedAt,
                  xp, streak, longestStreak, lastActiveDate, interviewLevel,
-                 createdAt
+                 phase, simCompany, simCompanyKind, simRole, joinedCompanyAt,
+                 internshipLevel, gdCleared, lastReviewLevel,
+                 jobTitle, ctc, gradeIndex, levelsSinceHire, createdAt
 sessions         tokenHash, userId, createdAt, expiresAt
 learner_context  userId, summary, recurringGaps (JSON), pushNext,
                  attemptsAtUpdate, updatedAt
@@ -214,12 +283,35 @@ attempts         id, userId, trackId, difficulty, scenarioText, userResponse,
 interview_runs   id, userId, level, role, questions (JSON), answers (JSON),
                  perAnswer (JSON), score, verdict, strengths, gaps, nextFocus,
                  xpAwarded, source, timestamp, localDate
+gd_runs          id, userId, topic, transcript (JSON), contributions (JSON),
+                 scores (JSON), score, verdict, strengths, gaps, nextFocus,
+                 xpAwarded, source, timestamp, localDate
+
+attributes       userId, key, value, updatedAt
+attribute_log    id, userId, key, delta, before, after, reason, source, at
+characters       id, userId, slug, name, defaultName, pronouns, role,
+                 department, personality, strengths (JSON), weaknesses (JSON),
+                 careerHistory (JSON), joinedLabel, relationship, status
+character_events id, userId, characterId, summary, delta, before, after, at
+consequences     id, userId, characterId, kind, cause, effect, weight,
+                 dueAfter, firedAt, createdAt
+workdays         id, userId, dayNumber, location, events (JSON),
+                 summary (JSON), status, xpAwarded, createdAt, closedAt
+company_events   id, userId, kind, characterId, headline, detail, atDay, seen
+offers           id, userId, company, title, fixed, variable, joiningBonus,
+                 benefits (JSON), location, workingModel, joiningDate,
+                 probation, reviewScores (JSON), reviewFeedback, rounds (JSON),
+                 status, createdAt, decidedAt
+badges           id, userId, slug, why, phase, at
 ```
 
-`attempts.kind` is `level` for the five-stage format and `open` for the older
-single-scenario rows; `detail` holds the per-stage breakdown. Interview rounds
-live in their own table because an interview is not a track, and must never move
-a track score.
+Sixteen relations. Every child cascades from the account, so deleting a trainee
+removes their whole simulation.
+
+Two rules worth knowing. `attempts.kind` is `level` for the five-stage format,
+`workday` for a day in the office and `open` for the older single-scenario rows;
+`detail` holds the per-stage breakdown. And interviews and discussions live in
+their own tables because neither is a track — they must never move a track score.
 
 ### Auth
 
@@ -346,6 +438,46 @@ hand-rolled 1.5px SVGs on a single grid; no icon library, no emoji.
 
 Animation is Framer Motion springs, 200–600ms, and every animated element has a
 `prefers-reduced-motion` fallback.
+
+---
+
+## The presentation
+
+The Phase 2 deck lives in `docs/` as HTML, with a generated PDF beside it.
+
+| File | |
+|---|---|
+| `Knack_Phase2_Presentation.pdf` | 38 slides, ready to present |
+| `Knack_Phase2_Presentation.html` | the source |
+| `Knack_Mini_Project_Report.html` | the long-form report |
+
+Regenerate the PDF after editing the HTML:
+
+```bash
+# Chrome or Edge, headless. Pages are 264x198mm so the blue band bleeds to the edge.
+msedge --headless=new --disable-gpu --no-pdf-header-footer \
+  --print-to-pdf=docs/Knack_Phase2_Presentation.pdf \
+  docs/Knack_Phase2_Presentation.html
+```
+
+By hand: open the HTML, Ctrl+P, **Save as PDF**, margins **None**, and tick
+**Background graphics** — the blue band disappears without it.
+
+### Check it before you present
+
+Slides are fixed 4:3 boxes with `overflow:hidden`, so one that has grown too
+tall does not look broken — it silently loses its last rows. Two checkers exist
+because both of these shipped at least once:
+
+```bash
+node docs/check-overflow.mjs      # any slide taller than its box
+node docs/check-numbering.mjs     # numbered lists that restart or skip
+node docs/check-readme.mjs        # this file, against the actual repository
+```
+
+Both drive a real browser and read back what is actually painted. Reading the
+source would not have caught either bug. Note the limit: an SVG can overflow its
+own `viewBox` while the slide still fits, so **look at any figure you edit**.
 
 ---
 
