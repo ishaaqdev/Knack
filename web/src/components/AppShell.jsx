@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Header } from './Header'
-import { IconHome, IconQuest, IconBriefcase, IconUser } from './Icons'
+import { IconHome, IconQuest, IconSpeech, IconBriefcase, IconUser } from './Icons'
 import { cx } from '../lib/ui'
 
 const NAV = [
   { to: '/dashboard', label: 'Home', Icon: IconHome },
   { to: '/tracks', label: 'Quest', Icon: IconQuest },
+  { to: '/practice', label: 'Practice', Icon: IconSpeech },
   { to: '/career', label: 'Career', Icon: IconBriefcase },
   { to: '/profile', label: 'Profile', Icon: IconUser },
 ]
@@ -21,7 +22,7 @@ function BottomNav() {
             to={to}
             className={({ isActive }) =>
               cx(
-                'relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors',
+                'relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[9.5px] font-medium transition-colors',
                 isActive ? 'text-ember' : 'text-faint hover:text-dim'
               )
             }

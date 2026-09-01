@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useKnack } from '../store/useKnack'
 import { api } from '../lib/api'
@@ -17,7 +17,7 @@ import { Avatar } from '../components/Avatar'
 import { AttributeDeltas } from '../components/Attributes'
 import { IconArrowLeft, IconArrowRight, IconRefresh, IconSpeech } from '../components/Icons'
 import { Clock, useCountdown } from '../components/Countdown'
-import { relativeDate, useReducedMotion } from '../lib/ui'
+import { cx, relativeDate, useReducedMotion } from '../lib/ui'
 
 /**
  * The group discussion.
@@ -51,7 +51,10 @@ function Turn({ turn, index }) {
         className="mt-0.5"
       />
       <div className={`min-w-0 flex-1 ${mine ? 'text-right' : ''}`}>
-        <p className="text-[11px] text-faint">{turn.speaker}</p>
+        <p className="text-[11px] text-faint">
+          {turn.speaker}
+          {turn.to ? ` → ${turn.to}` : ''}
+        </p>
         <p
           className={`mt-1 inline-block rounded-tile px-3 py-2 text-left text-[13.5px] leading-relaxed ${
             mine ? 'bg-ember/12 text-text' : 'bg-surface text-dim'
@@ -68,6 +71,8 @@ function Turn({ turn, index }) {
 
 function Room({ run, onTurn, onFinish, busy, error }) {
   const [text, setText] = useState('')
+  // Who this reply is aimed at. Null means the room.
+  const [to, setTo] = useState(null)
   const endRef = useRef(null)
   const taRef = useRef(null)
 
@@ -91,21 +96,40 @@ function Room({ run, onTurn, onFinish, busy, error }) {
    */
   const expire = useCallback(() => {
     if (busy || run.closed) return
-    onTurn('')
+    onTurn('', null)
     setText('')
+    setTo(null)
   }, [busy, run.closed, onTurn])
 
   const left = useCountdown(run.seconds ?? 60, expire, !busy && !run.closed)
 
   return (
     <>
-      <Card className="relative overflow-hidden">
+      <Card hot className="relative overflow-hidden">
         <div className="absolute left-0 top-0 h-full w-[3px] bg-ember" />
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-faint">
-          The motion
+
+        {run.room && (
+          <p className="mb-3 text-[12.5px] leading-relaxed text-faint">{run.room.setting}</p>
+        )}
+
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-ember">
+          The motion{run.category ? ` · ${run.category}` : ''}
         </p>
-        <p className="text-[15.5px] leading-[1.6] text-text">{run.topic}</p>
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <p className="text-[16px] leading-[1.55] text-text">{run.topic}</p>
+
+        {/* What is actually being argued about. Without this, the first two
+            minutes of any discussion are spent defining terms. */}
+        {run.frame && (
+          <p className="mt-3 border-t border-hair pt-3 text-[13px] leading-relaxed text-dim">
+            {run.frame}
+          </p>
+        )}
+
+        {run.room && (
+          <p className="mt-3 text-[12.5px] leading-relaxed text-faint">{run.room.brief}</p>
+        )}
+
+        <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
           {run.panel.map((p) => (
             <Pill key={p.name} dot={false}>
               {p.name} · {p.trait}
@@ -175,18 +199,57 @@ function Room({ run, onTurn, onFinish, busy, error }) {
             </div>
           </div>
 
+          {/* Addressing one person by name. They answer you rather than
+              restating their position, which is what a room actually does. */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-[11.5px] text-faint">Speaking to</span>
+            <button
+              type="button"
+              onClick={() => setTo(null)}
+              className={cx(
+                'rounded-full border px-2.5 py-1 text-[11.5px] transition-colors',
+                to === null
+                  ? 'border-ember/45 bg-ember/10 text-ember-hi'
+                  : 'border-line text-dim hover:border-dim'
+              )}
+            >
+              the room
+            </button>
+            {run.panel.map((p) => (
+              <button
+                key={p.name}
+                type="button"
+                onClick={() => setTo(p.name)}
+                className={cx(
+                  'rounded-full border px-2.5 py-1 text-[11.5px] transition-colors',
+                  to === p.name
+                    ? 'border-ember/45 bg-ember/10 text-ember-hi'
+                    : 'border-line text-dim hover:border-dim'
+                )}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+
           <div className="mt-3 flex gap-2.5">
             <Button
               className="flex-1"
               disabled={busy || words < 4}
               onClick={() => {
-                onTurn(text)
+                onTurn(text, to)
                 setText('')
+                setTo(null)
               }}
             >
-              Say this
+              {to ? `Say this to ${to}` : 'Say this'}
             </Button>
-            <Button variant="ghost" className="flex-1" disabled={busy} onClick={() => onTurn('')}>
+            <Button
+              variant="ghost"
+              className="flex-1"
+              disabled={busy}
+              onClick={() => onTurn('', null)}
+            >
               Stay quiet
             </Button>
           </div>
@@ -318,6 +381,8 @@ function Debrief({ result, onAgain, onNext }) {
 
 export function GroupDiscussion() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const practice = params.get('practice') === '1'
   const applyResult = useKnack((s) => s.applyResult)
 
   const [state, setState] = useState(null)
@@ -347,7 +412,7 @@ export function GroupDiscussion() {
     setError(null)
     setResult(null)
     try {
-      const r = await api.startGd()
+      const r = await api.startGd(practice)
       setRun({ ...r, closed: false })
     } catch (e) {
       setError(e.message)
@@ -356,15 +421,18 @@ export function GroupDiscussion() {
     }
   }
 
-  async function turn(text) {
+  async function turn(text, to = null) {
     setBusy(true)
     setError(null)
     // Show what was said immediately; the room replies when it replies.
     if (text.trim()) {
-      setRun((r) => ({ ...r, transcript: [...r.transcript, { speaker: 'You', text, you: true }] }))
+      setRun((r) => ({
+        ...r,
+        transcript: [...r.transcript, { speaker: 'You', text, you: true, to }],
+      }))
     }
     try {
-      const r = await api.gdTurn(run.runId, text)
+      const r = await api.gdTurn(run.runId, text, to)
       setRun((prev) => ({ ...prev, transcript: r.transcript, beat: r.beat, closed: r.closed }))
     } catch (e) {
       setError(e.message)
@@ -378,7 +446,8 @@ export function GroupDiscussion() {
     setError(null)
     try {
       const r = await api.finishGd(run.runId)
-      applyResult(r)
+      // A practice run awards nothing, so there is nothing to apply.
+      if (!r.practice) applyResult(r)
       setResult(r)
       setRun(null)
       refresh()
@@ -427,7 +496,10 @@ export function GroupDiscussion() {
         />
       ) : (
         <>
-          <PageHead eyebrow="Phase one" title="Group discussion">
+          <PageHead
+            eyebrow={practice ? 'Practice · nothing at stake' : 'Phase one'}
+            title="Group discussion"
+          >
             Five candidates, one motion, five exchanges. You decide when to speak — and being the
             loudest is not how this is scored.
           </PageHead>

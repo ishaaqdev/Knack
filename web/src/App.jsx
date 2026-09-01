@@ -18,6 +18,7 @@ import { Badges } from './pages/Badges'
 import { Offer } from './pages/Offer'
 import { Workplace } from './pages/Workplace'
 import { Joining } from './pages/Joining'
+import { Practice } from './pages/Practice'
 import { Profile } from './pages/Profile'
 
 function Boot({ children }) {
@@ -90,6 +91,7 @@ export default function App() {
               <Route path="/offer" element={<Offer />} />
               <Route path="/office" element={<Workplace />} />
               <Route path="/joining" element={<Joining />} />
+              <Route path="/practice" element={<Practice />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
           </Route>

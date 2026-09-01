@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useKnack } from '../store/useKnack'
 import { api } from '../lib/api'
@@ -74,12 +74,12 @@ function RoundRow({ round, onStart, busy, index }) {
   )
 }
 
-function Overview({ state, onStart, busy, error }) {
+function Overview({ state, onStart, busy, error, practice }) {
   const user = useKnack((s) => s.user)
 
   return (
     <>
-      <PageHead eyebrow={state.role} title="Interview prep">
+      <PageHead eyebrow={practice ? 'Practice · nothing at stake' : state.role} title="Interview prep">
         Five rounds against an interviewer who has read your file. You are applying at{' '}
         {state.company}.
       </PageHead>
@@ -122,7 +122,15 @@ function Overview({ state, onStart, busy, error }) {
       <SectionLabel>Rounds</SectionLabel>
       <div className="space-y-3">
         {state.rounds.map((r, i) => (
-          <RoundRow key={r.level} round={r} index={i} onStart={onStart} busy={busy} />
+          <RoundRow
+            key={r.level}
+            // Practice opens every round: rehearsing round four before you have
+            // earned it is exactly what a practice room is for.
+            round={practice ? { ...r, unlocked: true } : r}
+            index={i}
+            onStart={onStart}
+            busy={busy}
+          />
         ))}
       </div>
 
@@ -403,6 +411,8 @@ function Debrief({ result, onAgain, onDone }) {
 
 export function Interview() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const practice = params.get('practice') === '1'
   const applyResult = useKnack((s) => s.applyResult)
 
   const [state, setState] = useState(null)
@@ -433,7 +443,7 @@ export function Interview() {
     setError(null)
     try {
       setResult(null)
-      setRun(await api.startInterview(level))
+      setRun(await api.startInterview(level, practice))
     } catch (e) {
       setError(e.message)
     } finally {
@@ -446,7 +456,8 @@ export function Interview() {
     setError(null)
     try {
       const r = await api.submitInterview({ runId: run.runId, answers })
-      applyResult(r)
+      // A practice round awards nothing, so there is nothing to apply.
+      if (!r.practice) applyResult(r)
       setResult(r)
       setRun(null)
       refresh()
@@ -512,7 +523,7 @@ export function Interview() {
           }}
         />
       ) : (
-        <Overview state={state} onStart={start} busy={busy} error={error} />
+        <Overview state={state} onStart={start} busy={busy} error={error} practice={practice} />
       )}
     </Page>
   )

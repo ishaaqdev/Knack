@@ -355,37 +355,60 @@ export function FALLBACK_LEVEL(trackId, n = 0) {
 
 const INTERVIEW_BANK = {
   1: [
-    'Tell me about yourself — start wherever you think is most relevant to this role.',
-    'Why this role in particular, rather than the other things your degree opens up?',
-    'What is one thing on your resume you would happily spend ten minutes on?',
+    'Walk me through the last two years — not your CV, the decisions.',
+    'Why this role specifically? "I like coding" is true of everyone in the building.',
+    'What is on your resume that you would defend hardest if I pushed on it?',
+    'What made you apply to us rather than the company next door?',
+    'Tell me about something you built that nobody asked you to build.',
+    'What do you think this job is mostly going to be, day to day?',
+    'What is the last thing you learned that you did not have to?',
   ],
   2: [
-    'Tell me about a time you disagreed with someone on a team project. What did you do?',
-    'Describe something you worked on that did not go the way you planned.',
-    'Tell me about a time you had to learn something quickly to keep a project moving.',
+    'Tell me about a time you were clearly wrong and someone else was right.',
+    'Describe a deadline you missed. What did the other people find out, and when?',
+    'Tell me about someone on a team you found genuinely difficult to work with.',
+    'When did you last change your mind about something technical? What changed it?',
+    'Tell me about a time you had to do work you thought was pointless.',
+    'Describe a moment where you should have asked for help earlier than you did.',
+    'Tell me about a decision you made that affected someone else more than you.',
   ],
   3: [
-    'Pick the project you are proudest of and walk me through how you built it.',
-    'What was the hardest technical decision you made on it, and what did you trade away?',
-    'If you started that project again tomorrow, what would you do differently and why?',
+    'Pick your hardest project. What was the thing that nearly killed it?',
+    'What did you build that you would now build completely differently?',
+    'Talk me through a technical decision where the alternative was also defensible.',
+    'What part of that project did you not really understand at the time?',
+    'If I gave you two more weeks on it, what would you fix first, and why that?',
+    'Which part of it would break first under ten times the load?',
+    'What did you leave out, and was that the right call?',
   ],
   4: [
-    'You have said you work well under pressure. What is the evidence for that?',
-    'A reviewer says your approach is wrong and you believe they have misread it. What happens next?',
-    'What is the weakest part of your profile for this role, and what are you doing about it?',
+    'I am not convinced that project was as much your work as you are suggesting.',
+    'You have said you learn fast. What have you learned in the last month?',
+    'Your marks are below what we normally shortlist. Why should that not matter here?',
+    'What would your last teammate say was the most annoying thing about working with you?',
+    'That is not the question I asked. Try again.',
+    'Everything you have described went well. Tell me about one that did not.',
+    'You are twenty minutes into a production incident and nobody knows the cause. Then what?',
   ],
   5: [
-    'You are given a task with a deadline you know is unrealistic. Walk me through your first day.',
-    'What do you want to be doing two years from now, and what would have to be true here for that?',
-    'What would you like to ask me about the team or the work?',
+    'The offer is going to be lower than you were hoping. Talk me through how you think about that.',
+    'What would make you leave a job inside the first year?',
+    'Where do you want to be in two years, and what would have to be true here for that?',
+    'What should I have asked you that I did not?',
+    'What is the part of this job you think you will be worst at?',
+    'If two of us disagree about you after this, what will the disagreement be about?',
+    'What do you want to ask me?',
   ],
 }
 
-export function FALLBACK_INTERVIEW(level, n = 3) {
+
+export function FALLBACK_INTERVIEW(level, n = 3, seed = 0) {
   const bank = INTERVIEW_BANK[level] ?? INTERVIEW_BANK[1]
+  // Rotate, so running a round twice does not serve the same three questions.
+  const picked = Array.from({ length: n }, (_, i) => bank[(seed + i * 2) % bank.length])
   return {
     opener: 'Thanks for making the time. Let us get straight into it.',
-    questions: bank.slice(0, n).map((text) => ({ text, hint: '' })),
+    questions: picked.map((text) => ({ text, hint: '' })),
     offlineNote:
       'The AI model was unavailable, so these are standard questions for this round rather than ones written from your resume.',
   }

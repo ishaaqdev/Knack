@@ -514,6 +514,15 @@ ${round.ask}
 ${avoidBlock}
 Write exactly ${n} questions, in the order you would ask them.
 
+WHAT MAKES A GOOD QUESTION HERE
+The bad version of every one of these is the version the candidate has already
+rehearsed. "Tell me about your strengths" gets a prepared paragraph; "what would
+your last teammate say was the most annoying thing about working with you" gets
+the truth or a visible dodge, and both are informative.
+
+Ask the specific, slightly uncomfortable version. Prefer a question about one
+concrete thing they did over a question about what they are like.
+
 RULES
 - Each question is 1-2 sentences, spoken aloud as an interviewer would say it.
   Under 40 words.
@@ -609,57 +618,73 @@ export const GD_PANEL = [
   { name: 'Imran', trait: 'Quiet', how: 'says very little, but what he says is usually the best point so far' },
 ]
 
-export const GD_TOPICS = [
-  'Should companies require employees to return to the office full time?',
-  'Is it fair for companies to use AI to screen resumes?',
-  'Should engineers be responsible for the business impact of what they build?',
-  'Do college degrees still matter for hiring in software?',
-  'Should a company ever ship a product it knows is not finished?',
-  'Is remote work worse for people at the start of their careers?',
-  'Should social media companies be liable for what their algorithms promote?',
-  'Are internships exploitative when they are unpaid?',
-]
+// Topics live in topics.js — they carry framing and categories, which a bare
+// list of strings could not.
 
 /**
  * One beat of the discussion: what the panel says next, given everything so
  * far. Asking for the whole discussion up front would make it a script the
  * trainee reads rather than a room they are in.
  */
-export function gdTurnPrompt({ topic, transcript, beat, totalBeats, lastUserTurn }) {
+export function gdTurnPrompt({
+  topic,
+  frame,
+  transcript,
+  beat,
+  totalBeats,
+  lastUserTurn,
+  addressed,
+  traineeName,
+}) {
   const panel = GD_PANEL.map((p) => `- ${p.name} (${p.trait}): ${p.how}`).join('\n')
   const said = transcript.length
     ? transcript.map((t) => `${t.speaker}: ${t.text}`).join('\n')
     : '(nothing yet — this is the opening)'
 
+  /*
+   * Being spoken to by name is most of what makes a room feel like a room. If
+   * the trainee addressed someone, that person answers first and answers them,
+   * not the motion.
+   */
+  const reaction = !lastUserTurn
+    ? 'The trainee has not spoken yet. Do not mention them or invite them by name.'
+    : addressed
+      ? `The trainee spoke directly to ${addressed}: "${lastUserTurn}"
+${addressed} MUST answer first, and must answer the trainee rather than restating their own position. They may use the trainee's name${traineeName ? ` (${traineeName})` : ''}. One other candidate may then come in.`
+      : `The trainee just said: "${lastUserTurn}"
+At least one candidate should react to it directly — agreeing, building on it, or pushing back. Use their name${traineeName ? ` (${traineeName})` : ''} if it is natural. Do not ignore them.`
+
   return `You are simulating a campus placement group discussion for a training
-app. Five candidates are in the room, plus the trainee, who is a sixth
+app. Five candidates are around the table, plus the trainee, who is a sixth
 participant you must NOT speak for.
 
-TOPIC
+THE MOTION
 ${topic}
-
-THE PANEL
+${frame ? `\nWHAT IS ACTUALLY AT STAKE\n${frame}\n` : ''}
+THE OTHER CANDIDATES
 ${panel}
 
 THE DISCUSSION SO FAR
 ${said}
 
 You are writing beat ${beat} of about ${totalBeats}.
-${
-  lastUserTurn
-    ? `The trainee just said: "${lastUserTurn}"\nAt least one candidate should react to it directly — agreeing, building on it, or pushing back. Do not ignore it.`
-    : 'The trainee has not spoken yet. Do not mention them or invite them by name.'
-}
+${reaction}
 
 Write 2 or 3 short turns from DIFFERENT candidates, in the order they speak.
 
 RULES
-- Each turn is 1 to 2 sentences, under 40 words. Spoken, not written.
-- Stay in character. Rohit dominates, Vikram challenges, Imran is brief and
-  sharp, Anjali cites something concrete, Sneha reconciles.
-- Advance the argument. Do not restate what has already been said.
+- Each turn is 1 to 2 sentences, under 40 words. Spoken aloud, not written.
+- Stay in character. Rohit dominates and talks over people, Vikram challenges
+  whatever was just said, Imran is brief and lands the best point, Anjali cites
+  something concrete, Sneha reconciles and brings quiet people in.
+- Candidates should talk to EACH OTHER by name, not deliver speeches in turn.
+  Disagreement is the point of the exercise; do not let them all agree.
+- Advance the argument. Never restate a point already made.
+- Late in the discussion (beat ${totalBeats} or close to it), someone should try
+  to pull it together, and someone else may resist that.
 - Never speak for the trainee and never put words in their mouth.
-- Real spoken English. No markdown, no emoji, no stage directions.
+- Real spoken English, including the odd unfinished sentence. No markdown, no
+  emoji, no stage directions.
 
 Reply with ONLY this JSON object and nothing else:
 {"turns":[{"speaker":"<candidate name>","text":"<what they say>"}]}`
@@ -669,7 +694,7 @@ Reply with ONLY this JSON object and nothing else:
  * The debrief. Judged on the things a GD actually tests, which are mostly not
  * "did they talk a lot".
  */
-export function gdEvaluationPrompt({ topic, transcript, contributions, profile }) {
+export function gdEvaluationPrompt({ topic, frame, transcript, contributions, profile }) {
   const said = transcript.map((t) => `${t.speaker}: ${t.text}`).join('\n')
   const mine = contributions.length
     ? contributions.map((c, i) => `${i + 1}. (after ${c.after} other turns) "${c.text}"`).join('\n')
@@ -681,7 +706,7 @@ a real GD has been let down.
 
 TOPIC
 ${topic}
-${profile ? `\nTHE CANDIDATE: ${profile.who}\n` : ''}
+${frame ? `\nWHAT WAS AT STAKE: ${frame}\n` : ''}${profile ? `\nTHE CANDIDATE: ${profile.who}\n` : ''}
 FULL TRANSCRIPT
 ${said}
 

@@ -3,7 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { db, safeParse } from '../db.js'
 import { requireOnboarded } from '../auth.js'
 import { gdTurn, evaluateGd } from '../ai.js'
-import { GD_PANEL, GD_TOPICS } from '../prompts.js'
+import { GD_PANEL } from '../prompts.js'
+import { TOPICS, pickTopic, ROOM } from '../topics.js'
 import { profileBrief } from '../profile.js'
 import { clearGd, GD_PASS, careerState } from '../career.js'
 import { applyAttributeDeltas, getAttributes } from '../attributes.js'
@@ -88,20 +89,41 @@ gdRouter.get('/runs/:id', (req, res) => {
 /* -------------------------------------------------- POST /api/gd/start ---- */
 
 const topicCount = db.prepare('SELECT COUNT(*) AS n FROM gd_runs WHERE userId = ?')
+const recentTopics = db.prepare(
+  'SELECT topic FROM gd_runs WHERE userId = ? ORDER BY id DESC LIMIT 6'
+)
 
 gdRouter.post('/start', async (req, res, next) => {
   try {
     const user = req.user
-    // Rotate the topic rather than repeating one; a second attempt on the same
-    // motion is a rehearsal, not a discussion.
-    const topic = GD_TOPICS[topicCount.get(user.id).n % GD_TOPICS.length]
+    const practice = req.body?.practice === true
 
-    const opening = await gdTurn({ topic, transcript: [], beat: 1, totalBeats: TOTAL_BEATS })
+    // Rotate the topic rather than repeating one; a second attempt on the same
+    // motion is a rehearsal, not a discussion. Category rotates first, so five
+    // runs give five different kinds of argument.
+    const seen = recentTopics.all(user.id).map((r) => r.topic)
+    const chosen = pickTopic(
+      topicCount.get(user.id).n,
+      TOPICS.filter((t) => seen.includes(t.text)).map((t) => t.id)
+    )
+    const topic = chosen.text
+
+    const opening = await gdTurn({
+      topic,
+      frame: chosen.frame,
+      transcript: [],
+      beat: 1,
+      totalBeats: TOTAL_BEATS,
+    })
     const transcript = opening.turns.map((t) => ({ ...t, you: false }))
 
     const runId = stash({
       userId: user.id,
       topic,
+      topicId: chosen.id,
+      frame: chosen.frame,
+      category: chosen.category,
+      practice,
       transcript,
       contributions: [],
       beat: 1,
@@ -111,7 +133,11 @@ gdRouter.post('/start', async (req, res, next) => {
     res.json({
       runId,
       topic,
-      panel: GD_PANEL.map((p) => ({ name: p.name, trait: p.trait })),
+      frame: chosen.frame,
+      category: chosen.category,
+      room: ROOM,
+      practice,
+      panel: GD_PANEL.map((p) => ({ name: p.name, trait: p.trait, how: p.how })),
       transcript,
       beat: 1,
       totalBeats: TOTAL_BEATS,
@@ -137,9 +163,13 @@ gdRouter.post('/turn', async (req, res, next) => {
 
     const said = String(req.body?.text ?? '').trim().slice(0, 1200)
 
+    // Addressing someone by name is most of what makes a room feel like one.
+    const names = GD_PANEL.map((p) => p.name)
+    const addressed = names.includes(req.body?.to) ? req.body.to : null
+
     if (said) {
-      run.contributions.push({ text: said, after: run.transcript.length })
-      run.transcript.push({ speaker: 'You', text: said, you: true })
+      run.contributions.push({ text: said, after: run.transcript.length, to: addressed })
+      run.transcript.push({ speaker: 'You', text: said, you: true, to: addressed })
     }
 
     run.beat += 1
@@ -157,10 +187,13 @@ gdRouter.post('/turn', async (req, res, next) => {
 
     const next_ = await gdTurn({
       topic: run.topic,
+      frame: run.frame,
       transcript: run.transcript,
       beat: run.beat,
       totalBeats: TOTAL_BEATS,
       lastUserTurn: said || null,
+      addressed,
+      traineeName: req.user.name?.split(' ')[0],
     })
 
     const added = next_.turns.map((t) => ({ ...t, you: false }))
@@ -187,10 +220,10 @@ gdRouter.post('/turn', async (req, res, next) => {
 const insertRun = db.prepare(`
   INSERT INTO gd_runs
     (userId, topic, transcript, contributions, scores, score, verdict, strengths,
-     gaps, nextFocus, xpAwarded, source, timestamp, localDate)
+     gaps, nextFocus, xpAwarded, practice, source, timestamp, localDate)
   VALUES
     (@userId, @topic, @transcript, @contributions, @scores, @score, @verdict, @strengths,
-     @gaps, @nextFocus, @xpAwarded, @source, @timestamp, @localDate)
+     @gaps, @nextFocus, @xpAwarded, @practice, @source, @timestamp, @localDate)
 `)
 
 const updateUser = db.prepare(`
@@ -219,14 +252,28 @@ gdRouter.post('/finish', async (req, res, next) => {
 
     const debrief = await evaluateGd({
       topic: run.topic,
+      frame: run.frame,
       transcript: run.transcript,
       contributions: run.contributions,
       profile: profileBrief(before),
     })
 
+    /*
+     * Practice keeps the feedback and drops everything else.
+     *
+     * The whole value of a practice room is that nothing is at stake — a
+     * trainee who is worried about their attributes will play it safe, and
+     * playing it safe is precisely the habit this is meant to break. So no XP,
+     * no attribute movement, no streak, no phase unlock. The debrief is
+     * identical.
+     */
+    const practice = !!run.practice
+
     const today = localDate()
-    const { streak, event } = streakAfterQuest(before, today)
-    const xp = debrief.score * 12 + STREAK_BONUS(streak)
+    const { streak, event } = practice
+      ? { streak: before.streak, event: 'none' }
+      : streakAfterQuest(before, today)
+    const xp = practice ? 0 : debrief.score * 12 + STREAK_BONUS(streak)
 
     const beforeLevel = levelFor(before.xp)
     const afterXp = before.xp + xp
@@ -246,47 +293,57 @@ gdRouter.post('/finish', async (req, res, next) => {
         gaps: debrief.gaps,
         nextFocus: debrief.nextFocus,
         xpAwarded: xp,
+        practice: practice ? 1 : 0,
         source: debrief.source,
         timestamp: new Date().toISOString(),
         localDate: today,
       })
       runId = info.lastInsertRowid
-      updateUser.run({
-        id: before.id,
-        xp: afterXp,
-        streak,
-        longestStreak: Math.max(before.longestStreak, streak),
-        lastActiveDate: today,
-      })
+      if (!practice) {
+        updateUser.run({
+          id: before.id,
+          xp: afterXp,
+          streak,
+          longestStreak: Math.max(before.longestStreak, streak),
+          lastActiveDate: today,
+        })
+      }
     })()
 
     live.delete(req.body.runId)
 
     // Each dimension is scored 0-100; the delta is how far it sits from an
     // even 50, scaled down so one discussion nudges rather than rewrites.
-    const deltas = {}
-    for (const [dim, key] of Object.entries(GD_TO_ATTRIBUTE)) {
-      deltas[key] = Math.round(((debrief.scores[dim] - 50) / 14) * 10) / 10
+    let moved = []
+    if (!practice) {
+      const deltas = {}
+      for (const [dim, key] of Object.entries(GD_TO_ATTRIBUTE)) {
+        deltas[key] = Math.round(((debrief.scores[dim] - 50) / 14) * 10) / 10
+      }
+      moved = applyAttributeDeltas(before.id, deltas, {
+        reason: `Group discussion: ${run.topic.slice(0, 80)}`,
+        source: 'gd',
+      })
     }
-    const moved = applyAttributeDeltas(before.id, deltas, {
-      reason: `Group discussion: ${run.topic.slice(0, 80)}`,
-      source: 'gd',
-    })
 
     const newBadges = []
-    if (run.contributions.length >= 2 && debrief.score >= 6) {
+    if (!practice && run.contributions.length >= 2 && debrief.score >= 6) {
       const b = award(before.id, 'discussion-catalyst', `Contributed ${run.contributions.length} times and scored ${debrief.score}/10.`)
       if (b) newBadges.push(b)
     }
-    const phase = clearGd(before, debrief.score)
-    newBadges.push(
-      ...checkStateBadges(before.id, { attributes: getAttributes(before.id), streak })
-    )
+    const phase = practice ? (before.phase ?? 'gd') : clearGd(before, debrief.score)
+    if (!practice) {
+      newBadges.push(
+        ...checkStateBadges(before.id, { attributes: getAttributes(before.id), streak })
+      )
+    }
 
     res.json({
       kind: 'gd',
       runId,
+      practice,
       topic: run.topic,
+      frame: run.frame,
       passed: debrief.score >= GD_PASS,
       pass: GD_PASS,
       phaseUnlocked: phase !== (before.phase ?? 'gd') ? phase : null,

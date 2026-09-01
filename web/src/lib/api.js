@@ -72,7 +72,8 @@ export const api = {
 
   // interview
   interview: () => req('/interview'),
-  startInterview: (level) => req('/interview/start', { method: 'POST', body: { level } }),
+  startInterview: (level, practice = false) =>
+    req('/interview/start', { method: 'POST', body: { level, practice } }),
   submitInterview: (payload) => req('/interview/submit', { method: 'POST', body: payload }),
   interviewRun: (id) => req(`/interview/runs/${id}`),
 
@@ -105,8 +106,9 @@ export const api = {
 
   // group discussion
   gd: () => req('/gd'),
-  startGd: () => req('/gd/start', { method: 'POST', body: {} }),
-  gdTurn: (runId, text) => req('/gd/turn', { method: 'POST', body: { runId, text } }),
+  startGd: (practice = false) => req('/gd/start', { method: 'POST', body: { practice } }),
+  gdTurn: (runId, text, to = null) =>
+    req('/gd/turn', { method: 'POST', body: { runId, text, to } }),
   finishGd: (runId) => req('/gd/finish', { method: 'POST', body: { runId } }),
   gdRun: (id) => req(`/gd/runs/${id}`),
 

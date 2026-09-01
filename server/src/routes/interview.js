@@ -170,6 +170,7 @@ interviewRouter.post('/start', async (req, res, next) => {
     const runId = stash({
       userId: user.id,
       level,
+      practice: req.body?.practice === true,
       questions: generated.questions,
       source: generated.source,
     })
@@ -197,10 +198,10 @@ interviewRouter.post('/start', async (req, res, next) => {
 const insertRun = db.prepare(`
   INSERT INTO interview_runs
     (userId, level, role, questions, answers, perAnswer, score, verdict, strengths,
-     gaps, nextFocus, xpAwarded, source, timestamp, localDate)
+     gaps, nextFocus, xpAwarded, practice, source, timestamp, localDate)
   VALUES
     (@userId, @level, @role, @questions, @answers, @perAnswer, @score, @verdict, @strengths,
-     @gaps, @nextFocus, @xpAwarded, @source, @timestamp, @localDate)
+     @gaps, @nextFocus, @xpAwarded, @practice, @source, @timestamp, @localDate)
 `)
 
 const updateUser = db.prepare(`
@@ -236,9 +237,14 @@ interviewRouter.post('/submit', async (req, res, next) => {
       ...dossierFor(before),
     })
 
+    // Practice keeps the debrief and drops the consequences — see gd.js.
+    const practice = !!run.practice
+
     const today = localDate()
-    const { streak, event } = streakAfterQuest(before, today)
-    const xp = interviewXp(debrief.answers) + STREAK_BONUS(streak)
+    const { streak, event } = practice
+      ? { streak: before.streak, event: 'none' }
+      : streakAfterQuest(before, today)
+    const xp = practice ? 0 : interviewXp(debrief.answers) + STREAK_BONUS(streak)
 
     const beforeLevel = levelFor(before.xp)
     const afterXp = before.xp + xp
@@ -259,23 +265,28 @@ interviewRouter.post('/submit', async (req, res, next) => {
         gaps: debrief.gaps,
         nextFocus: debrief.nextFocus,
         xpAwarded: xp,
+        practice: practice ? 1 : 0,
         source: debrief.source,
         timestamp: new Date().toISOString(),
         localDate: today,
       })
       runId = info.lastInsertRowid
-      updateUser.run({
-        id: before.id,
-        xp: afterXp,
-        streak,
-        longestStreak: Math.max(before.longestStreak, streak),
-        lastActiveDate: today,
-      })
+      if (!practice) {
+        updateUser.run({
+          id: before.id,
+          xp: afterXp,
+          streak,
+          longestStreak: Math.max(before.longestStreak, streak),
+          lastActiveDate: today,
+        })
+      }
     })()
 
     pending.delete(req.body.runId)
 
-    const unlockedTo = unlockAfter(before, run.level, debrief.score)
+    const unlockedTo = practice
+      ? (before.interviewLevel ?? 1)
+      : unlockAfter(before, run.level, debrief.score)
     const progress = interviewProgress({ ...before, interviewLevel: unlockedTo })
 
     /*
@@ -283,7 +294,9 @@ interviewRouter.post('/submit', async (req, res, next) => {
      * present evidence, whether you hold up when challenged, whether you can
      * structure an answer. It should not move Teamwork.
      */
-    const moved = applyAttributeDeltas(
+    const moved = practice
+      ? []
+      : applyAttributeDeltas(
       before.id,
       {
         communication: (debrief.score - 5.5) / 1.6,
@@ -295,23 +308,26 @@ interviewRouter.post('/submit', async (req, res, next) => {
     )
 
     const newBadges = []
-    if (debrief.score >= PASS_SCORE && run.level === 1) {
+    if (!practice && debrief.score >= PASS_SCORE && run.level === 1) {
       const b = award(before.id, 'interview-ready', `Cleared the introduction round at ${debrief.score}/10.`)
       if (b) newBadges.push(b)
     }
-    if (debrief.score >= PASS_SCORE && run.level === 4) {
+    if (!practice && debrief.score >= PASS_SCORE && run.level === 4) {
       const b = award(before.id, 'under-pressure', `Held up in the pressure round at ${debrief.score}/10.`)
       if (b) newBadges.push(b)
     }
-    newBadges.push(...checkStateBadges(before.id, { attributes: getAttributes(before.id), streak }))
+    if (!practice) {
+      newBadges.push(...checkStateBadges(before.id, { attributes: getAttributes(before.id), streak }))
+    }
 
     // Clearing the last round is the offer of the internship.
     const allCleared = progress.rounds.every((r) => r.cleared)
-    const phase = allCleared ? clearInterview(before) : before.phase
+    const phase = !practice && allCleared ? clearInterview(before) : before.phase
 
     res.json({
       kind: 'interview',
       runId,
+      practice,
       level: run.level,
       round: { level: round.level, name: round.name, focus: round.focus },
       passed: debrief.score >= PASS_SCORE,

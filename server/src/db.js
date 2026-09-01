@@ -350,6 +350,11 @@ addColumn('users', 'gradeIndex', 'INTEGER NOT NULL DEFAULT 0')
 addColumn('users', 'levelsSinceHire', 'INTEGER NOT NULL DEFAULT 0')
 addColumn('users', 'lastReviewLevel', 'INTEGER NOT NULL DEFAULT 5')
 
+// Practice runs are kept, because the feedback is worth re-reading, but they
+// are marked so nothing downstream counts them.
+addColumn('gd_runs', 'practice', 'INTEGER NOT NULL DEFAULT 0')
+addColumn('interview_runs', 'practice', 'INTEGER NOT NULL DEFAULT 0')
+
 // SQLite cannot add a UNIQUE column via ALTER TABLE, so the constraint lives in
 // an index. Partial, because pre-auth legacy rows have a NULL email.
 db.exec(
