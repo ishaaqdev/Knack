@@ -225,13 +225,13 @@ export function pickTopic(n = 0, avoidIds = []) {
  * The room.
  *
  * A discussion with no setting is a text box with a question above it. Saying
- * where this is, who is watching and how long it lasts is most of what makes
- * the trainee's stomach drop, and that is the part being practised.
+ * where this is and who is watching is most of what makes the trainee's
+ * stomach drop, and that is the part being practised.
  */
 export const ROOM = {
   setting:
-    'A placement drive. Six of you around one table, a panel of two watching from the side, and ten minutes on the clock.',
+    'A placement drive. Six of you around one table, a panel of two watching from the side, and a shortlist at the end of it.',
   brief:
     'They are not marking who is loudest. They are marking who moves the discussion somewhere it would not otherwise have gone — which sometimes means being the person who summarises, and sometimes means being the person who disagrees with the room.',
-  moderator: 'The moderator reads out the topic, says nothing else, and starts the timer.',
+  moderator: 'The moderator reads out the topic, says nothing else, and lets the room begin.',
 }

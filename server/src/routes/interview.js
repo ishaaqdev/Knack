@@ -27,15 +27,6 @@ import {
   STREAK_BONUS,
 } from '../gamification.js'
 
-/**
- * How long a candidate gets per answer.
- *
- * The design document asks for 60 to 120 seconds on an interview response, and
- * it is right that it matters: an answer you had four minutes to compose is not
- * the answer you would give in the room. Running out submits what is written.
- */
-export const SECONDS_PER_QUESTION = 120
-
 export const interviewRouter = Router()
 
 interviewRouter.use(requireOnboarded)
@@ -183,7 +174,6 @@ interviewRouter.post('/start', async (req, res, next) => {
       company: companyFor(user),
       opener: generated.opener,
       questions: generated.questions,
-      seconds: SECONDS_PER_QUESTION,
       source: generated.source,
       offlineNote: generated.offlineNote ?? null,
       usedResume: !!user.resumeUpdatedAt,
