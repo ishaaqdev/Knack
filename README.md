@@ -41,6 +41,33 @@ Scenarios are personalised from four independent sources:
   *"this is the same gap as last time"* rather than treating every attempt as
   the first.
 
+**What a trainee gets on top of that**
+
+- **Mock interviews first.** Every real interview round is preceded by a
+  multiple-choice mock (five questions, 84 hand-written items, shuffled per
+  run). It teaches what a strong answer sounds like before you have to give one,
+  and the real round stays shut until it is done.
+- **Real companies.** Sixteen to aim at: thirteen real Indian-market employers
+  (TCS, Infosys, Wipro, Zoho, Amazon, Google and others) and three invented ones.
+  Each has a description, headcount, turnover, how it usually hires graduates and
+  what is open. Numbers are rounded and tagged by year; **openings are simulated
+  and labelled so**.
+- **People you can read.** The five people in a group discussion each have a
+  profile (background, strengths, tell, how they speak), speak one at a time in a
+  drawn avatar, and the **mood of the room** sits beside the table: tension,
+  warmth and energy, worked out from what was said.
+- **A mic** wherever you type an answer (Web Speech API).
+- **Personalised from what you did**, stored in the database and rewritten after
+  every mock, discussion and round. See [Personalisation](#personalisation).
+- **Humanised.** A voice brief in every prompt and a post-filter strip the
+  stock phrases, praise openers, dashes and markdown that make generated text
+  read as generated.
+- **Offline.** One switch (or `KNACK_OFFLINE=1`) and nothing leaves the machine.
+  See [Offline mode](#offline-mode).
+- **Game feel, same palette.** Chunky buttons, star ratings and a winding level map
+  for the interview rounds, and parametric characters, all in black with one
+  orange accent. See [Design](#design).
+
 ---
 
 ## The simulation
@@ -51,7 +78,9 @@ Scenarios are personalised from four independent sources:
 | **Characters** (`characters.js`) | Five colleagues, created the day you join | They store *what* they remember, not just a number, so the app can say "you helped me when I first joined" and mean something |
 | **Consequences** (`consequences.js`) | Notable decisions are written down with a due count | They fire **2–3 levels later**, reported as a callback with the original cause next to the effect |
 | **The office** (`workplace.js`) | Five locations, three timed beats a day | Where you go decides what happens. Each beat is written *after* the previous one, so a promise made at 10am comes due at 3pm |
-| **Group discussion** (`routes/gd.js`) | Five AI candidates, beat by beat | "Stay quiet" is a first-class button. Never speaking caps you at 25 on every dimension and the verdict says why |
+| **Group discussion** (`routes/gd.js`, `gdRoom.js`) | Five AI candidates with fixed profiles, beat by beat | "Stay quiet" is a first-class button. Never speaking caps you at 25 on every dimension and the verdict says why. The room mood is computed from the transcript, so it exists even when the panel is scripted |
+| **Mock interviews** (`mock/`, `routes/mock.js`) | A five-question MCQ rehearsal before each real round | Answers score 9/6/3/1 and are checked on the server; keys are never sent until you answer. A missed question comes back, a strong one is down-weighted |
+| **Companies** (`companies.js`) | Sixteen employers with a profile, hiring steps and openings | Choosing one changes who interviews you and what the role is, and the card says plainly which numbers are real and which are simulated |
 | **The offer** (`offer.js`) | A number assembled from attributes, level scores and standing | Two negotiation attempts, four outcomes, and only one of them is "you got more money" |
 | **Badges** (`badges.js`) | 24, every one condition-checked | Locked ones are shown with their condition — a milestone nobody knows about motivates nobody |
 
@@ -129,6 +158,47 @@ npm run build && npm start   # everything on http://localhost:5190
 > On npm 11+, `better-sqlite3` needs its native binary approved once:
 > `cd server && npm approve-scripts better-sqlite3 && npm rebuild better-sqlite3`
 
+### Offline mode
+
+```bash
+KNACK_OFFLINE=1 npm start          # the server never contacts OpenRouter
+```
+
+Or switch it on from **Profile, Offline mode** (stored in the database, so it
+survives a restart). Questions then come from the built-in banks, the panel
+runs from its script, scoring uses the local rubric, and fonts are bundled, so
+the app needs no network at all. Everything is still saved and still
+personalised. When it is set by the environment variable the toggle is locked.
+
+**The mic is the one exception.** Browsers do speech recognition themselves, and
+Chrome and Edge normally send the audio to their vendor's servers. In offline
+mode Knack asks for on-device recognition where the browser supports it and
+says so when it does not. Firefox has no Web Speech API at all; typing always
+works.
+
+### Check it
+
+```bash
+KNACK_OFFLINE=1 npm start          # in one terminal
+node server/scripts/smoke.mjs      # in another: 37 end-to-end checks, give or take one
+```
+
+The smoke script signs up a throwaway account and walks onboarding, the
+companies, the mock gate, the training profile and the offline lock. It leaves
+that account in the local database.
+
+Two more scripts back the numbers in the paper, and both can be rerun:
+
+```bash
+node server/scripts/simulate-selection.mjs 2000    # selection policy vs two baselines, simulated learners
+node server/scripts/measure.mjs http://127.0.0.1:5190 200   # response times and bundle sizes
+```
+
+The simulation is a simulation: its learner model is stated at the top of the
+script, it runs the real selection code against a throwaway database, and it
+does not show that real students improve. `KNACK_DB=/path/to/file.db` points the
+server, or any script that imports it, at another database file.
+
 ### If the AI is not responding
 
 OpenRouter's free tier allows **50 requests per day, account-wide** across every
@@ -150,7 +220,7 @@ Adding $10 of credit raises the limit to 1000/day and is not consumed by
 
 ## Stack
 
-- **Frontend** — React 19 + Vite, Tailwind CSS v4, Framer Motion, React Router, Zustand
+- **Frontend** — React 19 + Vite, Tailwind CSS v4, Framer Motion, React Router, Zustand; fonts bundled (Fredoka, Nunito), characters drawn in SVG, speech via the browser's Web Speech API
 - **Backend** — Node + Express 5
 - **AI** — OpenRouter free tier, a four-model fallback chain under a time budget
 - **Storage** — SQLite (`better-sqlite3`), file at `server/data/knack.db`
@@ -165,7 +235,7 @@ Config lives in `server/.env`. Prompt templates are isolated in
 ```
 server/src/
   index.js          Express app, static SPA in production
-  db.js             SQLite schema (16 relations), additive migrations, track seed
+  db.js             SQLite schema (20 relations), additive migrations, track seed
   auth.js           scrypt hashing, session tokens, route guards, attribute seeding
 
   — who the trainee is
@@ -178,29 +248,42 @@ server/src/
   attributes.js     The ten permanent attributes, tiers, deltas, and their log
   characters.js     Persistent colleagues, relationships, what they remember
   consequences.js   Decisions scheduled now and fired several levels later
+  companies.js      Sixteen companies: profile, hiring steps, simulated openings
   career.js         The six-phase spine, gates, bands, objective, challenges
   workplace.js      Rooms, the shape of a day, company evolution, day summary
   offer.js          Compensation, the review, negotiation outcomes, promotion
   badges.js         24 achievements, rarity, and the conditions behind them
-  interview.js      The five interview rounds and their unlock rules
+  interview.js      The five interview rounds, interviewer personas, unlock rules
+  gdRoom.js         The five panelists, panel pressure, the room-mood reader
+  personalise.js    Training stats, spaced repetition, the next-step suggestion
+  topics.js         Group-discussion topics
+  mock/             The MCQ engine and its two banks (index, bank-a, bank-b)
   gamification.js   XP, levels, streaks, rolling skill scores, readiness, difficulty
   variation.js      Scenario shape sampling — 18,480 combinations
 
   — talking to the model
   prompts.js        Every prompt template (tune here, not in routes)
+  humanise.js       The post-filter that strips stock phrasing from generated text
+  settings.js       The offline switch: environment lock, stored setting, status
   ai.js             OpenRouter client — time budget, model fallback, JSON extraction
   fallback.js       Offline banks and rubrics for when the model is unreachable
 
-  routes/           auth · quest · interview · gd · career · workplace · offer ·
-                    user · history
+  routes/           auth · quest · interview · mock · gd · career · workplace ·
+                    offer · user · history · settings
+
+server/scripts/
+  smoke.mjs         about 37 end-to-end checks against a running (offline) server
 
 web/src/
   pages/            Home · Auth · Onboarding · Dashboard · TrackSelect ·
                     QuestSession · Feedback · Interview · GroupDiscussion ·
                     Career · Joining · People · Workplace · Offer · Badges ·
-                    Profile
-  components/       Header · Avatar · Attributes · Countdown · Ring · ScoreDial ·
-                    TrackCard · Insight · ResumeCard · GithubCard · primitives · …
+                    Practice · Profile
+  components/       Header · Avatar · Character · MicButton · RoomMood ·
+                    PersonProfile · CompanyCard · JourneyPath · Stars ·
+                    TrainingProfile · OfflineCard · Attributes · Ring ·
+                    ScoreDial · Insight · ResumeCard · GithubCard · primitives · …
+  lib/              api · speech · cast · onboarding · ui
   store/useKnack.js Auth, profile, XP/streak, level and career state
 ```
 
@@ -223,12 +306,12 @@ web/src/
 | `GET` | `/api/quest/level/written/:levelId` | the fifth stage, generated in the background since the level was served |
 | `POST` | `/api/quest/level/submit` | `{ score, stages[], writtenScore, xp, streak, levelUp, trackScores, nudge }` |
 | `GET` | `/api/interview` | rounds, which are unlocked, best score each, readiness |
-| `POST` | `/api/interview/start` | `{ runId, opener, questions[3] }` |
+| `POST` | `/api/interview/start` | `{ runId, opener, questions[3] }`; `409 needsMock` if the round's mock is not done |
 | `POST` | `/api/interview/submit` | per-answer grades, round verdict, XP, unlock |
 | `GET` | `/api/interview/runs/:id` | a past round in full |
 | `POST` | `/api/quest/generate` | single scenario — the pre-level route, still live |
 | `POST` | `/api/quest/evaluate` | grades a single scenario |
-| `GET` | `/api/user` | profile, XP, level, streak, per-track scores, readiness, derived insight, last 5 attempts |
+| `GET` | `/api/user` | profile, XP, level, streak, per-track scores, readiness, derived insight, training profile, offline status, last 5 attempts |
 | `PATCH` | `/api/user` | edit the profile (re-validated against the same rules) |
 | `POST` | `/api/user/reset` | wipes progress and learned context, keeps the profile |
 | `GET` | `/api/history` | `?trackId=&limit=&offset=` — paginated attempts |
@@ -236,7 +319,14 @@ web/src/
 | `POST` | `/api/career/company` | choose the company and role you are aiming at |
 | `POST` | `/api/career/join` | join the company — this is what creates the cast |
 | `GET` `PATCH` | `/api/career/people/:id` | a colleague, and renaming them |
-| `GET` | `/api/gd` | panel, best score, whether it is cleared |
+| `GET` | `/api/career/companies/:id` | one company's full profile, hiring steps and simulated openings |
+| `GET` | `/api/mock` | per-round mock status and best scores |
+| `POST` | `/api/mock/start` | `{ runId, items[5] }` with options shuffled and keys withheld |
+| `POST` | `/api/mock/answer` | the verdict and explanation for one item (idempotent) |
+| `POST` | `/api/mock/finish` | score, XP (first mock of a round only), updated training profile |
+| `GET` | `/api/settings` | offline status and whether the environment locks it |
+| `POST` | `/api/settings/offline` | switch offline mode on or off |
+| `GET` | `/api/gd` | panel with profiles, best score, whether it is cleared |
 | `POST` | `/api/gd/start` `/turn` `/finish` | a group discussion, beat by beat |
 | `GET` | `/api/workplace` | the office: locations, team, company news, open day |
 | `POST` | `/api/workplace/day` | start a day at a location |
@@ -303,15 +393,24 @@ offers           id, userId, company, title, fixed, variable, joiningBonus,
                  probation, reviewScores (JSON), reviewFeedback, rounds (JSON),
                  status, createdAt, decidedAt
 badges           id, userId, slug, why, phase, at
+mock_runs        id, userId, level, company, items (JSON), score, xpAwarded,
+                 source, timestamp, localDate
+training_stats   userId, area, key, seen, total, recent (JSON), lastAt
+mock_seen        userId, questionId, times, lastScore, lastAt
+app_settings     key, value, updatedAt
 ```
 
-Sixteen relations. Every child cascades from the account, so deleting a trainee
+`users` also carries `simCompanyId`, the company you chose from the catalogue.
+
+Twenty relations. Every child cascades from the account, so deleting a trainee
 removes their whole simulation.
 
 Two rules worth knowing. `attempts.kind` is `level` for the five-stage format,
 `workday` for a day in the office and `open` for the older single-scenario rows;
 `detail` holds the per-stage breakdown. And interviews and discussions live in
 their own tables because neither is a track — they must never move a track score.
+Mock runs follow the same rule: a mock teaches and a round assesses, and neither
+can pass for the other. `app_settings` is the only table not owned by a user.
 
 ### Auth
 
@@ -404,6 +503,26 @@ Prompt cost stays flat no matter how long someone trains. The refresh runs
 fire-and-forget after the response is sent, so it never sits on the request path;
 a failure just means the summary is one cycle stale.
 
+**Training profile** (`personalise.js`) is the structured source, and it is the
+one a trainee can feel. Every mock answer, discussion dimension and interview
+round updates a row in `training_stats`: a seen count, a running total and the
+last five observations, from which a rolling mean and a trend are read. Three
+things use it:
+
+- *Which question comes next.* Items are drawn by weight, without replacement.
+  A question never seen is worth more than one seen; one answered weakly comes
+  back, strongly once half a day has passed; one answered strongly last time is
+  down-weighted, as is anything seen in the last few hours (`mock_seen`); and a
+  topic whose rolling mean is under 60 is pulled forward.
+- *How hard the panel pushes.* Confidence and communication set the pressure
+  (gentle, steady or tough) handed to the group-discussion prompts and to the
+  offline script.
+- *What to do next.* Profile and the dashboard show one suggestion, chosen from
+  the weakest area, with a link straight to it.
+
+Nothing in it is a prediction. It is a mean of what you did, shown in full on
+the Profile page.
+
 All of them are surfaced in the UI — the resume and GitHub cards on Profile, the
 derived summary in "What Knack has picked up" — rather than hidden.
 Personalisation the user cannot see reads as a black box.
@@ -417,24 +536,29 @@ the stakes, and must never appear in the text. Worth keeping if you tune them.
 
 ## Design
 
-**"Ember on Ink"** — one accent, no second brand colour.
+**"Ember on Ink"** — black, greys, and one orange accent. There is no second
+brand colour: whether something is good, bad, calm or urgent is told by its
+label, its icon and how bright the orange is, never by a new hue.
 
 | Token | Hex |
 |---|---|
 | ink / surface / raised | `#0E0E10` · `#16161A` · `#1D1D22` |
-| line / hairline | `#26262D` · `#1F1F25` |
+| line / hairline | `#2C2C34` · `#1F1F25` |
 | text / dim / faint | `#F2F0EC` · `#9A9AA5` · `#63636E` |
 | **ember** (XP, streak, CTA) | **`#FF7A35`** |
-| ember-hi / ember-dormant | `#FFA061` · `#8A4A24` |
+| ember-hi / ember-low / ember-dim | `#FFA061` · `#8A4A24` · `#4A2716` |
 
-Two fonts: **Space Grotesk** for headings and every number (tabular figures, so
-counters do not jitter), **Inter** for body.
+Two fonts, both bundled so offline mode needs no network: **Fredoka** for
+headings and numbers, **Nunito** for body.
 
-**Signature motif — the Ember Ring.** Every quantity is an arc on a ring: ember
-stroke, round caps, starting at 12 o'clock. XP-to-level, track skill, readiness
-and the score dial all share one shape language. Identity markers are pills with
-a leading dot — solid and glowing when active, hollow when dormant. Icons are
-hand-rolled 1.5px SVGs on a single grid; no icon library, no emoji.
+**The game feel comes from shape, not colour.** Buttons and cards have a thick
+lower edge so they look like something you could knock over. Progress is stars
+and a bar. The interview rounds are a winding level map (`JourneyPath`) with a
+"you are here" marker. People are drawn by one parametric SVG component
+(`Character`): a look spec of skin, hair, brows, eyes, accessory and top, five
+expressions, and a speaking animation. Skin and hair are natural; clothes and
+accents come from the same grey and orange palette. The spec never encodes
+gender, and pronouns are stored separately.
 
 Animation is Framer Motion springs, 200–600ms, and every animated element has a
 `prefers-reduced-motion` fallback.
@@ -450,6 +574,9 @@ The Phase 2 deck lives in `docs/` as HTML, with a generated PDF beside it.
 | `Knack_Phase2_Presentation.pdf` | 38 slides, ready to present |
 | `Knack_Phase2_Presentation.html` | the source |
 | `Knack_Mini_Project_Report.html` | the long-form report |
+| `Knack_Research_Paper.html` / `.pdf` | the two-column conference-format paper. Text in [square brackets] is a placeholder for author details; Table XI waits on a pilot study |
+| `capture-figures.mjs` | regenerates the paper's eight 9:16 phone screenshots from the running app into `paper-figures/` |
+| `selection-simulation.txt`, `measurements.txt` | the output the paper's Tables VII and X were taken from |
 
 Regenerate the PDF after editing the HTML:
 
@@ -494,6 +621,15 @@ own `viewBox` while the slide still fits, so **look at any figure you edit**.
   back to a local scenario bank and a deterministic rubric. That output is tagged
   `source: "offline"` and labelled in the UI — it is never passed off as AI.
 
+- **Company figures are approximate.** Headcount and turnover are rounded and
+  tagged by year; check a company's own annual report before quoting them.
+  Openings are **simulated** from role shares and an intake rate. They are not
+  live listings, the card says so, and the people you meet are fictional.
+- **The mic needs a browser that has speech recognition** (Chrome, Edge, Safari)
+  and usually a connection, as covered under Offline mode. It fills the answer
+  box; you still read and edit before sending.
+- **Humanising is a filter, not a detector.** It removes known stock phrasing and
+  formatting. It does not make text pass an AI-text checker and does not try to.
 - **No email verification or password reset.** Accounts are real but the recovery
   flow is out of scope; there is no mail transport wired up.
 - **Age is deliberately not collected.** Year of study is strictly better signal
@@ -507,8 +643,8 @@ own `viewBox` while the slide still fits, so **look at any figure you edit**.
 ## Future scope
 
 Leaderboards, a real skill-tree visualisation, a fully built-out AI
-hallucination-detection track, spoken interview and group-discussion rounds,
-multiple companies running at once, email verification and password reset, and a
+hallucination-detection track, spoken replies from the interviewer and the panel (dictation exists, speech
+output does not), multiple companies running at once, email verification and password reset, and a
 native mobile app — all deliberately out of scope for this version.
 
 Leaderboards specifically are not coming: ranking classmates on communication

@@ -1,0 +1,14 @@
+machine: Intel(R) Core(TM) Ultra 9 285H, 16 threads, 63 GB RAM, win32 10.0.26200, node v24.18.0
+repeats per endpoint: 200
+
+endpoint                                                 p50 ms   p95 ms   max ms  errors
+GET /api/user (profile, training, offline)                  1.0      1.7      2.4       0
+GET /api/career (company list, journey)                     0.8      1.3      2.4       0
+GET /api/career/companies/tcs                               0.6      1.0      2.6       0
+POST /api/mock/start (five questions)                       0.7      1.3      1.8       0
+POST /api/mock/answer                                       0.8      1.3      6.1       0
+POST /api/gd/start (panel, mood, pressure)                  0.8      1.2      1.9       0
+POST /api/gd/turn (scripted panel, new mood)                0.6      1.1      1.5       0
+
+web bundle: js 574 kB (171 kB gzip), css 52 kB (10 kB gzip), fonts 176 kB
+source lines: server 14163, web 10319

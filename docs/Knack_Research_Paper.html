@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Knack: A Personalised, Offline-Capable Career Simulation for Placement Preparation</title>
+<style>
+  /* Two-column conference layout, after the Smart Pet Collar sample.
+     Text in [square brackets] is a placeholder for the authors to fill; nothing
+     else is blank except Table XI, which is waiting on the pilot study. */
+  @page { size: A4; margin: 17mm 15mm 19mm 15mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0; color: #000; background: #fff;
+    font-family: "Times New Roman", Times, serif; font-size: 9.7pt; line-height: 1.17;
+  }
+  .paper { column-count: 2; column-gap: 7mm; text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+  p { margin: 0 0 3.2pt; text-indent: 0; orphans: 2; widows: 2; }
+  p + p { text-indent: 4.5mm; }
+  .ph { background: none; }
+
+  /* ----- title block ----- */
+  .head { column-span: all; text-align: center; margin-bottom: 4mm; }
+  .head h1 { font-size: 20pt; line-height: 1.12; font-weight: 400; margin: 0 8mm 5mm; }
+  .authors { display: grid; grid-template-columns: 1fr 1fr; gap: 3.2mm 6mm; }
+  .author { font-size: 9.6pt; line-height: 1.2; }
+  .author b { display: block; font-size: 10.5pt; }
+  .author i { display: block; }
+  .author.first { grid-column: 1 / span 2; }
+
+  .abs { column-span: all; columns: 2; column-gap: 7mm; text-align: justify; font-size: 9pt; font-weight: 700; line-height: 1.15; margin: 0 0 3mm; }
+  .abs p { text-indent: 0; margin: 0 0 3pt; }
+  .abs i { font-weight: 700; }
+
+  /* ----- headings ----- */
+  h2 { font-size: 8.8pt; font-weight: 400; text-align: center; text-transform: uppercase; letter-spacing: 0.04em; margin: 8pt 0 3pt; break-after: avoid; }
+  h3 { font-size: 9.7pt; font-style: italic; font-weight: 400; margin: 5pt 0 2pt; break-after: avoid; text-align: left; }
+  .lead-in { font-style: italic; }
+
+  /* ----- lists ----- */
+  ul, ol { margin: 0 0 3.2pt; padding-left: 5.2mm; }
+  li { margin: 0 0 1.2pt; text-align: justify; }
+
+  /* ----- tables ----- */
+  .tbl { margin: 4pt 0 6pt; break-inside: avoid; }
+  .tbl.wide { column-span: all; margin: 4pt 0 6pt; }
+  .tbl.t1 table { font-size: 7.6pt; }
+  .tbl.t1 td { padding: 1.2pt 3pt; }
+  .tbl .cap { text-align: center; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3pt; line-height: 1.15; }
+  .tbl .cap b { font-weight: 400; display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 8pt; line-height: 1.12; }
+  th { text-align: left; font-weight: 700; padding: 2pt 3pt; border-top: 0.8pt solid #000; border-bottom: 0.6pt solid #000; vertical-align: bottom; }
+  td { padding: 1.7pt 3pt; vertical-align: top; text-align: left; hyphens: auto; }
+  tr:last-child td { border-bottom: 0.8pt solid #000; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  td.c, th.c { text-align: center; }
+  .note { font-size: 7.6pt; text-align: left; margin-top: 2pt; line-height: 1.12; }
+
+  /* ----- figures ----- */
+  figure { margin: 4pt 0 6pt; break-inside: avoid; text-align: center; }
+  figure.wide { column-span: all; }
+  figure img { max-width: 100%; display: block; margin: 0 auto; border: 0.5pt solid #888; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: 8pt; margin-top: 3pt; text-align: center; line-height: 1.15; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 2mm; align-items: start; }
+  .shots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm 4mm; padding: 0 6mm; }
+  .shots div { text-align: center; }
+  .shots img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border: 0.5pt solid #777; border-radius: 2.4mm; }
+  .shots span { display: block; font-size: 7.6pt; margin-top: 1.5pt; }
+
+  /* ----- maths ----- */
+  .eq { display: grid; grid-template-columns: 1fr auto; align-items: center; margin: 3pt 0 4pt; text-indent: 0; }
+  .eq .f { text-align: center; font-size: 10pt; }
+  .eq .no { padding-left: 4pt; }
+  .eq i, .f i { font-family: "Times New Roman", serif; }
+  sub, sup { font-size: 70%; line-height: 0; }
+  .frac { display: inline-block; vertical-align: middle; text-align: center; font-size: 90%; }
+  .frac > span { display: block; padding: 0 2pt; }
+  .frac > span:first-child { border-bottom: 0.6pt solid #000; }
+  code { font-family: "Courier New", monospace; font-size: 8.2pt; }
+
+  ol.refs { list-style: none; padding: 0; margin: 0; font-size: 8pt; line-height: 1.13; counter-reset: ref; }
+  ol.refs li { counter-increment: ref; padding-left: 7mm; text-indent: -7mm; margin-bottom: 1.8pt; text-align: justify; }
+  ol.refs li::before { content: "[" counter(ref) "]"; display: inline-block; width: 7mm; text-indent: 0; }
+</style>
+</head>
+<body>
+<div class="paper">
+
+<!-- ================================================================ TITLE -->
+<div class="head">
+  <h1>“Knack: A Personalised, Offline-Capable Career Simulation for Placement Preparation with Mock Interviews, Profiled Group-Discussion Panels and Company Data”</h1>
+  <div class="authors">
+    <div class="author first"><b>Dr. Chaitra Naveen</b><i>Head of the Department</i><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i></div>
+    <div class="author"><b>D Karthik Raj</b><i>1MP23IS018</i><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is018@gmail.com</span></div>
+    <div class="author"><b>Kiranraj</b><i>1MP23IS027</i><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is027@gmail.com</span></div>
+    <div class="author"><b>Mohammed Ishaaq</b><i>1MP23IS030</i><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is030@gmail.com</span></div>
+    <div class="author"><b>Ullas M</b><i>1MP23IS058</i><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is058@gmail.com</span></div>
+  </div>
+</div>
+
+<div class="abs">
+  <div>
+  <p><i>Abstract</i>—Students preparing for campus placements mostly rehearse alone. They read question lists, watch videos or ask a general chatbot, and they have almost no way to practise a group discussion or to see how a particular company hires. This paper presents Knack, a web-based career simulation that takes an engineering student through a group discussion, five interview rounds, joining, an internship, a job offer and full-time work. The implemented system adds a multiple-choice mock interview that must be finished before each real round; profiled group-discussion panellists who speak one at a time beside a live reading of the room’s mood; sixteen company profiles (thirteen real, three invented) with hiring steps and clearly labelled simulated openings; voice dictation; and a personalisation layer that keeps rolling per-topic statistics and uses them to choose questions and to set how hard the panel pushes. Every feature has a local fallback, so the system runs with no network and no AI model.</p>
+  </div>
+  <div>
+  <p>The design is verified with an end-to-end test suite (37 of 37 checks passed in offline mode) and the server’s median response time is about one millisecond on a laptop. The question-selection policy is compared with two baselines on 2000 simulated learners, where it cuts the share of questions wasted on items already answered strongly by 41% against a no-repeat baseline (and by more than half against random draws) but gives no measurable gain in simulated learning over that baseline. A pilot study with students is planned and its result tables are left open.</p>
+  <p><i>Index Terms</i>—Career simulation, placement preparation, mock interview, group discussion, personalisation, spaced practice, offline-first, serious games, speech input.</p>
+  </div>
+</div>
+
+<!-- ================================================================ I -->
+<h2>I. Introduction</h2>
+<p>Campus recruitment in engineering colleges is decided in a few conversations: an aptitude test, a group discussion, and one or more interviews. A student gets very few chances to practise them under realistic conditions. A group discussion needs five or six other people who are willing to behave like candidates, and an interview needs someone who has read the student’s resume. Printed question lists and recorded videos are plentiful, but they cannot answer back, and they say nothing about how a particular employer hires [1], [2].</p>
+<p>Large language models can write fresh questions and play a conversation partner [12], which makes them an obvious tool for this. Used naively, though, they have three weaknesses for a student. Their output often reads as generic and formulaic. They need a connection and a quota, which a hostel network or a free-tier account may not give. And they know nothing about the student between one session and the next, so every session starts from zero.</p>
+<p>This paper describes Knack, a career simulation that treats those three weaknesses as design requirements. The student progresses through a group discussion, five interview rounds, joining a company, an internship, an offer and full-time work, and each stage is gated on performance and not on points. The main contributions are:</p>
+<ul>
+  <li>a six-phase simulation in which every real interview round is preceded by a multiple-choice mock, with the answer key held on the server;</li>
+  <li>a group-discussion room with five fixed, profiled panellists who speak one at a time, and a deterministic reader of the room’s mood that works even when the panel is scripted;</li>
+  <li>a catalogue of sixteen companies with descriptions, headcount, turnover, hiring steps and role openings, where the openings are explicitly simulated;</li>
+  <li>a personalisation layer made of plain arithmetic on stored rows, so that it runs with no model and is shown to the student in full;</li>
+  <li>an offline-first design in which every model call has a local fallback, plus a post-filter that removes stock phrasing from generated text; and</li>
+  <li>an evaluation made of an end-to-end test suite, response-time measurements and a simulation of the selection policy, all released as scripts with the code.</li>
+</ul>
+<h3>A. Problem Statement</h3>
+<p>Placement preparation tools tend to be either static banks that never adapt or chat interfaces that adapt to nothing. Neither lets a student practise a group discussion alone, learn how a named company hires, or carry what was learned in one session into the next, and both usually need a network. A tool is needed that rehearses the whole path from the first discussion to the first review, remembers the student, and still works when the connection or the model does not.</p>
+<h3>B. Objectives</h3>
+<ol>
+  <li>To build a simulation of the placement path in which each phase must be cleared on competency before the next opens.</li>
+  <li>To teach before assessing: a mock interview that explains every option, ahead of each real round.</li>
+  <li>To let the student practise a group discussion against recognisable, consistent people and to show how the room is reacting.</li>
+  <li>To personalise questions and panel pressure from stored practice history, with no dependence on a model.</li>
+  <li>To run entirely on the student’s own machine when required, and to report honestly which parts were generated and which were scripted.</li>
+</ol>
+
+<!-- ================================================================ II -->
+<h2>II. Related Work</h2>
+<p>Work relevant to Knack falls into five areas: interview-training systems, serious games and gamification, spaced and retrieval practice, learner modelling, and software that works without the cloud.</p>
+<h3>A. Interview-Training Systems</h3>
+<p>Hoque et al. built a virtual interviewer that follows the trainee’s speech and facial behaviour and gives feedback afterwards [1]. Anderson et al. describe a framework in which virtual agents coach social skills for job interviews through scenarios [2]. Maurer et al. relate coaching to performance in situational employment interviews [3], which supports the premise that rehearsal helps. These systems centre on the interview as a single conversation with one interviewer. A group discussion, the workplace after the offer, and the specific employer are outside their scope.</p>
+<h3>B. Serious Games and Gamification</h3>
+<p>Reviews of computer games and serious games report positive effects on knowledge and engagement but note uneven evidence [4]. Studies of gamification find mostly positive results that depend on context and on the user [5], and a meta-analysis finds small to moderate positive effects on cognitive, motivational and behavioural outcomes [6]. Deterding et al. define gamification as the use of game design elements outside games [14]. Knack uses such elements, namely stars, a level map and streaks, but gates progress on scored performance so that points cannot substitute for skill.</p>
+<h3>C. Spaced and Retrieval Practice</h3>
+<p>Distributed practice improves retention compared with massed practice [7], and taking a test is itself a learning event [8]. Settles and Meeder model the half-life of a memory to schedule reviews at scale [10]. The mock interview in Knack is a retrieval task with immediate explanation, and its selection weights bring back items that were answered poorly after a delay.</p>
+<h3>D. Learner Modelling</h3>
+<p>Knowledge tracing estimates mastery of a skill from the sequence of right and wrong answers [9], and Bloom’s account of one-to-one tutoring argues for adapting instruction to the individual [15]. Knack uses a far simpler estimate, a rolling mean of recent observations, because the estimate has to be shown to the student and argued with.</p>
+<h3>E. Generated Text and Local-First Software</h3>
+<p>Few-shot language models make question writing cheap [12], but they depend on a service. The local-first view holds that software should keep working, and keep the user’s data on the user’s device, without the network [11]. Knack follows this for everything except optional generation, and it reports each time that a result was scripted.</p>
+<h3>F. Position of the Present Work</h3>
+<p>Knack combines these strands in one system. It covers the whole path from group discussion to review, it ties the practice to a named employer, it keeps a student model that is arithmetic and visible, and it treats the absence of a model as a normal operating mode.</p>
+
+<!-- ================================================================ III -->
+<h2>III. Literature Survey</h2>
+
+<div class="tbl wide t1">
+  <div class="cap">TABLE I<b>Summary of Reviewed Literature</b></div>
+  <table>
+    <tr><th style="width:16%">Ref.</th><th style="width:5%">Year</th><th style="width:20%">Focus / technology</th><th style="width:26%">Contribution</th><th>Gap addressed by this work</th></tr>
+    <tr><td>Hoque et al. [1]</td><td>2013</td><td>Virtual interview coach</td><td>Automated feedback on speech and facial behaviour</td><td>One interviewer, camera and audio sensing; this work adds company context, groups and a no-sensor mode</td></tr>
+    <tr><td>Anderson et al. [2]</td><td>2013</td><td>Virtual agents, social coaching</td><td>Scenario-based coaching for job interviews</td><td>Interview only; this work adds group discussion and workplace phases</td></tr>
+    <tr><td>Maurer et al. [3]</td><td>1998</td><td>Coaching, situational interviews</td><td>Relates coaching to interview performance</td><td>Coaching by people; this work is self-paced</td></tr>
+    <tr><td>Connolly et al. [4]</td><td>2012</td><td>Serious games review</td><td>Synthesises evidence on games for learning</td><td>General; this work targets one domain and gates on competency</td></tr>
+    <tr><td>Hamari et al. [5]</td><td>2014</td><td>Gamification review</td><td>Mostly positive, context dependent</td><td>Engagement alone; this work ties it to scored performance</td></tr>
+    <tr><td>Sailer &amp; Homner [6]</td><td>2020</td><td>Gamification meta-analysis</td><td>Small to moderate positive effects</td><td>Effects vary by design; this work reports its mechanics</td></tr>
+    <tr><td>Cepeda et al. [7]</td><td>2006</td><td>Distributed practice</td><td>Quantitative synthesis of the spacing effect</td><td>Verbal recall; this work spaces judgement items</td></tr>
+    <tr><td>Roediger &amp; Karpicke [8]</td><td>2006</td><td>Test-enhanced learning</td><td>Testing improves long-term retention</td><td>Memory materials; this work uses scored scenarios</td></tr>
+    <tr><td>Corbett &amp; Anderson [9]</td><td>1994</td><td>Knowledge tracing</td><td>Estimates mastery from answer sequences</td><td>Needs a skill model; this work uses a readable rolling mean</td></tr>
+    <tr><td>Settles &amp; Meeder [10]</td><td>2016</td><td>Spaced-repetition model</td><td>Predicts recall to schedule reviews</td><td>Needs large usage data; this work needs none and runs offline</td></tr>
+  </table>
+</div>
+
+<p>Table I lists ten studies, their focus, what they contribute, and the gap each leaves that this work addresses. The studies agree that rehearsal, feedback and spaced retrieval help, but each addresses one slice of the placement problem.</p>
+<h3>A. Critical Analysis</h3>
+<p><span class="lead-in">Interview systems.</span> The systems in [1], [2] show that a virtual interviewer is accepted and useful, and [3] supports the value of coaching. They concentrate on the interview itself. The group discussion, which many recruiters use as a filter, and the knowledge of a specific employer, are not their focus.</p>
+<p><span class="lead-in">Engagement.</span> The reviews [4]–[6] suggest that game elements can help, with effects that depend on how they are used. A system that rewards attendance can reward the wrong thing, so the gating rule matters more than the decoration.</p>
+<p><span class="lead-in">Practice scheduling.</span> The spacing and testing results [7], [8] and the scheduling model [10] justify bringing back missed items. Most work assumes a fixed vocabulary of facts, whereas interview judgement items are few and carry explanations, which changes how often repetition is useful.</p>
+<p><span class="lead-in">Student models.</span> Knowledge tracing [9] and its successors are principled but opaque to the learner. For a training tool that wants the student to trust and contest what it says, a visible rolling mean is a defensible trade of accuracy for legibility.</p>
+<h3>B. Research Gap</h3>
+<p>The review leaves the following gaps open.</p>
+<ol>
+  <li><i>Fragmented practice.</i> Group discussion, interview and workplace practice are offered separately, if at all.</li>
+  <li><i>Generic employers.</i> Preparation rarely depends on the company the student is aiming at.</li>
+  <li><i>Assessment before teaching.</i> Mock tools often score without first explaining what a strong answer sounds like.</li>
+  <li><i>Opaque or absent personalisation.</i> Adaptation is either missing or hidden from the student.</li>
+  <li><i>Network dependence.</i> Generation and recognition services assume connectivity and quota.</li>
+  <li><i>Generic generated text.</i> Model output carries stock phrasing that students quickly learn to ignore.</li>
+</ol>
+
+<div class="tbl">
+  <div class="cap">TABLE II<b>Research Gaps and the Response in this Work</b></div>
+  <table>
+    <tr><th style="width:34%">Gap</th><th>Response in Knack</th></tr>
+    <tr><td>Fragmented practice</td><td>Six phases in one gated simulation</td></tr>
+    <tr><td>Generic employers</td><td>Sixteen company profiles with hiring steps and openings</td></tr>
+    <tr><td>Assessment before teaching</td><td>Mock first, with every option explained; real round locked until done</td></tr>
+    <tr><td>Opaque personalisation</td><td>Rolling statistics shown on the Profile page</td></tr>
+    <tr><td>Network dependence</td><td>Offline switch; banks, scripts and a local rubric</td></tr>
+    <tr><td>Generic generated text</td><td>Voice brief in prompts and a post-filter</td></tr>
+  </table>
+</div>
+
+<p>Table II pairs each gap with the design response. In short, none of the reviewed work combines a group discussion with profiled panellists, employer-specific preparation, a mock-before-assessment rule and an offline mode, and Knack is built to fill that space.</p>
+
+<!-- ================================================================ IV -->
+<h2>IV. Methodology</h2>
+<h3>A. System Overview</h3>
+<p>The system has four layers: a browser client, an Express server with its routes, a set of engines holding the domain logic, and a SQLite store (Fig. 1). An optional AI layer sits beside the engines. A single switch, described in Section IV-G, decides whether it is ever asked. All trainee data stay in the local database.</p>
+
+<figure>
+<svg viewBox="0 0 340 262" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman, serif" font-size="8">
+  <defs><marker id="a1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#000"/></marker></defs>
+  <rect x="8" y="6" width="324" height="58" rx="3" fill="#fff" stroke="#000"/>
+  <text x="170" y="19" text-anchor="middle" font-weight="700">Browser: React 19 single-page client</text>
+  <g fill="#f2f2f2" stroke="#000">
+    <rect x="14" y="28" width="70" height="28" rx="2"/><rect x="94" y="28" width="70" height="28" rx="2"/>
+    <rect x="174" y="28" width="70" height="28" rx="2"/><rect x="254" y="28" width="70" height="28" rx="2"/>
+  </g>
+  <g text-anchor="middle"><text x="49" y="40">Pages and</text><text x="49" y="50">level map</text>
+    <text x="129" y="40">Character</text><text x="129" y="50">(SVG avatars)</text>
+    <text x="209" y="40">Mic (Web</text><text x="209" y="50">Speech API)</text>
+    <text x="289" y="40">State store</text><text x="289" y="50">(Zustand)</text></g>
+  <line x1="170" y1="64" x2="170" y2="84" stroke="#000" marker-end="url(#a1)"/>
+  <text x="176" y="78">REST /api, loopback only</text>
+  <rect x="8" y="86" width="324" height="34" rx="3" fill="#fff" stroke="#000"/>
+  <text x="170" y="99" text-anchor="middle" font-weight="700">Express 5 server: auth and route guards</text>
+  <text x="170" y="111" text-anchor="middle">routes: career · mock · interview · gd · user · settings</text>
+  <line x1="78" y1="120" x2="78" y2="140" stroke="#000" marker-end="url(#a1)"/>
+  <line x1="196" y1="120" x2="196" y2="140" stroke="#000" marker-end="url(#a1)"/>
+  <rect x="8" y="142" width="140" height="58" rx="3" fill="#f2f2f2" stroke="#000"/>
+  <text x="78" y="155" text-anchor="middle" font-weight="700">Engines</text>
+  <g text-anchor="middle"><text x="78" y="167">mock · companies · gdRoom</text><text x="78" y="178">personalise · humanise</text><text x="78" y="189">settings (offline switch)</text></g>
+  <rect x="156" y="142" width="84" height="58" rx="3" fill="#f2f2f2" stroke="#000"/>
+  <text x="198" y="158" text-anchor="middle" font-weight="700">SQLite</text>
+  <text x="198" y="170" text-anchor="middle">20 relations</text><text x="198" y="181" text-anchor="middle">file on disk</text>
+  <rect x="248" y="142" width="84" height="58" rx="3" fill="#f2f2f2" stroke="#000"/>
+  <text x="290" y="156" text-anchor="middle" font-weight="700">Local content</text>
+  <g text-anchor="middle"><text x="290" y="168">84 mock items</text><text x="290" y="179">panel script</text><text x="290" y="190">scoring rubric</text></g>
+  <line x1="148" y1="171" x2="156" y2="171" stroke="#000" marker-end="url(#a1)"/>
+  <line x1="78" y1="200" x2="78" y2="226" stroke="#000" stroke-dasharray="3 2" marker-end="url(#a1)"/>
+  <text x="84" y="214">asked only when online</text>
+  <rect x="8" y="228" width="200" height="28" rx="3" fill="#fff" stroke="#000" stroke-dasharray="4 2"/>
+  <text x="108" y="240" text-anchor="middle" font-weight="700">OpenRouter model chain (optional)</text>
+  <text x="108" y="251" text-anchor="middle">time budget · fallback on any failure</text>
+  <path d="M208 242 H290 V202" fill="none" stroke="#000" stroke-dasharray="3 2" marker-end="url(#a1)"/>
+  <text x="214" y="238">on failure, use local</text>
+</svg>
+<figcaption>Fig. 1. Architecture of Knack. The dashed path is the optional AI layer.</figcaption>
+</figure>
+
+<h3>B. The Six-Phase Progression</h3>
+<p>The simulation runs through six phases (Fig. 2). A group discussion clears at 6/10, each interview round clears at 6/10 and unlocks the next, an internship level advances at 5/10, and a promotion needs a Leadership attribute and not attendance. Ten professional attributes, scored 0–100, run under all of it and can go down as well as up. Experience points exist, but they never open a phase.</p>
+
+<figure>
+<svg viewBox="0 0 340 168" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman, serif" font-size="8">
+  <defs><marker id="a2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#000"/></marker></defs>
+  <g fill="#f2f2f2" stroke="#000">
+    <rect x="8" y="8" width="92" height="34" rx="3"/><rect x="124" y="8" width="92" height="34" rx="3"/><rect x="240" y="8" width="92" height="34" rx="3"/>
+    <rect x="8" y="112" width="92" height="40" rx="3"/><rect x="124" y="112" width="92" height="40" rx="3"/><rect x="240" y="112" width="92" height="40" rx="3"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="54" y="22" font-weight="700">1. Group discussion</text><text x="54" y="34">5 panellists, 5 beats</text>
+    <text x="170" y="22" font-weight="700">2. Interview</text><text x="170" y="34">5 rounds × 3 questions</text>
+    <text x="286" y="22" font-weight="700">3. Joining</text><text x="286" y="34">cast of 5 colleagues</text>
+    <text x="54" y="126" font-weight="700">4. Internship</text><text x="54" y="138">levels 5 to 30</text><text x="54" y="148">three beats a day</text>
+    <text x="170" y="126" font-weight="700">5. The offer</text><text x="170" y="138">review, number,</text><text x="170" y="148">two negotiations</text>
+    <text x="286" y="126" font-weight="700">6. Full-time</text><text x="286" y="138">grades, promotion</text><text x="286" y="148">needs Leadership</text>
+  </g>
+  <line x1="100" y1="25" x2="124" y2="25" stroke="#000" marker-end="url(#a2)"/>
+  <line x1="216" y1="25" x2="240" y2="25" stroke="#000" marker-end="url(#a2)"/>
+  <line x1="100" y1="132" x2="124" y2="132" stroke="#000" marker-end="url(#a2)"/>
+  <line x1="216" y1="132" x2="240" y2="132" stroke="#000" marker-end="url(#a2)"/>
+  <path d="M286 42 V84 H54 V112" fill="none" stroke="#000" marker-end="url(#a2)"/>
+  <text x="102" y="21" font-size="7">6/10</text><text x="219" y="21" font-size="7">6/10</text>
+  <text x="102" y="128" font-size="7">5/10</text>
+  <rect x="124" y="52" width="92" height="20" rx="3" fill="#fff" stroke="#000" stroke-dasharray="3 2"/>
+  <text x="170" y="65" text-anchor="middle">MCQ mock before each round</text>
+  <line x1="170" y1="42" x2="170" y2="52" stroke="#000" stroke-dasharray="3 2"/>
+</svg>
+<figcaption>Fig. 2. The six phases and the gate between them. A mock interview must be done before a real round opens.</figcaption>
+</figure>
+
+<h3>C. Mock-Interview Engine</h3>
+<p>A mock is five multiple-choice questions taken before a real round. Each question puts the trainee in a short situation and offers four responses, which score 9, 6, 3 or 1 and are labelled Strong, Decent, Weak and Costly. The options are shuffled on every run so that a retake cannot be passed by remembering “it was C”. The scores and the reasons are held on the server and released one question at a time, only after the trainee has answered, because sending the score sheet to the person being scored would defeat the exercise. Answers are idempotent, so repeating a request returns the first answer, and experience points are paid only for the first mock of a round. The real round returns an error (HTTP 409) until its mock is complete.</p>
+<p>The bank holds 84 hand-written items on 49 topics. Each round has twelve generic items and one or two for each of four kinds of employer (service, product, big-tech, start-up), so that at least one question fits the company the trainee chose. When a model is reachable, some items are written fresh for the trainee and the rest come from the bank.</p>
+
+<h3>D. Company Module</h3>
+<p>The catalogue holds sixteen employers. Thirteen are real and carry an approximate headcount and turnover tagged by year; three are invented. A profile gives a description, the culture, the usual hiring steps, what is tested and tips. For openings, the number for a role is the product of headcount, an annual intake rate for the company type, and the role’s share of intake, rounded to two significant figures:</p>
+<div class="eq"><span class="f"><i>O</i><sub><i>r</i></sub> = round<sub>2</sub>( <i>N</i> · <i>λ</i><sub><i>t</i></sub> · <i>s</i><sub><i>t,r</i></sub> ),</span><span class="no">(1)</span></div>
+<p>where <i>N</i> is headcount, <i>λ</i><sub><i>t</i></sub> is the intake rate for company type <i>t</i> (7% for services, 6% for product, 2.5% for big-tech, 20% for start-ups) and <i>s</i><sub><i>t,r</i></sub> is the share of role <i>r</i>. The intake rates and shares are modelling assumptions, not published data, which is why the interface labels every openings figure as simulated and says that real vacancies are on the company’s own careers page.</p>
+
+<h3>E. Group-Discussion Room</h3>
+<p><span class="lead-in">Panel.</span> Five panellists are fixed (Dominant, Knowledgeable, Aggressive, Diplomatic, Quiet). Each has a background, strengths, a characteristic tell and a manner of speaking that the trainee can open and read, and each is drawn by a parametric avatar. Fixing the panel means a trainee who runs five discussions learns the same five people and starts to predict them. The panellists speak one at a time, and the trainee may speak to the room or to one person, or stay quiet. Staying quiet is scored like any other choice, and never speaking caps every dimension at 25.</p>
+<p><span class="lead-in">Pressure.</span> The panel’s pressure is set from the trainee’s confidence <i>c</i> and communication <i>m</i> attributes:</p>
+<div class="eq"><span class="f"><i>ν</i> = <span class="frac"><span><i>c</i> + <i>m</i></span><span>2</span></span>,&nbsp; pressure = gentle if <i>ν</i> &lt; 42; tough if <i>ν</i> &gt; 66; steady otherwise.</span><span class="no">(2)</span></div>
+<p>A room that is too hard for someone whose confidence is low teaches them to stay silent, which is the opposite of the aim, so the pressure is lowered for them and raised for those who are holding their own.</p>
+<p><span class="lead-in">Mood.</span> The room’s mood is computed from the last six lines of the transcript and not asked of a model, so it exists when the panel is scripted. Let <i>n</i><sub>c</sub>, <i>n</i><sub>w</sub>, <i>n</i><sub>b</sub> be the numbers of lines that match pushback, agreement and bridging patterns, <i>n</i><sub>q</sub> the number of question marks, <i>k</i> the number of lines in the window and <i>ℓ</i> the mean words per line. Three scores are clamped to 0–100:</p>
+<div class="eq"><span class="f"><i>T</i> = 15 + 16<i>n</i><sub>c</sub> + 4<i>n</i><sub>q</sub> − 9<i>n</i><sub>w</sub> − 8<i>n</i><sub>b</sub>,</span><span class="no">(3)</span></div>
+<div class="eq"><span class="f"><i>W</i> = 35 + 14<i>n</i><sub>w</sub> + 14<i>n</i><sub>b</sub> − 9<i>n</i><sub>c</sub>,</span><span class="no">(4)</span></div>
+<div class="eq"><span class="f"><i>E</i> = 25 + 8<i>k</i> + 5<i>n</i><sub>q</sub> + (<i>ℓ</i> − 12).</span><span class="no">(5)</span></div>
+<p>The scores are loosely modelled on the circumplex of affect [13]: energy stands for arousal, and tension and warmth split the valence axis into disagreement and cohesion. They are heuristics and not a validated instrument. Table III gives the labels, applied in the order shown. A note under the label says who is clashing. It says that people have turned towards the trainee only when a panellist has said the trainee’s name, because an earlier version treated a generic “you” as an address and reported attention that was not there.</p>
+
+<div class="tbl">
+  <div class="cap">TABLE III<b>Room-Mood Labels and Panel Pressure</b></div>
+  <table>
+    <tr><th style="width:20%">Output</th><th style="width:44%">Condition</th><th>Effect</th></tr>
+    <tr><td>Heated</td><td><i>T</i> ≥ 66</td><td>Names the two clashing speakers</td></tr>
+    <tr><td>Tense</td><td><i>T</i> ≥ 45 and <i>E</i> ≥ 55</td><td>Notes an unsettled pushback</td></tr>
+    <tr><td>Warm</td><td><i>W</i> ≥ 62</td><td>People building on each other</td></tr>
+    <tr><td>Lively / Flat</td><td><i>E</i> ≥ 62 / <i>E</i> &lt; 38</td><td>Pace of the room</td></tr>
+    <tr><td>Calm</td><td>none of the above</td><td>Default</td></tr>
+    <tr><td>Gentle / Steady / Tough</td><td><i>ν</i> &lt; 42 / otherwise / <i>ν</i> &gt; 66</td><td>Prompt and script intensity</td></tr>
+  </table>
+</div>
+
+<h3>F. Personalisation</h3>
+<p>Every mock answer, discussion dimension and interview round writes one observation <i>x</i> ∈ [0, 100] against a named key. A mock score <i>s</i> ∈ {9, 6, 3, 1} is mapped to <i>x</i> = round(100<i>s</i>/9). The value shown for a key is the mean of its last five observations, and its trend is the difference between the later and the earlier half of that window once four are held:</p>
+<div class="eq"><span class="f"><i>v</i> = <span class="frac"><span>1</span><span>|<i>W</i>|</span></span> Σ<sub><i>x</i>∈<i>W</i></sub> <i>x</i>,&nbsp; <i>τ</i> = <i>v</i>(<i>W</i><sub>late</sub>) − <i>v</i>(<i>W</i><sub>early</sub>).</span><span class="no">(6)</span></div>
+<p>Selection of the next question draws without replacement with weight</p>
+<div class="eq"><span class="f"><i>w</i>(<i>q</i>) = max( 0.15, 1 + 2·[unseen] + 1.5·[weak topic] + <i>δ</i>(<i>q</i>) ),</span><span class="no">(7)</span></div>
+<p>where a topic is weak when its value <i>v</i> is below 60, and for a question seen before, <i>δ</i> adds 1.5 if it was last answered weakly (score ≤ 3) more than half a day ago, adds 0.3 if weakly but more recently, subtracts 0.8 if it was last answered Strong, and subtracts 0.6 if it was seen in the last six hours. The final draw is random so that two trainees with the same history do not get the same five questions. A suggestion of what to do next (a mock, a weak topic, or the lowest discussion dimension) is read from the same rows. Everything is arithmetic on stored rows, so it works with no model, and the Profile page shows it in full.</p>
+
+<h3>G. Offline Mode and Humanising</h3>
+<p>Offline mode is on if the environment variable <code>KNACK_OFFLINE</code> is set, in which case it cannot be switched off from the app, or if a stored setting says so. When it is on, the model client throws immediately and each caller falls back to its local source: the question bank for mocks, a scripted panel for discussions, and a deterministic rubric for scoring. Fonts are bundled so that nothing is fetched from the network (Fig. 3). Anything that did not come from a model is tagged, and the interface says so, for example “Scripted panel”.</p>
+
+<figure>
+<svg viewBox="0 0 340 322" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman, serif" font-size="8">
+  <defs><marker id="a3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#000"/></marker></defs>
+  <g fill="#fff" stroke="#000">
+    <rect x="40" y="6" width="160" height="24" rx="3"/>
+    <rect x="40" y="42" width="160" height="30" rx="3"/>
+    <rect x="40" y="140" width="160" height="24" rx="3"/>
+    <rect x="40" y="236" width="160" height="30" rx="3"/>
+    <rect x="40" y="282" width="160" height="30" rx="3"/>
+  </g>
+  <rect x="212" y="84" width="122" height="34" rx="3" fill="#f2f2f2" stroke="#000"/>
+  <g fill="#f2f2f2" stroke="#000"><path d="M120 78 L180 100 L120 122 L60 100 Z"/><path d="M120 172 L180 194 L120 216 L60 194 Z"/></g>
+  <g text-anchor="middle">
+    <text x="120" y="22">Trainee action (answer, turn, start)</text>
+    <text x="120" y="55">Route: sign-in check, validation,</text><text x="120" y="66">gates (mock before round)</text>
+    <text x="120" y="101">Offline?</text><text x="120" y="195">Valid reply?</text>
+    <text x="273" y="98">Local bank, script</text><text x="273" y="109">or rubric</text>
+    <text x="120" y="156">Model chain under time budget</text>
+    <text x="120" y="249">humanise(): strip stock phrasing</text><text x="120" y="260">and markdown</text>
+    <text x="120" y="295">Record statistics and run, tag source,</text><text x="120" y="306">respond to the client</text>
+  </g>
+  <g stroke="#000" fill="none" marker-end="url(#a3)">
+    <line x1="120" y1="30" x2="120" y2="42"/><line x1="120" y1="72" x2="120" y2="78"/>
+    <line x1="180" y1="100" x2="212" y2="100"/>
+    <line x1="120" y1="122" x2="120" y2="140"/><line x1="120" y1="164" x2="120" y2="172"/>
+    <line x1="120" y1="216" x2="120" y2="236"/>
+    <path d="M180 194 H302 V118"/>
+    <path d="M240 118 V252 H200"/>
+    <line x1="120" y1="266" x2="120" y2="282"/>
+  </g>
+  <text x="186" y="95">yes</text><text x="126" y="134">no</text><text x="126" y="230">yes</text><text x="250" y="190">no</text>
+</svg>
+<figcaption>Fig. 3. Path of a request that may need a model. Both branches meet at the same post-filter and the same record step.</figcaption>
+</figure>
+
+<p>Generated text tends to be recognisable by its stock phrasing. Every person-facing prompt carries a short voice brief, and every string that comes back, whether generated or scripted, passes through a post-filter. The filter removes markdown and list markers, drops praise openers (“Great question!”), swaps stock connectives (“Furthermore” becomes “Also,”; “utilize” becomes “use”), and rewrites dashes (a trailing dash becomes an ellipsis, a numeric range keeps a hyphen, any other dash becomes a comma). It is a rule-based filter. It does not claim to defeat detectors and is not built to.</p>
+
+<!-- ================================================================ V -->
+<h2>V. Implementation</h2>
+<h3>A. Software Stack</h3>
+<p>The system is a single-page client and a local server (Table IV). The server listens on the loopback address only, hashes passwords with scrypt and stores only the SHA-256 hash of each session token.</p>
+
+<div class="tbl">
+  <div class="cap">TABLE IV<b>Components Used in the Implementation</b></div>
+  <table>
+    <tr><th style="width:36%">Function</th><th>Component</th></tr>
+    <tr><td>Client</td><td>React 19, Vite 7, Tailwind CSS v4, Framer Motion, React Router, Zustand</td></tr>
+    <tr><td>Server</td><td>Node 24, Express 5</td></tr>
+    <tr><td>Storage</td><td>SQLite through better-sqlite3 (20 relations)</td></tr>
+    <tr><td>Optional generation</td><td>OpenRouter free-tier model chain under a time budget [17]</td></tr>
+    <tr><td>Speech input</td><td>Browser Web Speech API [16], on-device where available</td></tr>
+    <tr><td>Characters</td><td>One parametric SVG component</td></tr>
+    <tr><td>Fonts</td><td>Fredoka and Nunito, bundled</td></tr>
+  </table>
+</div>
+
+<h3>B. Client</h3>
+<p>The interface keeps a black background and a single orange accent, and takes its game feel from shape: buttons with a thick lower edge, star ratings and a winding level map for the five interview rounds. Colour does not carry meaning, since the label and an icon do, and the brightness of the orange marks emphasis. People are drawn by a single parametric SVG component whose look is a specification (skin, hair, brows, eyes, accessory, top and colour) with five expressions and a speaking animation. The specification never encodes gender, and pronouns are stored as separate data. A mic button sits wherever an answer is typed and fills the text box through the Web Speech API. Recognition is done by the browser, and most browsers send the audio to their maker’s servers, so in offline mode the button requests on-device recognition and says so when the browser cannot provide it. Typing always works. Fig. 4 shows eight of its screens.</p>
+
+<figure class="wide phones">
+  <div class="shots">
+    <div><img src="paper-figures/phone-1-company.png" alt="Company profile with simulated openings"><span>(a) Company profile</span></div>
+    <div><img src="paper-figures/phone-2-level-map.png" alt="Interview level map"><span>(b) Level map</span></div>
+    <div><img src="paper-figures/phone-3-mock-question.png" alt="A mock question"><span>(c) Mock question</span></div>
+    <div><img src="paper-figures/phone-4-mock-explained.png" alt="The mock question after answering, every option explained"><span>(d) Every option explained</span></div>
+    <div><img src="paper-figures/phone-5-panel-profile.png" alt="A panellist profile"><span>(e) Panellist profile</span></div>
+    <div><img src="paper-figures/phone-6-room-mood.png" alt="Room mood strip and the current speaker"><span>(f) Room mood</span></div>
+    <div><img src="paper-figures/phone-7-discussion.png" alt="The group discussion conversation"><span>(g) Discussion</span></div>
+    <div><img src="paper-figures/phone-8-training-profile.png" alt="What the system has learned"><span>(h) Training profile</span></div>
+  </div>
+  <figcaption>Fig. 4. Screens of the running application on a 360 × 640 phone viewport (9:16), in offline mode: (a) a company profile with hiring steps and openings labelled simulated; (b) the level map for the five interview rounds; (c) a mock question; (d) the same question after answering, with every option graded and explained; (e) a panellist’s profile; (f) the room’s mood above the current speaker; (g) the conversation; (h) the Profile page showing what the system has learned.</figcaption>
+</figure>
+
+<h3>C. Content</h3>
+<p>The content shipped with the system is summarised in Table V. The mock bank, the panel script and the company catalogue are written by hand, which is what lets the offline mode be a full mode and not a degraded one.</p>
+
+<div class="tbl">
+  <div class="cap">TABLE V<b>Content Shipped with the System</b></div>
+  <table>
+    <tr><th style="width:55%">Item</th><th class="n">Count</th></tr>
+    <tr><td>Mock-interview items (12 generic per round, plus employer-style items)</td><td class="n">84</td></tr>
+    <tr><td>Topics covered by the mock items</td><td class="n">49</td></tr>
+    <tr><td>Companies (13 real, 3 invented)</td><td class="n">16</td></tr>
+    <tr><td>Group-discussion panellists, fixed</td><td class="n">5</td></tr>
+    <tr><td>Interview rounds (3 questions each)</td><td class="n">5</td></tr>
+    <tr><td>Professional attributes</td><td class="n">10</td></tr>
+    <tr><td>Badges, each condition-checked</td><td class="n">24</td></tr>
+    <tr><td>Database relations</td><td class="n">20</td></tr>
+  </table>
+</div>
+
+<!-- ================================================================ VI -->
+<h2>VI. Results and Discussion</h2>
+<h3>A. System Operation</h3>
+<p>With all modules integrated, a trainee chooses a company and reads its profile (Fig. 4a), sees the level map for the interview rounds (Fig. 4b), takes a mock (Fig. 4c) in which every option is explained after the pick (Fig. 4d), opens a panellist’s profile (Fig. 4e), and runs a group discussion in which, on a phone, the room’s mood sits above the conversation (Figs. 4f and 4g); on a wide screen it sits beside the table. The Profile page shows what the system has learned (Fig. 4h). All eight screens were captured from the running application by a script released with the code.</p>
+
+<h3>B. Functional Verification</h3>
+<p>An end-to-end script (<code>smoke.mjs</code>) signs up a throwaway account against a server started with <code>KNACK_OFFLINE=1</code> and walks the new flows. In the final run all 37 checks passed (Table VI). Among them are checks that the answer key is not in the question payload, that a real round is refused before its mock and opens after, that re-answering returns the first answer, that the openings carry the word “simulated”, that panel text contains no dashes, and that an offline setting made by the environment cannot be undone from the app.</p>
+
+<div class="tbl">
+  <div class="cap">TABLE VI<b>End-to-End Checks by Area (Offline Mode)</b></div>
+  <table>
+    <tr><th style="width:62%">Area</th><th class="n">Checks</th></tr>
+    <tr><td>Account and onboarding</td><td class="n">2</td></tr>
+    <tr><td>Settings and offline lock</td><td class="n">2</td></tr>
+    <tr><td>Company profiles and choice</td><td class="n">6</td></tr>
+    <tr><td>Group discussion: profiles, mood, pressure, turns, finish</td><td class="n">12</td></tr>
+    <tr><td>Mock interview: key hidden, idempotent, gate, XP</td><td class="n">13</td></tr>
+    <tr><td>Training profile in the user payload</td><td class="n">2</td></tr>
+    <tr><td><b>Total</b></td><td class="n"><b>37</b></td></tr>
+  </table>
+</div>
+
+<h3>C. Question-Selection Simulation</h3>
+<p>The selection rule of Eq. (7) is compared with two baselines on simulated learners. This is a simulation and not a user study, and its learner model is an assumption. Each of 2000 learners has a latent ability for each topic, the mean of two uniform draws. An item starts with probability of a Strong answer equal to its topic’s ability. A Strong answer scores 9, otherwise 6, 3 or 1 with weights 0.45, 0.35 and 0.20. Seeing an item with its explanation raises its probability by a fraction <i>L</i> of the remaining gap, with <i>L</i> = 0.35. Each learner takes four mocks of each of the five rounds, one day apart. The Random baseline draws five of the twelve items uniformly. The Unseen-first baseline never repeats an item until all twelve have been served. The Knack policy is the real selection code running on a throwaway database with the clock advanced. All runs are seeded and the script is released with the code.</p>
+<p>Table VII reports, as means with 95% confidence half-widths: coverage of the twelve items after two and three mocks, the share of questions served in mocks 2–4 that the learner had last answered Strong (“wasted”), the share that it had last missed (“revisited”), the mean item score in the fourth mock, and the mean probability of a Strong answer over the whole pool after the fourth mock.</p>
+
+<div class="tbl wide">
+  <div class="cap">TABLE VII<b>Selection Policies on 2000 Simulated Learners (Gap One Day, <i>L</i> = 0.35)</b></div>
+  <table>
+    <tr><th>Policy</th><th class="n">Coverage @2</th><th class="n">Coverage @3</th><th class="n">Wasted</th><th class="n">Revisited</th><th class="n">Mock 4 (of 9)</th><th class="n">Pool P(Strong)</th></tr>
+    <tr><td>Random</td><td class="n">0.660 ±0.001</td><td class="n">0.801 ±0.002</td><td class="n">0.348 ±0.002</td><td class="n">0.152 ±0.002</td><td class="n">7.44 ±0.02</td><td class="n">0.735 ±0.001</td></tr>
+    <tr><td>Unseen-first</td><td class="n">0.833 ±0.000</td><td class="n">1.000 ±0.000</td><td class="n">0.267 ±0.002</td><td class="n">0.145 ±0.002</td><td class="n">7.37 ±0.02</td><td class="n">0.751 ±0.001</td></tr>
+    <tr><td>Knack (Eq. 7)</td><td class="n">0.736 ±0.001</td><td class="n">0.928 ±0.001</td><td class="n">0.158 ±0.002</td><td class="n">0.233 ±0.002</td><td class="n">7.31 ±0.02</td><td class="n">0.752 ±0.001</td></tr>
+  </table>
+  <div class="note">Sensitivity: with <i>L</i> = 0.15 the pool P(Strong) is 0.615, 0.618 and 0.621 for Random, Unseen-first and Knack; with a ten-minute gap Knack’s coverage at three mocks rises to 0.964 and wasted falls to 0.177.</div>
+</div>
+
+<p>The result is mixed, and it is worth stating plainly. The Knack policy does what it is built to do on the two measures that concern wasted effort: compared with Unseen-first it re-serves previously Strong items 41% less often (0.158 against 0.267) and revisits previously missed items 61% more often (0.233 against 0.145). It pays for this in coverage, which reaches 0.928 after three mocks against 1.000. On the measure of simulated learning, the pool-level probability of a Strong answer, Knack (0.752) and Unseen-first (0.751) are indistinguishable, and both are above Random (0.735). Knack’s mean score in the fourth mock is slightly lower (7.31 against 7.37) because it serves harder items, as it should. The honest conclusion is that under this learner model the weighting buys focus and not faster learning than a simple no-repeat cycle. Whether the focus helps real students is for the pilot study to show, and the same scripts can be rerun with other learner models.</p>
+
+<h3>D. Room Mood and the Post-Filter</h3>
+<p>Two components are checked on constructed inputs, which shows direction and not accuracy. The mood reader was given four short transcripts written to be heated, warm, flat and empty, and gave the labels in Table VIII. Four generated-style strings were passed through the post-filter, with results in Table IX. One of them shows a limit: a stock connective in the middle of a sentence (“has additionally transformed”) is not rewritten, since only sentence-initial connectives are.</p>
+
+<div class="tbl">
+  <div class="cap">TABLE VIII<b>Mood Reader on Constructed Transcripts</b></div>
+  <table>
+    <tr><th>Input</th><th>Label</th><th class="n"><i>T</i></th><th class="n"><i>W</i></th><th class="n"><i>E</i></th></tr>
+    <tr><td>Two speakers clashing</td><td>Heated</td><td class="n">78</td><td class="n">13</td><td class="n">66</td></tr>
+    <tr><td>Agreement and bridging</td><td>Warm</td><td class="n">0</td><td class="n">100</td><td class="n">60</td></tr>
+    <tr><td>Two short lines</td><td>Flat</td><td class="n">15</td><td class="n">35</td><td class="n">31</td></tr>
+    <tr><td>Empty transcript</td><td>Flat</td><td class="n">15</td><td class="n">35</td><td class="n">13</td></tr>
+  </table>
+</div>
+
+<div class="tbl">
+  <div class="cap">TABLE IX<b>Post-Filter Examples (Real Outputs)</b></div>
+  <table>
+    <tr><th style="width:48%">Before</th><th>After</th></tr>
+    <tr><td>Great question! Furthermore, it is important to note that we should utilize a **balanced** approach — one that serves everyone.</td><td>Also, we should use a balanced approach, one that serves everyone.</td></tr>
+    <tr><td>Absolutely! Moreover, remote work — in 2020–2024 — has additionally transformed hiring.</td><td>Also, remote work, in 2020-2024, has additionally transformed hiring.</td></tr>
+    <tr><td>- First, define the term.<br>- Second, give two examples.</td><td>First, define the term.<br>Second, give two examples.</td></tr>
+    <tr><td>Certainly! That is a valid point. Additionally, we can leverage existing infrastructure —</td><td>That is a valid point. Also, we can use existing infrastructure...</td></tr>
+  </table>
+</div>
+
+<h3>E. System-Level Measurements</h3>
+<p>Table X gives server response times for one trainee on a laptop, measured from a client on the same machine with the server in offline mode, so that the figures show the application’s own work and no model latency. Each endpoint was called 200 times in sequence with no request failing. This is not a load test.</p>
+
+<div class="tbl">
+  <div class="cap">TABLE X<b>Server Response Time (ms), 200 Calls Each</b></div>
+  <table>
+    <tr><th>Endpoint</th><th class="n">p50</th><th class="n">p95</th><th class="n">Max</th></tr>
+    <tr><td>GET user (profile, training)</td><td class="n">1.0</td><td class="n">1.7</td><td class="n">2.4</td></tr>
+    <tr><td>GET career (company list)</td><td class="n">0.8</td><td class="n">1.3</td><td class="n">2.4</td></tr>
+    <tr><td>GET company profile</td><td class="n">0.6</td><td class="n">1.0</td><td class="n">2.6</td></tr>
+    <tr><td>POST mock start</td><td class="n">0.7</td><td class="n">1.3</td><td class="n">1.8</td></tr>
+    <tr><td>POST mock answer</td><td class="n">0.8</td><td class="n">1.3</td><td class="n">6.1</td></tr>
+    <tr><td>POST gd start (panel, mood)</td><td class="n">0.8</td><td class="n">1.2</td><td class="n">1.9</td></tr>
+    <tr><td>POST gd turn (scripted)</td><td class="n">0.6</td><td class="n">1.1</td><td class="n">1.5</td></tr>
+  </table>
+  <div class="note">Intel Core Ultra 9 285H, 63 GB, Windows 11, Node 24.18. Client bundle: 574 kB JavaScript (171 kB gzip), 52 kB CSS, 176 kB fonts. Source: 14,163 lines (server), 10,319 lines (client).</div>
+</div>
+
+<p>Response times are about a millisecond because the offline paths are lookups and arithmetic over a local file. When a model is online, the dominant cost is the model, bounded by the time budget, and a failure drops to the same local path. An earlier measurement with a built-in <code>fetch</code> client showed a flat 15 ms on every endpoint. That was an artefact of the client on this machine and not of the server, since a raw HTTP client with keep-alive measured under a millisecond on the same server, and that client was used for Table X.</p>
+
+<h3>F. Pilot Study (Pending)</h3>
+<p>The simulation above cannot say whether students improve. A pilot study is planned in which each participant uses the system over a fixed period and is assessed before and after on a group discussion and an interview by raters who do not know the condition, and rates usability. Table XI holds the slots for the results and is deliberately empty.</p>
+
+<div class="tbl">
+  <div class="cap">TABLE XI<b>Pilot Study Results (to be completed)</b></div>
+  <table>
+    <tr><th style="width:56%">Measure</th><th class="c">Before</th><th class="c">After</th></tr>
+    <tr><td>Participants (<i>N</i>)</td><td class="c">–</td><td class="c">–</td></tr>
+    <tr><td>Group-discussion rating (rater mean)</td><td class="c">–</td><td class="c">–</td></tr>
+    <tr><td>Interview rating (rater mean)</td><td class="c">–</td><td class="c">–</td></tr>
+    <tr><td>Mock score, first and last attempt</td><td class="c">–</td><td class="c">–</td></tr>
+    <tr><td>Usability score</td><td class="c">–</td><td class="c">–</td></tr>
+    <tr><td>Share who would use it again</td><td class="c">–</td><td class="c">–</td></tr>
+  </table>
+</div>
+
+<h3>G. Challenges and Remedies</h3>
+<p>Table XII records the main problems met during development and the corrective steps adopted.</p>
+
+<div class="tbl">
+  <div class="cap">TABLE XII<b>Challenges Encountered and Remedies</b></div>
+  <table>
+    <tr><th style="width:48%">Challenge</th><th>Remedy</th></tr>
+    <tr><td>Free-tier model quota and outages</td><td>Offline switch; local bank, script and rubric for every call</td></tr>
+    <tr><td>Generic, formulaic generated text</td><td>Voice brief in prompts; rule-based post-filter</td></tr>
+    <tr><td>Answer key exposed to the client</td><td>Scores and reasons kept on the server and released per answer</td></tr>
+    <tr><td>Mood note claimed attention that was not there</td><td>Only a spoken name counts as addressing the trainee</td></tr>
+    <tr><td>Speech recognition needs the network, and one browser lacks it</td><td>On-device request when offline; typing always available</td></tr>
+    <tr><td>Web fonts need the network</td><td>Fonts bundled with the client</td></tr>
+    <tr><td>Company figures change</td><td>Rounded, tagged by year; openings labelled simulated</td></tr>
+    <tr><td>Model fixates on profile details</td><td>Only bounded skill lists reach scenario prompts</td></tr>
+  </table>
+</div>
+
+<h3>H. Limitations</h3>
+<p>The company figures are rounded values entered by hand from public disclosures and should be checked against the companies’ own reports before they are quoted. The intake rates and role shares behind the openings are assumptions. The mock bank has 84 items, so a trainee who retakes a round many times will see repeats. The selection simulation uses an assumed learner model. The mood reader is a set of regular expressions and will misread irony. The post-filter is cosmetic. No study with students has yet been run, and until one is, the claim of the paper is that the system works as designed and does so offline, not that it improves placement outcomes.</p>
+
+<!-- ================================================================ VII -->
+<h2>VII. Conclusion and Future Work</h2>
+<p>This paper presented Knack, a career simulation for placement preparation in which a mock interview comes before every real round, a profiled group-discussion panel speaks beside a reading of the room’s mood, sixteen company profiles tie practice to an employer, and a visible personalisation layer shapes the questions and the pressure. The system runs with no network and no model, and it says which parts were scripted. It passed 37 end-to-end checks in offline mode and responds in about a millisecond. In simulation, its selection rule cuts wasted repeats and brings back missed items but does not outperform a simple no-repeat cycle on simulated learning, which is reported as found.</p>
+<p>Planned work is the pilot study of Section VI-F, a larger mock bank and company catalogue, spoken replies from the interviewer and the panel (dictation exists, speech output does not), richer learner models behind the same selection interface, and the running of several companies at once.</p>
+
+<!-- ================================================================ REFS -->
+<h2>References</h2>
+<ol class="refs">
+  <li>M. E. Hoque, M. Courgeon, J.-C. Martin, B. Mutlu, and R. W. Picard, “MACH: My automated conversation coach,” in <i>Proc. ACM Int. Joint Conf. Pervasive and Ubiquitous Computing (UbiComp)</i>, 2013, pp. 697–706.</li>
+  <li>K. Anderson <i>et al.</i>, “The TARDIS framework: Intelligent virtual agents for social coaching in job interviews,” in <i>Advances in Computer Entertainment (ACE 2013)</i>, LNCS vol. 8253, Springer, 2013, pp. 476–491.</li>
+  <li>S. D. Maurer, J. Solamon, and D. D. Troxtel, “Relationship of coaching with performance in situational employment interviews,” <i>J. Applied Psychology</i>, vol. 83, no. 1, pp. 128–136, 1998.</li>
+  <li>T. M. Connolly, E. A. Boyle, E. MacArthur, T. Hainey, and J. M. Boyle, “A systematic literature review of empirical evidence on computer games and serious games,” <i>Computers &amp; Education</i>, vol. 59, no. 2, pp. 661–686, 2012.</li>
+  <li>J. Hamari, J. Koivisto, and H. Sarsa, “Does gamification work? A literature review of empirical studies on gamification,” in <i>Proc. 47th Hawaii Int. Conf. System Sciences (HICSS)</i>, 2014, pp. 3025–3034.</li>
+  <li>M. Sailer and L. Homner, “The gamification of learning: A meta-analysis,” <i>Educational Psychology Review</i>, vol. 32, pp. 77–112, 2020.</li>
+  <li>N. J. Cepeda, H. Pashler, E. Vul, J. T. Wixted, and D. Rohrer, “Distributed practice in verbal recall tasks: A review and quantitative synthesis,” <i>Psychological Bulletin</i>, vol. 132, no. 3, pp. 354–380, 2006.</li>
+  <li>H. L. Roediger III and J. D. Karpicke, “Test-enhanced learning: Taking memory tests improves long-term retention,” <i>Psychological Science</i>, vol. 17, no. 3, pp. 249–255, 2006.</li>
+  <li>A. T. Corbett and J. R. Anderson, “Knowledge tracing: Modeling the acquisition of procedural knowledge,” <i>User Modeling and User-Adapted Interaction</i>, vol. 4, no. 4, pp. 253–278, 1994.</li>
+  <li>B. Settles and B. Meeder, “A trainable spaced repetition model for language learning,” in <i>Proc. 54th Annu. Meeting of the Association for Computational Linguistics</i>, 2016, pp. 1848–1858.</li>
+  <li>M. Kleppmann, A. Wiggins, P. van Hardenberg, and M. McGranaghan, “Local-first software: You own your data, in spite of the cloud,” in <i>Proc. ACM SIGPLAN Int. Symp. on New Ideas, New Paradigms, and Reflections on Programming and Software (Onward!)</i>, 2019, pp. 154–178.</li>
+  <li>T. B. Brown <i>et al.</i>, “Language models are few-shot learners,” in <i>Advances in Neural Information Processing Systems</i>, vol. 33, 2020, pp. 1877–1901.</li>
+  <li>J. A. Russell, “A circumplex model of affect,” <i>J. Personality and Social Psychology</i>, vol. 39, no. 6, pp. 1161–1178, 1980.</li>
+  <li>S. Deterding, D. Dixon, R. Khaled, and L. Nacke, “From game design elements to gamefulness: Defining ‘gamification’,” in <i>Proc. 15th Int. Academic MindTrek Conf.</i>, 2011, pp. 9–15.</li>
+  <li>B. S. Bloom, “The 2 sigma problem: The search for methods of group instruction as effective as one-to-one tutoring,” <i>Educational Researcher</i>, vol. 13, no. 6, pp. 4–16, 1984.</li>
+  <li>Web Speech API Community Group, “Web Speech API,” specification. [Online]. Available: https://webaudio.github.io/web-speech-api/</li>
+  <li>OpenRouter, “OpenRouter documentation.” [Online]. Available: https://openrouter.ai/docs</li>
+</ol>
+
+</div>
+</body>
+</html>

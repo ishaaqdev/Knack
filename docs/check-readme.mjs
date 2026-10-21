@@ -36,7 +36,7 @@ if (badPaths.length) {
 
 /* server modules named in the architecture tree */
 const tree = md.slice(md.indexOf('server/src/'), md.indexOf('web/src/'))
-const named = [...new Set([...tree.matchAll(/^ {2}([a-z]+\.js)/gm)].map((m) => m[1]))]
+const named = [...new Set([...tree.matchAll(/^ {2}([A-Za-z]+\.js)/gm)].map((m) => m[1]))]
 const actual = readdirSync('server/src').filter((f) => f.endsWith('.js'))
 const ghosts = named.filter((n) => !actual.includes(n))
 const undocumented = actual.filter((a) => !named.includes(a))
