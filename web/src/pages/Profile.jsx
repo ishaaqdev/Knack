@@ -7,6 +7,8 @@ import { Button, Card, Empty, Page, Pill, SectionLabel, SkillBar, Spinner } from
 import { Ring } from '../components/Ring'
 import { AttemptDetail } from '../components/AttemptDetail'
 import { Insight } from '../components/Insight'
+import { TrainingProfile } from '../components/TrainingProfile'
+import { OfflineCard } from '../components/OfflineCard'
 import { ProfileEditor } from '../components/ProfileEditor'
 import { GithubSection } from '../components/GithubCard'
 import { ResumeSection } from '../components/ResumeCard'
@@ -174,6 +176,12 @@ export function Profile() {
         </section>
       )}
 
+      {user.training && (
+        <section className="mt-6">
+          <TrainingProfile training={user.training} />
+        </section>
+      )}
+
       {/* stated profile */}
       <section className="mt-6">
         <SectionLabel
@@ -323,6 +331,10 @@ export function Profile() {
             )}
           </>
         )}
+      </section>
+
+      <section className="mt-8">
+        <OfflineCard />
       </section>
 
       {/* settings */}

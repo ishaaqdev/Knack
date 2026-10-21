@@ -4,6 +4,8 @@ import { requireOnboarded } from '../auth.js'
 import {
   COMPANIES,
   ROLES,
+  profileFor,
+  companyFor,
   careerState,
   chooseCompany,
   joinCompany,
@@ -51,6 +53,9 @@ careerRouter.get('/', (req, res) => {
     ...careerState(user),
     companies: COMPANIES,
     roles: ROLES,
+    // The full profile of the company they are aiming at: description, headcount,
+    // turnover, how it hires and what is open. Null until one is chosen.
+    companyProfile: user.simCompanyId ? profileFor(user.simCompanyId) : null,
     attributes,
     professionalIndex: professionalIndex(user.id),
     weakest: weakest(user.id, 3),
@@ -58,6 +63,15 @@ careerRouter.get('/', (req, res) => {
     characters,
     badges: { earned: earnedCount(user.id), list: listBadges(user.id) },
   })
+})
+
+/* ------------------------------------------ GET /api/career/companies/:id --- */
+
+/** Look at a company before committing to it. */
+careerRouter.get('/companies/:id', (req, res) => {
+  const known = COMPANIES.some((c) => c.id === req.params.id)
+  if (!known) return res.status(404).json({ error: 'No such company.' })
+  res.json(profileFor(companyFor(req.params.id).id))
 })
 
 /* --------------------------------------------- POST /api/career/company --- */

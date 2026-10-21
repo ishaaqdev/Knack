@@ -4,16 +4,15 @@ import { cx, spring, useReducedMotion } from '../lib/ui'
 /* ------------------------------------------------------------- button ----- */
 
 const VARIANTS = {
-  primary:
-    'bg-ember text-[#160c05] font-semibold hover:bg-ember-hi active:bg-ember disabled:bg-line disabled:text-faint disabled:shadow-none',
+  primary: 'btn-candy btn-orange',
   ghost:
-    'bg-transparent text-dim border border-line hover:text-text hover:border-dim disabled:opacity-40',
-  quiet: 'bg-raised text-text border border-hair hover:bg-line hover:border-line disabled:opacity-40',
+    'bg-white/5 text-dim border-2 border-line font-semibold hover:text-text hover:border-ember hover:bg-white/10 disabled:opacity-40',
+  quiet: 'btn-candy btn-dark',
 }
 
-// The primary action is the brightest thing on the screen; it should throw a
-// little light. Dropped when disabled, so a dead button never looks live.
-const PRIMARY_GLOW = { boxShadow: '0 6px 22px -10px rgb(255 122 53 / 0.85)' }
+// The solid variants press with CSS (they sink into their own lower edge), so a
+// scale on top of that would fight it. Only the flat ghost button springs.
+const FLAT = new Set(['ghost'])
 
 // motion.create() must never run during render — a fresh component identity on
 // every pass would remount the button (and kill focus). Cache per element type.
@@ -39,12 +38,11 @@ export function Button({
       className={cx(
         'inline-flex items-center justify-center gap-2 rounded-full transition-colors duration-150',
         'disabled:cursor-not-allowed select-none',
-        size === 'lg' ? 'h-14 px-7 text-[15px]' : size === 'sm' ? 'h-9 px-4 text-[13px]' : 'h-11 px-5 text-sm',
+        size === 'lg' ? 'h-14 px-7 text-[17px]' : size === 'sm' ? 'h-9 px-4 text-[14px]' : 'h-12 px-6 text-[15px]',
         VARIANTS[variant],
         className
       )}
-      style={variant === 'primary' && !rest.disabled ? PRIMARY_GLOW : undefined}
-      whileTap={reduced || rest.disabled ? undefined : { scale: 0.97 }}
+      whileTap={reduced || rest.disabled || !FLAT.has(variant) ? undefined : { scale: 0.97 }}
       transition={spring}
       {...rest}
     >
@@ -74,9 +72,9 @@ export function Pill({ active = false, className, children, dot = true, title })
     <span
       title={title}
       className={cx(
-        'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium tracking-wide whitespace-nowrap',
+        'inline-flex items-center gap-1.5 rounded-full border-2 px-2.5 py-0.5 text-[11.5px] font-bold tracking-wide whitespace-nowrap',
         active
-          ? 'border-ember/35 bg-ember/10 text-ember-hi'
+          ? 'border-ember/70 bg-ember/15 text-ember-hi'
           : 'border-line bg-raised text-dim',
         className
       )}
@@ -96,32 +94,42 @@ export function Pill({ active = false, className, children, dot = true, title })
 
 /* ---------------------------------------------------------- skill bar ----- */
 
-export function SkillBar({ value = 0, delay = 0, className, height = 6, muted = false }) {
+export function SkillBar({ value = 0, delay = 0, className, height = 10, muted = false, tone = 'ember' }) {
   const reduced = useReducedMotion()
   const v = Math.max(0, Math.min(100, value))
+  // One hue: the tone is how bright the orange is. 'high' is lighter, 'low' is
+  // the dark end, 'dim' is neutral grey for something that is not a score.
+  const fill =
+    tone === 'high'
+      ? 'linear-gradient(180deg, #ffc08f, #ffa061 55%, #f08a45)'
+      : tone === 'low'
+        ? 'linear-gradient(180deg, #b8693a, #8a4a24 55%, #6e3a1c)'
+        : tone === 'dim'
+          ? 'linear-gradient(180deg, #b4b4bd, #9a9aa5 55%, #7d7d88)'
+          : 'linear-gradient(180deg, #ff9456, #ff7a35 55%, #ee6a28)'
 
   return (
     <div
       className={cx('w-full overflow-hidden rounded-full', className)}
-      style={{ height, background: 'rgb(0 0 0 / 0.35)', boxShadow: 'inset 0 1px 2px rgb(0 0 0 / 0.4)' }}
+      style={{
+        height,
+        background: 'rgb(0 0 0 / 0.6)',
+        boxShadow: 'inset 0 2px 3px rgb(0 0 0 / 0.5), 0 1px 0 rgb(255 255 255 / 0.12)',
+      }}
       role="progressbar"
       aria-valuenow={value}
       aria-valuemin={0}
       aria-valuemax={100}
     >
       <motion.div
-        className="h-full rounded-full"
+        className="relative h-full rounded-full"
         style={{
-          // A flat fill reads as a loading bar. The gradient and the small
-          // bloom at the end make it read as a level.
-          background: muted
-            ? 'var(--color-line)'
-            : 'linear-gradient(90deg, var(--color-ember-low), var(--color-ember) 70%, var(--color-ember-hi))',
-          boxShadow: muted || v < 4 ? 'none' : '0 0 10px -2px rgb(255 122 53 / 0.55)',
+          background: muted ? 'var(--color-line)' : fill,
+          boxShadow: muted ? 'none' : 'inset 0 2px 0 rgb(255 255 255 / 0.4), inset 0 -2px 0 rgb(0 0 0 / 0.15)',
         }}
         initial={{ width: reduced ? `${v}%` : 0 }}
         animate={{ width: `${v}%` }}
-        transition={reduced ? { duration: 0 } : { duration: 0.85, delay, ease: [0.16, 1, 0.3, 1] }}
+        transition={reduced ? { duration: 0 } : { duration: 0.85, delay, ease: [0.34, 1.3, 0.64, 1] }}
       />
     </div>
   )
@@ -129,11 +137,15 @@ export function SkillBar({ value = 0, delay = 0, className, height = 6, muted = 
 
 /* --------------------------------------------------------- page frame ----- */
 
-export function Page({ className, children }) {
+export function Page({ className, children, wide = false }) {
   const reduced = useReducedMotion()
   return (
     <motion.main
-      className={cx('mx-auto w-full max-w-2xl px-4 pb-28 pt-5 sm:px-6 sm:pt-8 md:pb-16', className)}
+      className={cx(
+        'mx-auto w-full px-4 pb-28 pt-5 sm:px-6 sm:pt-8 md:pb-16',
+        wide ? 'max-w-5xl' : 'max-w-2xl',
+        className
+      )}
       initial={reduced ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}

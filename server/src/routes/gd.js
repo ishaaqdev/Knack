@@ -3,7 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { db, safeParse } from '../db.js'
 import { requireOnboarded } from '../auth.js'
 import { gdTurn, evaluateGd } from '../ai.js'
-import { GD_PANEL } from '../prompts.js'
+import { GD_PANEL, publicPanel, roomMood, pressureFor } from '../gdRoom.js'
+import { recordStat } from '../personalise.js'
 import { TOPICS, pickTopic, ROOM } from '../topics.js'
 import { profileBrief } from '../profile.js'
 import { clearGd, GD_PASS, careerState } from '../career.js'
@@ -52,7 +53,8 @@ const bestStmt = db.prepare('SELECT MAX(score) AS best, COUNT(*) AS runs FROM gd
 gdRouter.get('/', (req, res) => {
   const b = bestStmt.get(req.user.id)
   res.json({
-    panel: GD_PANEL.map((p) => ({ name: p.name, trait: p.trait })),
+    panel: publicPanel(),
+    pressure: pressureFor(getAttributes(req.user.id)),
     best: b.best ?? null,
     runs: b.runs,
     cleared: !!req.user.gdCleared,
@@ -99,12 +101,18 @@ gdRouter.post('/start', async (req, res, next) => {
     )
     const topic = chosen.text
 
+    // The panel meets the trainee where their attributes say they are.
+    const pressure = pressureFor(getAttributes(user.id))
+    const traineeName = user.name?.split(' ')[0]
+
     const opening = await gdTurn({
       topic,
       frame: chosen.frame,
       transcript: [],
       beat: 1,
       totalBeats: TOTAL_BEATS,
+      pressure: pressure.id,
+      traineeName,
     })
     const transcript = opening.turns.map((t) => ({ ...t, you: false }))
 
@@ -118,6 +126,7 @@ gdRouter.post('/start', async (req, res, next) => {
       transcript,
       contributions: [],
       beat: 1,
+      pressure: pressure.id,
       source: opening.source,
     })
 
@@ -128,7 +137,9 @@ gdRouter.post('/start', async (req, res, next) => {
       category: chosen.category,
       room: ROOM,
       practice,
-      panel: GD_PANEL.map((p) => ({ name: p.name, trait: p.trait, how: p.how })),
+      panel: publicPanel(),
+      pressure,
+      mood: roomMood({ transcript, traineeName }),
       transcript,
       beat: 1,
       totalBeats: TOTAL_BEATS,
@@ -165,6 +176,8 @@ gdRouter.post('/turn', async (req, res, next) => {
     run.beat += 1
     const done = run.beat > TOTAL_BEATS
 
+    const traineeName = req.user.name?.split(' ')[0]
+
     if (done) {
       return res.json({
         runId: req.body.runId,
@@ -172,6 +185,7 @@ gdRouter.post('/turn', async (req, res, next) => {
         beat: run.beat,
         totalBeats: TOTAL_BEATS,
         closed: true,
+        mood: roomMood({ transcript: run.transcript, traineeName }),
       })
     }
 
@@ -183,7 +197,8 @@ gdRouter.post('/turn', async (req, res, next) => {
       totalBeats: TOTAL_BEATS,
       lastUserTurn: said || null,
       addressed,
-      traineeName: req.user.name?.split(' ')[0],
+      traineeName,
+      pressure: run.pressure ?? 'steady',
     })
 
     const added = next_.turns.map((t) => ({ ...t, you: false }))
@@ -196,6 +211,7 @@ gdRouter.post('/turn', async (req, res, next) => {
       beat: run.beat,
       totalBeats: TOTAL_BEATS,
       closed: false,
+      mood: roomMood({ transcript: run.transcript, traineeName }),
       source: next_.source,
       offlineNote: next_.offlineNote ?? null,
     })
@@ -301,6 +317,12 @@ gdRouter.post('/finish', async (req, res, next) => {
 
     live.delete(req.body.runId)
 
+    // Each dimension is evidence about how this trainee behaves in a room, and
+    // it stays in the database so the next panel and the dashboard can use it.
+    if (!practice) {
+      for (const [dim, value] of Object.entries(debrief.scores)) recordStat(before.id, 'gd-dimension', dim, value)
+    }
+
     // Each dimension is scored 0-100; the delta is how far it sits from an
     // even 50, scaled down so one discussion nudges rather than rewrites.
     let moved = []
@@ -345,6 +367,7 @@ gdRouter.post('/finish', async (req, res, next) => {
       nextFocus: debrief.nextFocus,
       transcript: run.transcript,
       contributions: run.contributions,
+      mood: roomMood({ transcript: run.transcript, traineeName: before.name?.split(' ')[0] }),
 
       source: debrief.source,
       offlineNote: debrief.offlineNote ?? null,

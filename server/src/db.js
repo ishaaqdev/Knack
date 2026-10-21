@@ -7,7 +7,9 @@ const here = dirname(fileURLToPath(import.meta.url))
 const dataDir = join(here, '..', 'data')
 mkdirSync(dataDir, { recursive: true })
 
-export const db = new Database(join(dataDir, 'knack.db'))
+// KNACK_DB points the server, or a script that imports it, at another file, so a
+// simulation can write thousands of synthetic trainees without touching real ones.
+export const db = new Database(process.env.KNACK_DB || join(dataDir, 'knack.db'))
 db.pragma('journal_mode = WAL')
 db.pragma('foreign_keys = ON')
 
@@ -267,6 +269,59 @@ db.exec(`
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
   );
 
+  -- Switches that outlive a restart (offline mode). One server, one trainee.
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key       TEXT PRIMARY KEY,
+    value     TEXT NOT NULL DEFAULT '',
+    updatedAt TEXT
+  );
+
+  -- A mock interview: the multiple-choice rehearsal before a real round. Kept
+  -- apart from interview_runs because a mock teaches and a round assesses, and
+  -- neither should be able to pass for the other.
+  CREATE TABLE IF NOT EXISTS mock_runs (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId    INTEGER NOT NULL,
+    level     INTEGER NOT NULL,
+    company   TEXT    NOT NULL DEFAULT '',
+    items     TEXT    NOT NULL DEFAULT '[]',
+    score     REAL    NOT NULL DEFAULT 0,
+    xpAwarded INTEGER NOT NULL DEFAULT 0,
+    source    TEXT    NOT NULL DEFAULT 'bank',
+    timestamp TEXT    NOT NULL,
+    localDate TEXT    NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- What the app has learned about this trainee, one row per thing it can
+  -- measure. Updated after every mock, discussion and interview round, and read
+  -- back when choosing the next question or the next panel. area is the kind
+  -- of evidence (mock-topic, gd-dimension, interview-round); key is which one.
+  CREATE TABLE IF NOT EXISTS training_stats (
+    userId    INTEGER NOT NULL,
+    area      TEXT    NOT NULL,
+    key       TEXT    NOT NULL,
+    seen      INTEGER NOT NULL DEFAULT 0,
+    total     REAL    NOT NULL DEFAULT 0,
+    recent    TEXT    NOT NULL DEFAULT '[]',
+    lastAt    TEXT,
+    PRIMARY KEY (userId, area, key),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- Every question a trainee has answered, so the same one is not served twice
+  -- in a row and a missed one can come back later.
+  CREATE TABLE IF NOT EXISTS mock_seen (
+    userId     INTEGER NOT NULL,
+    questionId TEXT    NOT NULL,
+    times      INTEGER NOT NULL DEFAULT 0,
+    lastScore  INTEGER NOT NULL DEFAULT 0,
+    lastAt     TEXT,
+    PRIMARY KEY (userId, questionId),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_mock_user ON mock_runs(userId, level, id DESC);
   CREATE INDEX IF NOT EXISTS idx_attempts_user_track ON attempts(userId, trackId, id DESC);
   CREATE INDEX IF NOT EXISTS idx_workdays_user ON workdays(userId, id DESC);
   CREATE INDEX IF NOT EXISTS idx_compev_user ON company_events(userId, seen, id);
@@ -350,6 +405,10 @@ addColumn('users', 'gradeIndex', 'INTEGER NOT NULL DEFAULT 0')
 addColumn('users', 'levelsSinceHire', 'INTEGER NOT NULL DEFAULT 0')
 addColumn('users', 'lastReviewLevel', 'INTEGER NOT NULL DEFAULT 5')
 
+// Which real or fictional company the trainee is aiming at. simCompany stays the
+// display name (it can be renamed); this is the key into the company dataset.
+addColumn('users', 'simCompanyId', 'TEXT')
+
 // Practice runs are kept, because the feedback is worth re-reading, but they
 // are marked so nothing downstream counts them.
 addColumn('gd_runs', 'practice', 'INTEGER NOT NULL DEFAULT 0')
@@ -424,6 +483,7 @@ export function publicUser(row) {
     sim: {
       phase: row.phase ?? 'gd',
       company: row.simCompany,
+      companyId: row.simCompanyId,
       companyKind: row.simCompanyKind,
       role: row.simRole,
       joinedAt: row.joinedCompanyAt,

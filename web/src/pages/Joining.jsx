@@ -47,7 +47,7 @@ function Introduce({ person, index, total, onSave, onSkip, busy }) {
 
       <Card hot>
         <div className="flex items-center gap-3.5">
-          <Avatar name={name || person.role} value={null} size={44} stroke={0} />
+          <Avatar name={name || person.role} value={null} size={72} stroke={0} look={person.look} accent={person.accent} />
           <div className="min-w-0 flex-1">
             <p className="font-display text-[16px] font-semibold">{person.role}</p>
             <p className="mt-0.5 text-[12.5px] text-faint">{person.department}</p>
@@ -56,6 +56,7 @@ function Introduce({ person, index, total, onSave, onSkip, busy }) {
 
         <p className="mt-3.5 text-[13.5px] leading-relaxed text-dim">{person.personality}</p>
         <p className="mt-2 text-[12.5px] text-faint">{person.joinedLabel}</p>
+        {person.quirk && <p className="mt-2 text-[12.5px] italic text-faint">{person.quirk}</p>}
 
         <div className="mt-4 border-t border-hair pt-4">
           <label className="mb-2 block text-[13px] font-medium text-dim">

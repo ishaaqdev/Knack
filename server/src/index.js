@@ -17,7 +17,10 @@ import { gdRouter } from './routes/gd.js'
 import { careerRouter } from './routes/career.js'
 import { offerRouter } from './routes/offer.js'
 import { workplaceRouter } from './routes/workplace.js'
+import { mockRouter } from './routes/mock.js'
+import { settingsRouter } from './routes/settings.js'
 import { health, rateLimitStatus } from './ai.js'
+import { offlineStatus } from './settings.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -41,8 +44,10 @@ app.use('/api/gd', gdRouter)
 app.use('/api/career', careerRouter)
 app.use('/api/offer', offerRouter)
 app.use('/api/workplace', workplaceRouter)
+app.use('/api/mock', mockRouter)
+app.use('/api/settings', settingsRouter)
 app.get('/api/health', async (_req, res) =>
-  res.json({ ok: true, ai: await health(), rateLimit: rateLimitStatus() })
+  res.json({ ok: true, ai: await health(), rateLimit: rateLimitStatus(), ...offlineStatus() })
 )
 
 // Production single-port mode: `npm run build` then `npm start` serves the SPA
@@ -71,6 +76,7 @@ app.listen(PORT, HOST, () => {
   console.log(`\n  Knack API   http://${HOST}:${PORT}`)
   console.log(`  model       ${process.env.OPENROUTER_MODEL}`)
   console.log(`  key         ${key ? `${key.slice(0, 12)}…` : 'MISSING — check server/.env'}`)
+  if (offlineStatus().offline) console.log('  mode        OFFLINE — no request will leave this machine')
   if (existsSync(dist)) console.log(`  serving     web/dist (single-port mode)`)
   console.log('')
 })

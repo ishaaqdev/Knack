@@ -1,4 +1,35 @@
 import { shapeBlock } from './variation.js'
+import { GD_PANEL, PRESSURE_PROMPT } from './gdRoom.js'
+
+/**
+ * How anything the model writes for a person should sound.
+ *
+ * Every voice in the app (a candidate, an interviewer, a colleague, an assessor)
+ * is a person speaking, and a model's default register is a polite report. This
+ * block is added to each of those prompts by withVoice() so the instruction is
+ * written once. humanise.js is the backstop for whatever still gets through.
+ */
+export const VOICE = `HOW IT SHOULD SOUND
+- Write the way a real person talks or texts a colleague: contractions, short
+  sentences, now and then a half-finished thought. Plain words over fancy ones.
+- No praise openers ("Great point", "Certainly", "Absolutely"). No signposting
+  ("Firstly", "In conclusion", "It is important to note").
+- No lists, headings, bold or tidy three-part flourishes. Avoid "not only X but
+  also Y". Never use these: delve, tapestry, landscape, pivotal, robust,
+  leverage, utilise, furthermore, moreover.
+- Do not use dashes as punctuation. Use a comma or start a new sentence.
+- Vary sentence length. A person does not write four medium sentences in a row.
+- A little Indian campus English is fine in small doses ("see,", "I mean",
+  "basically", "frankly"). Never a caricature.
+- If you catch yourself writing something that sounds like a brochure, say what
+  you actually mean instead.`
+
+/** Slots the voice block in before the final "Reply with ONLY" instruction. */
+export function withVoice(prompt) {
+  const i = prompt.lastIndexOf('Reply with ONLY')
+  const block = VOICE + '\n\n'
+  return i === -1 ? `${prompt}\n\n${block}` : prompt.slice(0, i) + block + prompt.slice(i)
+}
 
 /**
  * Prompt templates live here so they can be tuned without touching route logic.
@@ -610,13 +641,7 @@ Reply with ONLY this JSON object and nothing else:
  * someone who challenges everything — those roles have to be reliably present,
  * not left to a sampler.
  */
-export const GD_PANEL = [
-  { name: 'Rohit', trait: 'Dominant', how: 'talks first, talks longest, interrupts to finish his own point' },
-  { name: 'Anjali', trait: 'Knowledgeable', how: 'brings real facts and numbers, but states them flatly and does not push' },
-  { name: 'Vikram', trait: 'Aggressive', how: 'challenges whatever was just said, sometimes fairly, sometimes not' },
-  { name: 'Sneha', trait: 'Diplomatic', how: 'tries to reconcile two positions and bring quieter people in' },
-  { name: 'Imran', trait: 'Quiet', how: 'says very little, but what he says is usually the best point so far' },
-]
+export { GD_PANEL }
 
 // Topics live in topics.js — they carry framing and categories, which a bare
 // list of strings could not.
@@ -635,6 +660,7 @@ export function gdTurnPrompt({
   lastUserTurn,
   addressed,
   traineeName,
+  pressure = 'steady',
 }) {
   const panel = GD_PANEL.map((p) => `- ${p.name} (${p.trait}): ${p.how}`).join('\n')
   const said = transcript.length
@@ -670,6 +696,9 @@ ${said}
 You are writing beat ${beat} of about ${totalBeats}.
 ${reaction}
 
+HOW HARD THE ROOM IS
+${PRESSURE_PROMPT[pressure] ?? PRESSURE_PROMPT.steady}
+
 Write 2 or 3 short turns from DIFFERENT candidates, in the order they speak.
 
 RULES
@@ -683,8 +712,12 @@ RULES
 - Late in the discussion (beat ${totalBeats} or close to it), someone should try
   to pull it together, and someone else may resist that.
 - Never speak for the trainee and never put words in their mouth.
-- Real spoken English, including the odd unfinished sentence. No markdown, no
+- Real spoken English. People in a GD cut each other off, repeat a word while
+  they think, start a sentence and change it. Let that show: "No, see, the
+  thing is...", "Okay but that's, that's not what I meant." No markdown, no
   emoji, no stage directions.
+- Nobody says "I'd like to add" or "that's a great point". They say "Hold on",
+  "Okay, but", "Honestly?", "Fine, but who pays for that?".
 
 Reply with ONLY this JSON object and nothing else:
 {"turns":[{"speaker":"<candidate name>","text":"<what they say>"}]}`
@@ -700,9 +733,10 @@ export function gdEvaluationPrompt({ topic, frame, transcript, contributions, pr
     ? contributions.map((c, i) => `${i + 1}. (after ${c.after} other turns) "${c.text}"`).join('\n')
     : '(the trainee never spoke)'
 
-  return `You are an experienced placement assessor debriefing a candidate after
-a group discussion. Be honest — a candidate told they were great and then cut in
-a real GD has been let down.
+  return `You are an experienced placement assessor talking a candidate through
+how a group discussion went, the way you would over chai once the room has
+emptied. Be honest. A candidate told they were great and then cut in a real GD
+has been let down.
 
 TOPIC
 ${topic}
@@ -733,9 +767,11 @@ Then give an overall score out of 10 consistent with those five numbers.
 
 RULES
 - Address them as "you". Quote something they actually said, if they said anything.
-- strengths / gaps: 1-2 sentences each, behavioural and specific.
+- strengths / gaps: 1-2 sentences each, behavioural and specific. Talk to them,
+  do not report on them: "You came in early and that helped" beats "The candidate
+  demonstrated early entry".
 - nextFocus: one clause naming the single thing to change next time.
-- Plain text only. No markdown, no emoji.
+- Plain text only. No markdown, no emoji, no bullet points.
 
 Reply with ONLY this JSON object and nothing else:
 {"scores":{"communication":<0-100>,"confidence":<0-100>,"leadership":<0-100>,"teamwork":<0-100>,"listening":<0-100>},"score":<1-10>,"verdict":"<one sentence>","strengths":"<1-2 sentences>","gaps":"<1-2 sentences>","nextFocus":"<one clause>"}`
@@ -1040,4 +1076,51 @@ RULES
 
 Reply with ONLY this JSON object and nothing else:
 {"score":<1-10>,"strengths":"<what worked>","gaps":"<what was missing>","suggestion":"<one specific improvement>","relationship":<-6 to 6>,"consequence":"<one sentence on what this means later>"}`
+}
+
+/* ------------------------------------------------------- mock interview --- */
+
+/**
+ * A multiple-choice rehearsal for one interview round.
+ *
+ * The point of a mock is to teach, so every option carries the reason it is
+ * good or poor, and the four options are four things a real, nervous student
+ * would actually say. A wrong answer nobody would ever give teaches nothing.
+ * Scores are 9/6/3/1 and each is used once, the same scale as a quest level, so
+ * the server can grade without asking the model a second time.
+ */
+export function mockPrompt({ round, role, company, style, topics = [], asked = [], n = 5, weak = [] }) {
+  const focus = weak.length
+    ? `\nThis candidate has been missing questions on: ${weak.join(', ')}. Make at least two of the ${n} about those.\n`
+    : ''
+  const avoid = asked.length
+    ? `\nDo not repeat or closely paraphrase these:\n${asked.slice(0, 12).map((q) => `- ${q}`).join('\n')}\n`
+    : ''
+
+  return `You are an experienced campus-placement interviewer writing a short
+multiple-choice mock interview to coach a final-year Indian engineering student
+before ROUND ${round.level} (${round.name}) of an interview for ${role} at ${company}.
+
+WHAT THIS ROUND TESTS
+${round.brief}
+${style ? `\nThe employer is the ${style} kind, so lean the situations that way.\n` : ''}${topics.length ? `\nTopics to cover between them: ${topics.join(', ')}.\n` : ''}${focus}${avoid}
+Write exactly ${n} questions. Each one is a short situation, usually the
+interviewer's line in quotes, followed by the decision: what do you say or do?
+
+EACH QUESTION HAS FOUR OPTIONS, scored 9, 6, 3 and 1, each score used once.
+- All four must be things a nervous but intelligent student really says. Not
+  cartoon-stupid ones. The weak options are weak for a reason the trainee can
+  learn: rambling, reciting the CV, over-claiming, blaming, bluffing, going vague.
+- The best option is not always the longest or the most polite. Vary where it sits.
+- "why" is one or two plain sentences saying what the interviewer hears or
+  concludes. Never just "Correct" or "Wrong".
+- "lesson" is the one sentence the trainee should remember.
+
+RULES
+- Question under 60 words. Option 8 to 45 words. why under 40. lesson under 25.
+- No gendered pronouns for unnamed people. Use "they" or a role.
+- Never invent facts about the real company; keep it general.
+
+Reply with ONLY this JSON object and nothing else:
+{"questions":[{"topic":"<short-kebab-case>","question":"<the situation and decision>","options":[{"text":"<option>","score":9,"why":"<reason>"},{"text":"<option>","score":6,"why":"<reason>"},{"text":"<option>","score":3,"why":"<reason>"},{"text":"<option>","score":1,"why":"<reason>"}],"lesson":"<one sentence>"}]}`
 }

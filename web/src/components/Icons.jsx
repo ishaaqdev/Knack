@@ -188,3 +188,52 @@ export const IconPen = (p) => (
     <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7.5 18.5 3 20l1.5-4.5z" />
   </Svg>
 )
+
+export const IconMic = (p) => (
+  <Svg {...p}>
+    <rect x="9" y="3" width="6" height="11" rx="3" />
+    <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M8.5 21h7" />
+  </Svg>
+)
+
+export const IconStop = (p) => (
+  <Svg {...p}>
+    <rect x="6.5" y="6.5" width="11" height="11" rx="2.5" />
+  </Svg>
+)
+
+export const IconWifiOff = (p) => (
+  <Svg {...p}>
+    <path d="M3 3l18 18M8.5 16.4a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 3-1.9m10 1.9a10 10 0 0 0-4.4-2.6M2 9.4a15 15 0 0 1 4.2-2.7m5.8-.7a15 15 0 0 1 10 3.4M12 20h.01" />
+  </Svg>
+)
+
+export function IconStar({ size = 20, filled = true, ...rest }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" {...rest}>
+      <path
+        d="M12 2.8l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.6 6.2 20.7l1.1-6.5L2.6 9.6l6.5-.9z"
+        fill={filled ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export const IconBuilding = (p) => (
+  <Svg {...p}>
+    <rect x="4.5" y="3.5" width="11" height="17" rx="1.5" />
+    <path d="M15.5 9.5h4a1 1 0 0 1 1 1v10h-5M8 8h4M8 12h4M8 16h4" />
+  </Svg>
+)
+
+export const IconPeople = (p) => (
+  <Svg {...p}>
+    <circle cx="9" cy="8.5" r="3.2" />
+    <path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" />
+    <circle cx="17" cy="9.5" r="2.4" />
+    <path d="M17.5 14.6c2.2.2 3.5 1.9 3.5 4.4" />
+  </Svg>
+)

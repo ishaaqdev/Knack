@@ -34,6 +34,9 @@ export const CAST = [
     joinedLabel: '4 years at the company',
     relationship: 50,
     sortOrder: 0,
+    look: { skin: '#a9714b', hair: 'bun', hairColor: '#2b2326', brows: 'level', eyes: 'calm', accessory: 'none', top: 'blazer', topColor: '#3a3a44' },
+    accent: '#ff7a35',
+    quirk: 'Answers a question with a question, then goes quiet until you have worked it out.',
   },
   {
     slug: 'senior',
@@ -47,6 +50,9 @@ export const CAST = [
     joinedLabel: '3 years at the company',
     relationship: 45,
     sortOrder: 1,
+    look: { skin: '#c4895a', hair: 'crop', hairColor: '#1d1a19', brows: 'thick', eyes: 'sharp', accessory: 'glasses', top: 'collar', topColor: '#2e2e36' },
+    accent: '#f2f0ec',
+    quirk: 'Reviews code with a single comment that is somehow the only one that matters.',
   },
   {
     slug: 'peer',
@@ -60,6 +66,9 @@ export const CAST = [
     joinedLabel: 'started the same week as you',
     relationship: 55,
     sortOrder: 2,
+    look: { skin: '#d19a6c', hair: 'wavy', hairColor: '#3a2a22', brows: 'arched', eyes: 'round', accessory: 'headphones', top: 'hoodie', topColor: '#4a4a55' },
+    accent: '#ffa061',
+    quirk: 'Has three half-finished side projects and will tell you about all of them.',
   },
   {
     slug: 'product',
@@ -73,6 +82,9 @@ export const CAST = [
     joinedLabel: '2 years at the company',
     relationship: 50,
     sortOrder: 3,
+    look: { skin: '#b97a52', hair: 'long', hairColor: '#241b1a', brows: 'arched', eyes: 'bright', accessory: 'earrings', top: 'blazer', topColor: '#8a4a24' },
+    accent: '#9a9aa5',
+    quirk: 'Says "quick question" before anything that will take a week.',
   },
   {
     slug: 'hr',
@@ -86,6 +98,9 @@ export const CAST = [
     joinedLabel: '5 years at the company',
     relationship: 50,
     sortOrder: 4,
+    look: { skin: '#cf9468', hair: 'side', hairColor: '#352a25', brows: 'level', eyes: 'calm', accessory: 'beard', top: 'collar', topColor: '#d8d4cc' },
+    accent: '#63636e',
+    quirk: 'Keeps a spare charger, a spare pen and a spare form for everyone.',
   },
 ]
 
@@ -130,6 +145,9 @@ const shape = (row, { events = 0 } = {}) => ({
   relationship: row.relationship,
   tier: relationshipTier(row.relationship),
   status: row.status,
+  look: CAST.find((c) => c.slug === row.slug)?.look ?? null,
+  accent: CAST.find((c) => c.slug === row.slug)?.accent ?? null,
+  quirk: CAST.find((c) => c.slug === row.slug)?.quirk ?? null,
   history: events ? eventsStmt.all(row.id, events) : undefined,
 })
 

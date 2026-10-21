@@ -5,6 +5,8 @@ import { useKnack } from '../store/useKnack'
 import { api } from '../lib/api'
 import { Button, Card, Page, PageHead, Pill, SectionLabel, Spinner } from '../components/primitives'
 import { AttributePanel } from '../components/Attributes'
+import { CompanyCard } from '../components/CompanyCard'
+import { JourneyPath } from '../components/JourneyPath'
 import {
   IconArrowRight,
   IconBriefcase,
@@ -39,68 +41,38 @@ const PHASE_ROUTE = {
   fulltime: '/office',
 }
 
-/* ----------------------------------------------------------- career map -- */
-
-function PhaseRow({ phase, index, current, done }) {
-  const reduced = useReducedMotion()
-  const Icon = PHASE_ICON[phase.id] ?? IconBriefcase
-
-  return (
-    <motion.div
-      initial={reduced ? false : { opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: reduced ? 0 : index * 0.06, duration: 0.35 }}
-      className="relative flex gap-3.5 pb-5 last:pb-0"
-    >
-      {/* the spine */}
-      <div className="relative flex flex-col items-center">
-        <span
-          className={cx(
-            'grid h-9 w-9 shrink-0 place-items-center rounded-full border',
-            done
-              ? 'border-ember bg-ember text-[#160c05]'
-              : current
-                ? 'border-ember text-ember'
-                : 'border-line text-faint'
-          )}
-        >
-          {done ? <IconCheck size={16} /> : current ? <Icon size={16} /> : <IconLock size={14} />}
-        </span>
-        <span
-          className={cx(
-            'mt-1 w-px flex-1',
-            done ? 'bg-ember-low' : 'bg-line',
-            index === 5 && 'hidden'
-          )}
-        />
-      </div>
-
-      <div className={cx('min-w-0 flex-1 pt-1', !current && !done && 'opacity-55')}>
-        <div className="flex items-baseline gap-2">
-          <p className="font-display text-[15px] font-semibold">{phase.name}</p>
-          {current && <Pill active>Now</Pill>}
-        </div>
-        <p className="mt-0.5 text-[12.5px] leading-relaxed text-dim">{phase.tagline}</p>
-        {current && <p className="mt-1.5 text-[12px] text-ember-hi">{phase.goal}</p>}
-      </div>
-    </motion.div>
-  )
-}
-
 /* ------------------------------------------------- company + role choice -- */
 
 function ChooseCompany({ career, onChosen }) {
-  const [companyId, setCompanyId] = useState(career.companies[0].id)
+  const [companyId, setCompanyId] = useState(career.companies.find((c) => c.real)?.id ?? career.companies[0].id)
   const [roleId, setRoleId] = useState(career.roles[0].id)
   const [customName, setCustomName] = useState('')
+  const [profile, setProfile] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+
+  const selected = career.companies.find((c) => c.id === companyId)
+  const real = career.companies.filter((c) => c.real)
+  const invented = career.companies.filter((c) => !c.real)
+
+  // Read about a company before committing to it.
+  useEffect(() => {
+    let live = true
+    setProfile(null)
+    api
+      .companyProfile(companyId)
+      .then((p) => live && setProfile(p))
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [companyId])
 
   const save = async () => {
     setBusy(true)
     setError(null)
     try {
-      await api.chooseCompany(companyId, roleId, customName)
+      await api.chooseCompany(companyId, roleId, selected?.real ? '' : customName)
       await onChosen()
     } catch (e) {
       setError(e.message)
@@ -109,32 +81,42 @@ function ChooseCompany({ career, onChosen }) {
     }
   }
 
+  const row = (c) => (
+    <button
+      key={c.id}
+      type="button"
+      onClick={() => setCompanyId(c.id)}
+      className={cx(
+        'w-full rounded-tile border-2 px-4 py-3 text-left transition-colors',
+        companyId === c.id ? 'border-ember bg-ember/12' : 'border-line hover:border-ember'
+      )}
+    >
+      <p className="text-[14.5px] font-bold">
+        {c.name} <span className="font-medium text-faint">· {c.kind}</span>
+      </p>
+      <p className="mt-0.5 text-[12.5px] leading-relaxed text-dim">{c.blurb}</p>
+      <p className="mt-1 text-[11.5px] font-semibold text-faint">
+        ~{c.employeesLabel} people · {c.revenue.label}
+      </p>
+    </button>
+  )
+
   return (
     <Card className="mb-5">
-      <p className="font-display text-[15px] font-semibold">Where are you applying?</p>
+      <p className="font-display text-[18px] font-semibold">Where are you applying?</p>
       <p className="mt-1 text-[13px] leading-relaxed text-dim">
-        This decides who is in the room, how formal it gets and what is at stake. You can change it
-        until the day you join.
+        Pick a real company to prepare for how it actually hires, or an invented one to play it loose. This decides who
+        is in the room, how formal it gets and what is at stake. You can change it until the day you join.
       </p>
 
-      <SectionLabel>Company</SectionLabel>
-      <div className="space-y-2.5">
-        {career.companies.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => setCompanyId(c.id)}
-            className={cx(
-              'w-full rounded-tile border px-4 py-3 text-left transition-colors',
-              companyId === c.id ? 'border-ember/45 bg-ember/10' : 'border-line hover:border-dim'
-            )}
-          >
-            <p className="text-[14px] font-medium">
-              {c.name} <span className="text-faint">· {c.kind}</span>
-            </p>
-            <p className="mt-0.5 text-[12.5px] leading-relaxed text-dim">{c.blurb}</p>
-          </button>
-        ))}
+      <div className="mt-4">
+        <SectionLabel>Real companies</SectionLabel>
+        <div className="max-h-[22rem] space-y-2.5 overflow-y-auto pr-1">{real.map(row)}</div>
+      </div>
+
+      <div className="mt-4">
+        <SectionLabel>Invented ones</SectionLabel>
+        <div className="space-y-2.5">{invented.map(row)}</div>
       </div>
 
       <div className="mt-4">
@@ -146,39 +128,50 @@ function ChooseCompany({ career, onChosen }) {
               type="button"
               onClick={() => setRoleId(r.id)}
               className={cx(
-                'rounded-full border px-3 py-1.5 text-[12.5px] transition-colors',
+                'rounded-full border-2 px-3.5 py-1.5 text-[13px] font-bold transition-colors',
                 roleId === r.id
-                  ? 'border-ember/45 bg-ember/10 text-ember-hi'
-                  : 'border-line text-dim hover:border-dim'
+                  ? 'border-ember bg-ember/15 text-ember-hi'
+                  : 'border-line text-dim hover:border-ember'
               )}
             >
               {r.name}
             </button>
           ))}
         </div>
-        <p className="mt-2 text-[12px] leading-relaxed text-faint">
+        <p className="mt-2 text-[12.5px] leading-relaxed text-faint">
           {career.roles.find((r) => r.id === roleId)?.blurb}
         </p>
       </div>
 
-      <div className="mt-4">
-        <SectionLabel>Name it yourself (optional)</SectionLabel>
-        <input
-          value={customName}
-          maxLength={40}
-          onChange={(e) => setCustomName(e.target.value)}
-          placeholder={career.companies.find((c) => c.id === companyId)?.name}
-          className="w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none focus:border-ember"
-        />
-        <p className="mt-2 text-[12px] leading-relaxed text-faint">
-          The size and culture still come from the choice above — the name is the part that makes
-          it yours.
-        </p>
+      {selected && !selected.real && (
+        <div className="mt-4">
+          <SectionLabel>Name it yourself (optional)</SectionLabel>
+          <input
+            value={customName}
+            maxLength={40}
+            onChange={(e) => setCustomName(e.target.value)}
+            placeholder={selected.name}
+            className="w-full rounded-xl border-2 border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none focus:border-ember"
+          />
+          <p className="mt-2 text-[12px] leading-relaxed text-faint">
+            The size and culture still come from the choice above. The name is the part that makes it yours.
+          </p>
+        </div>
+      )}
+
+      <div className="well mt-5 p-4">
+        {profile ? (
+          <CompanyCard profile={profile} roleId={roleId} />
+        ) : (
+          <div className="flex items-center gap-2 text-[13px] text-faint">
+            <Spinner size={14} /> Pulling up the company file…
+          </div>
+        )}
       </div>
 
       {error && <p className="mt-3 text-[12.5px] text-ember-hi">{error}</p>}
 
-      <Button className="mt-4 w-full" onClick={save} disabled={busy}>
+      <Button className="mt-4 w-full" size="lg" onClick={save} disabled={busy}>
         {busy ? <Spinner size={15} /> : null} Set my target
       </Button>
     </Card>
@@ -297,11 +290,44 @@ export function Career() {
         <ChooseCompany career={career} onChosen={load} />
       )}
 
+      {career.companyProfile && (
+        <details className="card mb-5 p-0 open:pb-1">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4">
+            <span className="min-w-0">
+              <span className="block text-[10.5px] font-extrabold uppercase tracking-[0.14em] text-faint">
+                The company
+              </span>
+              <span className="block truncate font-display text-[17px] font-semibold">
+                {career.companyProfile.full ?? career.companyProfile.name}
+              </span>
+            </span>
+            <span className="shrink-0 text-[12px] font-bold text-ember-hi">
+              ~{career.companyProfile.employeesLabel} people · {career.companyProfile.revenue.label}
+            </span>
+          </summary>
+          <div className="px-5 pb-4">
+            <CompanyCard profile={career.companyProfile} roleId={career.role?.id} />
+          </div>
+        </details>
+      )}
+
       <SectionLabel>The journey</SectionLabel>
-      <Card className="mb-5">
-        {career.phases.map((p, i) => (
-          <PhaseRow key={p.id} phase={p} index={i} current={p.current} done={p.reached && !p.current} />
-        ))}
+      <Card className="mb-5 overflow-hidden">
+        <JourneyPath
+          nodes={career.phases.map((p) => {
+            const done = p.reached && !p.current
+            const route = PHASE_ROUTE[p.id]
+            return {
+              id: p.id,
+              title: p.name,
+              sub: p.current ? p.goal : p.tagline,
+              state: done ? 'done' : p.current ? 'current' : 'locked',
+              icon: PHASE_ICON[p.id] ?? IconBriefcase,
+              tag: p.current ? 'You are here' : undefined,
+              onClick: p.current && route ? () => navigate(route) : undefined,
+            }
+          })}
+        />
       </Card>
 
       {career.phase === 'internship' && (

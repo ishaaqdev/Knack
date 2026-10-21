@@ -135,7 +135,7 @@ function Person({ person, index, pronounOptions, onRenamed }) {
     >
       <Card tap className="p-0">
         <button type="button" onClick={expand} className="flex w-full items-center gap-3.5 p-4 text-left">
-          <Avatar name={shown.name} value={shown.relationship} size={44} delay={0.1 + index * 0.05} />
+          <Avatar name={shown.name} value={shown.relationship} size={54} delay={0.1 + index * 0.05} look={shown.look} accent={shown.accent} />
           <span className="min-w-0 flex-1">
             <span className="flex items-baseline gap-2">
               <span className="truncate font-display text-[15px] font-semibold">{shown.name}</span>

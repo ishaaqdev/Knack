@@ -471,38 +471,114 @@ export function heuristicDebrief({ pairs }) {
  * does even when nothing can be generated.
  */
 const GD_BEATS = [
+  // 1. opening
   [
-    { speaker: 'Rohit', text: 'I will start. The answer here is obvious once you look at productivity, and I think most people overcomplicate it.' },
-    { speaker: 'Anjali', text: 'The data is less clear than that. The studies that get quoted measure output over three months, not over three years.' },
+    [
+      { speaker: 'Rohit', text: "Okay, I'll start. Honestly, I think the answer's pretty obvious once you stop overthinking it." },
+      { speaker: 'Anjali', text: "I'm not sure it's that obvious. What I've read cuts both ways." },
+    ],
+    [
+      { speaker: 'Sneha', text: "Should we agree how we're doing this? Otherwise we'll all talk at once." },
+      { speaker: 'Rohit', text: "Fine, but I'll go first. My view's simple, and I think most of you will end up agreeing." },
+    ],
+    [
+      { speaker: 'Anjali', text: "Before we pick sides, can we say what we actually mean by the question? Everyone's going to define it differently." },
+      { speaker: 'Vikram', text: 'Good luck with that. Define it however you like, someone here will argue with it.' },
+    ],
   ],
+  // 2. the first clash
   [
-    { speaker: 'Vikram', text: 'That is a convenient reading. You are assuming the thing you are trying to prove.' },
-    { speaker: 'Sneha', text: 'I think both of you are describing different timeframes rather than disagreeing. Can we separate the short term from the long term?' },
+    [
+      { speaker: 'Vikram', text: "That's a convenient reading. You've kind of assumed the thing you're trying to prove." },
+      { speaker: 'Sneha', text: "I think you two are talking about different timeframes, not really disagreeing. Short term versus long term?" },
+    ],
+    [
+      { speaker: 'Rohit', text: "No, no, wait, let me finish. The point is it works, whatever people say." },
+      { speaker: 'Vikram', text: "It works for who, though? That's the bit you keep skipping." },
+    ],
+    [
+      { speaker: 'Anjali', text: "The numbers I know of are mixed. Some of it's clearly good, some of it isn't, and it depends where you look." },
+      { speaker: 'Rohit', text: "Mixed? That's just what people say when they don't want to pick a side." },
+    ],
   ],
+  // 3. the quiet one speaks
   [
-    { speaker: 'Imran', text: 'The part nobody has said is who carries the cost. It is not distributed evenly.' },
-    { speaker: 'Rohit', text: 'Sure, but somebody always carries a cost. That cannot be the reason not to do it.' },
+    [
+      { speaker: 'Imran', text: "Can I add something? Nobody's said who ends up paying for this. It isn't spread evenly." },
+      { speaker: 'Rohit', text: "Somebody always pays. That can't be the reason not to do it." },
+    ],
+    [
+      { speaker: 'Imran', text: "Sorry, one thing. We keep arguing about the idea but nobody's talked about how you'd actually do it." },
+      { speaker: 'Vikram', text: "Because that's the hard part, and it's easier to argue about the idea." },
+    ],
+    [
+      { speaker: 'Sneha', text: "Imran, you've been quiet. What do you think?" },
+      { speaker: 'Imran', text: "I think we're all right about different bits. It's the bit in between that's the problem." },
+    ],
   ],
+  // 4. looking for middle ground
   [
-    { speaker: 'Anjali', text: 'There is a middle position that works in practice — set the rule at team level rather than company level.' },
-    { speaker: 'Vikram', text: 'Then you get five teams doing five different things and nobody can plan anything.' },
+    [
+      { speaker: 'Anjali', text: "There's a middle option, I think. Don't decide it for everyone, let each case decide." },
+      { speaker: 'Vikram', text: "Then you get ten different rules and nobody can plan anything." },
+    ],
+    [
+      { speaker: 'Sneha', text: "What if we try it small first and see what happens? Then both of you get something." },
+      { speaker: 'Rohit', text: "Small? That's just a slow way of saying no." },
+    ],
+    [
+      { speaker: 'Vikram', text: "Okay, I'll say it. Some of what Rohit said is right. I just don't like how he said it." },
+      { speaker: 'Rohit', text: "Ha. Take it, I'll live with that." },
+    ],
   ],
+  // 5. wrapping up
   [
-    { speaker: 'Sneha', text: 'We are close to time. Can somebody pull together what we actually agreed on?' },
-    { speaker: 'Imran', text: 'We agreed the cost is real and unevenly shared. We did not agree who should decide.' },
+    [
+      { speaker: 'Sneha', text: "We're nearly out of time. Can somebody sum up where we actually landed?" },
+      { speaker: 'Imran', text: "We agreed it matters and that the cost isn't shared fairly. We never agreed who should decide." },
+    ],
+    [
+      { speaker: 'Anjali', text: "So, quickly. Real benefit, real cost, and the cost lands on the wrong people. That's the one thing we all accepted." },
+      { speaker: 'Rohit', text: "And I'd still say do it. But fine, put it that way." },
+    ],
+    [
+      { speaker: 'Imran', text: "If I had to say it in one line, it's a good idea with a fairness problem." },
+      { speaker: 'Vikram', text: "I'd have argued with that an hour ago. I can't now." },
+    ],
   ],
 ]
 
-export function FALLBACK_GD_TURN(beat, lastUserTurn) {
-  const turns = GD_BEATS[Math.min(beat - 1, GD_BEATS.length - 1)].map((t) => ({ ...t }))
-  // Someone always reacts to the trainee. Being ignored is not the lesson here.
+/** How each person answers the trainee when nothing can be generated. */
+const GD_REACT = {
+  Rohit: ["Okay, but that's only half of it.", 'Fine, fine, but let me finish my point.', "See, that's what I was saying, just slower."],
+  Anjali: ["That's fair. What I've seen points roughly the same way.", "Partly right, though the data's messier than that."],
+  Vikram: ["Hold on, that's a big assumption.", 'Is that actually true, or does it just sound good?'],
+  Sneha: ["I think that's a useful way to put it. Can we build on it?", 'That sort of bridges what those two said, actually.'],
+  Imran: ["That's the bit I was about to say. And who pays for it?", "Yeah. And nobody's asked what happens after."],
+}
+
+export function FALLBACK_GD_TURN(beat, lastUserTurn, { addressed = null, traineeName = null, topic = '' } = {}) {
+  const seed = (topic?.length ?? 0) + beat
+  const set = GD_BEATS[Math.min(beat - 1, GD_BEATS.length - 1)]
+  let turns = set[seed % set.length].map((t) => ({ ...t }))
+
+  // Someone always answers the trainee, and it is the person they spoke to if
+  // they spoke to anyone. Being ignored is not the lesson here.
   if (lastUserTurn) {
-    turns[0] = {
-      speaker: turns[0].speaker,
-      text: `Taking your point — ${turns[0].text.charAt(0).toLowerCase()}${turns[0].text.slice(1)}`,
-    }
+    const who = addressed ?? turns[0].speaker
+    const lines = GD_REACT[who] ?? GD_REACT.Rohit
+    const call = traineeName ? `${traineeName}, ` : ''
+    const line = lines[seed % lines.length]
+    // "Asha, Hold on" reads wrong: after a name the line carries on in lower case,
+    // unless it starts with "I" or with someone's name.
+    const carried = call && !/^(I\b|I'|Rohit|Anjali|Vikram|Sneha|Imran)/.test(line) ? line[0].toLowerCase() + line.slice(1) : line
+    turns = [
+      { speaker: who, text: `${call}${carried}` },
+      ...turns.filter((t) => t.speaker !== who),
+    ].slice(0, 3)
   }
-  return { turns, offlineNote: 'The AI model was unavailable, so the panel is running from a scripted discussion.' }
+
+  return { turns, offlineNote: 'The panel is running from a scripted discussion rather than the AI model, so it will not react to the details of what you say.' }
 }
 
 /**

@@ -2,13 +2,16 @@
 
 /* ---------------------------------------------------------------------------
    Knack design tokens — "Ember on Ink"
-   One accent + neutrals. Two fonts. Every quantity is drawn as an arc on a ring.
+   Black, greys, and one orange accent. No second brand colour: a thing that is
+   good, bad, calm or urgent is told apart by its label, its icon and how bright
+   the orange is, not by a new hue. The game feel comes from shape instead:
+   chunky buttons with a thick lower edge, rounded cards, stars and a level map.
 --------------------------------------------------------------------------- */
 @theme {
   --color-ink: #0e0e10;
   --color-surface: #16161a;
   --color-raised: #1d1d22;
-  --color-line: #26262d;
+  --color-line: #2c2c34;
   --color-hair: #1f1f25;
 
   --color-text: #f2f0ec;
@@ -20,18 +23,16 @@
   --color-ember-low: #8a4a24;
   --color-ember-dim: #4a2716;
 
-  /* Depth, as three values rather than ad-hoc shadows at each call site.
-     On a dark surface the top highlight does most of the work — it is what
-     stops a card reading as a hole cut in the page. */
-  --edge-top: inset 0 1px 0 rgb(255 255 255 / 0.045);
-  --lift-1: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px -8px rgb(0 0 0 / 0.5);
-  --lift-2: 0 2px 6px rgb(0 0 0 / 0.45), 0 14px 40px -14px rgb(0 0 0 / 0.7);
+  /* Depth, as three values rather than ad-hoc shadows at each call site. */
+  --edge-top: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --lift-1: 0 4px 0 rgb(0 0 0 / 0.6), 0 12px 24px -12px rgb(0 0 0 / 0.7);
+  --lift-2: 0 6px 0 rgb(0 0 0 / 0.6), 0 18px 32px -12px rgb(0 0 0 / 0.75);
 
-  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fredoka Variable', 'Fredoka', ui-rounded, system-ui, sans-serif;
+  --font-sans: 'Nunito Variable', 'Nunito', ui-rounded, system-ui, sans-serif;
 
-  --radius-card: 16px;
-  --radius-tile: 12px;
+  --radius-card: 22px;
+  --radius-tile: 16px;
 
   /* Narrow phones still need to drop one chip from the header. */
   --breakpoint-xs: 400px;
@@ -51,18 +52,15 @@
     background: var(--color-ink);
     color: var(--color-text);
     font-family: var(--font-sans);
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overscroll-behavior-y: none;
   }
 
   /*
-   * A single warm source, top-left, behind everything.
-   *
-   * Flat charcoal reads as unfinished — the eye expects a dark room to have a
-   * light in it somewhere. This is the whole atmosphere budget: one ember
-   * gradient at four per cent, fixed so it does not scroll away, and pinned
-   * behind every layer so nothing has to opt in.
+   * A single warm source, top-left, behind everything. Flat black reads as
+   * unfinished; this is the whole atmosphere budget, at a few per cent.
    */
   body::before {
     content: '';
@@ -75,44 +73,43 @@
       radial-gradient(50rem 30rem at 100% 0%, rgb(255 122 53 / 0.025), transparent 55%);
   }
 
-  /* Numbers are stats, not prose — tabular so counters do not jitter. */
+  /* Numbers are stats, not prose: tabular so counters do not jitter. */
   .stat {
     font-family: var(--font-display);
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
   }
 
   h1,
   h2,
   h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.005em;
   }
 
-  /* Page titles carry the hierarchy on a screen with no chrome to spare. */
   .title {
     font-family: var(--font-display);
-    font-size: 30px;
-    line-height: 1.1;
+    font-size: 32px;
+    line-height: 1.05;
     font-weight: 700;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.01em;
   }
   @media (min-width: 400px) {
     .title {
-      font-size: 33px;
+      font-size: 36px;
     }
   }
 
   ::selection {
     background: var(--color-ember);
-    color: #14100c;
+    color: #160c05;
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-ember);
+    outline: 3px solid var(--color-ember);
     outline-offset: 2px;
-    border-radius: 6px;
+    border-radius: 8px;
   }
 
   textarea,
@@ -120,7 +117,6 @@
     font-family: inherit;
   }
 
-  /* Thin, quiet scrollbars — the chrome should never compete with the ember. */
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--color-line) transparent;
@@ -138,59 +134,179 @@
 @layer utilities {
   .glow-ember {
     box-shadow:
-      0 0 0 1px rgb(255 122 53 / 0.18),
-      0 0 24px -4px rgb(255 122 53 / 0.35);
+      0 0 0 2px rgb(255 122 53 / 0.35),
+      0 0 26px -2px rgb(255 122 53 / 0.45);
   }
 
+  /* A panel: charcoal with a faint top lip and a thick, dark lower edge. The
+     edge is what makes it look pressed out of the board. */
   .card {
-    background: linear-gradient(180deg, #191920 0%, var(--color-surface) 100%);
-    border: 1px solid var(--color-hair);
+    background: linear-gradient(180deg, #1b1b21 0%, var(--color-surface) 100%);
+    border: 2px solid var(--color-hair);
     border-radius: var(--radius-card);
     box-shadow: var(--edge-top), var(--lift-1);
   }
 
-  /* Cards you can press. The lift is small on purpose — this is a reading app
-     that happens to be a game, not the other way round. */
   .card-tap {
     transition:
-      transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1),
       border-color 0.18s ease,
-      box-shadow 0.18s ease;
+      box-shadow 0.14s ease;
   }
   .card-tap:hover:not(:disabled) {
-    border-color: var(--color-line);
+    border-color: rgb(255 122 53 / 0.55);
     box-shadow: var(--edge-top), var(--lift-2);
-    transform: translateY(-1px);
+    transform: translateY(-3px);
   }
   .card-tap:active:not(:disabled) {
-    transform: translateY(0) scale(0.995);
-    box-shadow: var(--edge-top), var(--lift-1);
+    transform: translateY(3px);
+    box-shadow: var(--edge-top), 0 1px 0 rgb(0 0 0 / 0.6);
   }
 
   /* The one card on a screen that matters most. */
   .card-hot {
-    border-color: rgb(255 122 53 / 0.28);
+    border-color: rgb(255 122 53 / 0.7);
     box-shadow:
       var(--edge-top),
       var(--lift-1),
-      0 0 40px -18px rgb(255 122 53 / 0.55);
+      0 0 40px -16px rgb(255 122 53 / 0.55);
   }
 
-  /* Inset wells: transcripts, option lists, anything that sits *inside* a card
-     and should read as recessed rather than stacked. */
+  /* Inset wells: anything that sits inside a card and should read as recessed. */
   .well {
-    background: rgb(0 0 0 / 0.22);
-    border: 1px solid var(--color-hair);
+    background: rgb(0 0 0 / 0.3);
+    border: 2px solid var(--color-hair);
     border-radius: var(--radius-tile);
+    box-shadow: inset 0 3px 0 rgb(0 0 0 / 0.25);
   }
 
-  /* Fades a long scenario/history list into the page rather than cutting it. */
   .mask-b {
     mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
   }
 
   .safe-b {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* ---- chunky buttons ------------------------------------------------------
+     A gradient body, a light lip along the top, and a solid lower edge that the
+     button sinks into when pressed. Two kinds: orange, and dark. */
+  .btn-candy {
+    border: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition:
+      transform 0.07s ease,
+      box-shadow 0.07s ease,
+      filter 0.15s ease;
+  }
+  .btn-candy:disabled {
+    background: #26262d;
+    color: var(--color-faint);
+    box-shadow: 0 4px 0 #0a0a0c;
+    transform: none;
+  }
+
+  .btn-orange {
+    color: #160c05;
+    background: linear-gradient(180deg, #ff9456 0%, #ff7a35 55%, #ee6a28 100%);
+    box-shadow:
+      inset 0 2px 0 rgb(255 255 255 / 0.4),
+      inset 0 -3px 0 rgb(120 40 0 / 0.25),
+      0 5px 0 #a8481a,
+      0 12px 20px -8px rgb(255 122 53 / 0.5);
+  }
+  .btn-orange:hover:not(:disabled) {
+    filter: brightness(1.07);
+  }
+  .btn-orange:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow:
+      inset 0 2px 0 rgb(255 255 255 / 0.3),
+      inset 0 -2px 0 rgb(120 40 0 / 0.25),
+      0 1px 0 #a8481a;
+  }
+
+  .btn-dark {
+    color: var(--color-text);
+    background: linear-gradient(180deg, #34343d 0%, #26262d 100%);
+    box-shadow:
+      inset 0 2px 0 rgb(255 255 255 / 0.1),
+      0 5px 0 #0a0a0c,
+      0 12px 20px -8px rgb(0 0 0 / 0.6);
+  }
+  .btn-dark:hover:not(:disabled) {
+    filter: brightness(1.15);
+  }
+  .btn-dark:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.08), 0 1px 0 #0a0a0c;
+  }
+
+  /* A shine that sweeps across the one thing that has just been earned. */
+  @keyframes candy-shine {
+    0% {
+      transform: translateX(-120%) skewX(-18deg);
+    }
+    60%,
+    100% {
+      transform: translateX(260%) skewX(-18deg);
+    }
+  }
+  .shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .shine::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.4), transparent);
+    animation: candy-shine 2.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes candy-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+  .bob {
+    animation: candy-bob 2.6s ease-in-out infinite;
+  }
+
+  @keyframes mouth-talk {
+    0%,
+    100% {
+      transform: scaleY(0.35);
+    }
+    35% {
+      transform: scaleY(1);
+    }
+    65% {
+      transform: scaleY(0.55);
+    }
+  }
+  .mouth-talk {
+    animation: mouth-talk 0.42s ease-in-out infinite;
+  }
+
+  @keyframes mic-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgb(255 122 53 / 0.6);
+    }
+    100% {
+      box-shadow: 0 0 0 16px rgb(255 122 53 / 0);
+    }
+  }
+  .mic-live {
+    animation: mic-pulse 1.1s ease-out infinite;
   }
 }
 

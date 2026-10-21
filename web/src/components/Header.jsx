@@ -5,7 +5,7 @@ import { useKnack } from '../store/useKnack'
 import { Ring } from './Ring'
 import { CountUp } from './CountUp'
 import { Burst } from './Burst'
-import { IconFlame } from './Icons'
+import { IconFlame, IconWifiOff } from './Icons'
 import { cx, spring, useReducedMotion } from '../lib/ui'
 
 function initials(name = '') {
@@ -146,6 +146,18 @@ export function Header() {
             {user.level?.name}
           </motion.span>
         </AnimatePresence>
+
+        {/* offline mode: say so, because it changes what the app can do */}
+        {user.offline?.offline && (
+          <Link
+            to="/profile"
+            title="Offline mode is on. Nothing leaves this machine."
+            className="ml-1 flex items-center gap-1 rounded-full border-2 border-ember/70 bg-ember/10 px-2 py-0.5 text-[11px] font-bold text-ember-hi"
+          >
+            <IconWifiOff size={13} />
+            <span className="hidden xs:inline">Offline</span>
+          </Link>
+        )}
       </div>
     </header>
   )

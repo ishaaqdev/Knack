@@ -16,7 +16,11 @@ import {
   workplaceBeatPrompt,
   dialogueTurnPrompt,
   dialogueEvaluationPrompt,
+  mockPrompt,
+  withVoice,
 } from './prompts.js'
+import { humanise } from './humanise.js'
+import { isOffline } from './settings.js'
 import {
   FALLBACK_SCENARIOS,
   FALLBACK_LEVEL,
@@ -42,6 +46,12 @@ const models = () =>
       .map((s) => s.trim())
       .filter(Boolean),
   ].filter((v, i, a) => a.indexOf(v) === i)
+
+/** A fallback is news unless it was asked for: offline mode falls back on every call. */
+function warnFallback(message, err) {
+  if (err?.offline) return
+  console.warn(`${message} |`, (err?.tried ?? []).join(' | ') || err?.message)
+}
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
@@ -195,6 +205,15 @@ async function callOnce(model, prompt, { temperature, maxTokens, signal }) {
  * where retrying is exactly the wrong move.
  */
 async function askForJson(prompt, { temperature = 0.9, maxTokens = 700, validate, budgetMs = 70_000 } = {}) {
+  // Offline mode never asks. Every caller already treats a thrown error as "use
+  // the local bank", so refusing here is what makes the whole app work offline
+  // without a second code path in any of them.
+  if (isOffline()) {
+    const e = new Error('Offline mode is on, so no request was sent.')
+    e.offline = true
+    throw e
+  }
+
   if (!process.env.OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY is not set — check server/.env')
   }
@@ -270,7 +289,7 @@ export async function generateScenario({ track, difficulty, avoid, profile, lear
       model,
     }
   } catch (err) {
-    console.warn('[ai] scenario fell back to offline bank |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] scenario fell back to offline bank', err)
     return { ...FALLBACK_SCENARIOS(track.id, difficulty, avoid), difficulty, source: 'offline' }
   }
 }
@@ -299,7 +318,7 @@ export async function evaluateResponse({ track, difficulty, scenarioText, userRe
       model,
     }
   } catch (err) {
-    console.warn('[ai] evaluation fell back to heuristic |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] evaluation fell back to heuristic', err)
     return { ...heuristicEvaluation({ track, userResponse }), source: 'offline' }
   }
 }
@@ -355,6 +374,7 @@ export async function summariseLearner({ attempts, previous }) {
 }
 
 export async function health() {
+  if (isOffline()) return { ok: false, offline: true, models: models() }
   try {
     const res = await fetch('https://openrouter.ai/api/v1/key', {
       headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}` },
@@ -367,7 +387,9 @@ export async function health() {
 
 /* ------------------------------------------------------------- resume ----- */
 
-const str = (v, cap) => String(v ?? '').trim().slice(0, cap)
+// Every string a model hands back for a person to read passes through humanise()
+// before it is capped, so the dashes and the polite openers never reach the screen.
+const str = (v, cap) => humanise(String(v ?? '').trim()).slice(0, cap)
 /**
  * Re-key a model's per-item array onto our own indices.
  *
@@ -486,7 +508,7 @@ export async function generateLevel({ track, difficulty, profile, learner, portf
 
     return { setting: str(data.setting, 400), questions, source: 'ai', model }
   } catch (err) {
-    console.warn('[ai] level fell back to offline bank |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] level fell back to offline bank', err)
     return { ...FALLBACK_LEVEL(track.id, n), source: 'offline' }
   }
 }
@@ -524,7 +546,7 @@ export async function evaluateLevel({ track, difficulty, scenarioText, userRespo
       model,
     }
   } catch (err) {
-    console.warn('[ai] level evaluation fell back to heuristic |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] level evaluation fell back to heuristic', err)
     const base = heuristicEvaluation({ track, userResponse })
     // Free-text answers still need a number. The same rubric, applied per answer.
     const custom = customs.map((c, i) => {
@@ -540,7 +562,7 @@ export async function evaluateLevel({ track, difficulty, scenarioText, userRespo
 export async function generateInterview({ round, role, company, profile, resume, portfolio, asked, n = 3 }) {
   try {
     const { data, model } = await askForJson(
-      interviewPrompt({ round, role, company, profile, resume, portfolio, asked, n }),
+      withVoice(interviewPrompt({ round, role, company, profile, resume, portfolio, asked, n })),
       {
         temperature: 0.95,
         maxTokens: 900,
@@ -563,7 +585,7 @@ export async function generateInterview({ round, role, company, profile, resume,
       model,
     }
   } catch (err) {
-    console.warn('[ai] interview fell back to the question bank |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] interview fell back to the question bank', err)
     return { ...FALLBACK_INTERVIEW(round.level, n), source: 'offline' }
   }
 }
@@ -571,7 +593,7 @@ export async function generateInterview({ round, role, company, profile, resume,
 export async function debriefInterview({ round, role, profile, resume, portfolio, pairs }) {
   try {
     const { data, model } = await askForJson(
-      interviewDebriefPrompt({ round, role, profile, resume, portfolio, pairs }),
+      withVoice(interviewDebriefPrompt({ round, role, profile, resume, portfolio, pairs })),
       {
         temperature: 0.3,
         maxTokens: 1600,
@@ -619,17 +641,27 @@ export async function debriefInterview({ round, role, profile, resume, portfolio
       model,
     }
   } catch (err) {
-    console.warn('[ai] debrief fell back to heuristic |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] debrief fell back to heuristic', err)
     return { ...heuristicDebrief({ pairs }), source: 'offline' }
   }
 }
 
 /* --------------------------------------------------- group discussion ----- */
 
-export async function gdTurn({ topic, transcript, beat, totalBeats, lastUserTurn }) {
+export async function gdTurn({
+  topic,
+  frame,
+  transcript,
+  beat,
+  totalBeats,
+  lastUserTurn,
+  addressed,
+  traineeName,
+  pressure = 'steady',
+}) {
   try {
     const { data, model } = await askForJson(
-      gdTurnPrompt({ topic, transcript, beat, totalBeats, lastUserTurn }),
+      gdTurnPrompt({ topic, frame, transcript, beat, totalBeats, lastUserTurn, addressed, traineeName, pressure }),
       {
         temperature: 1.0,
         maxTokens: 500,
@@ -652,15 +684,15 @@ export async function gdTurn({ topic, transcript, beat, totalBeats, lastUserTurn
     if (!turns.length) throw new Error('no usable turns')
     return { turns, source: 'ai', model }
   } catch (err) {
-    console.warn('[ai] GD turn fell back to script |', (err.tried ?? []).join(' | ') || err.message)
-    return { ...FALLBACK_GD_TURN(beat, lastUserTurn), source: 'offline' }
+    warnFallback('[ai] GD turn fell back to script', err)
+    return { ...FALLBACK_GD_TURN(beat, lastUserTurn, { addressed, traineeName, topic }), source: 'offline' }
   }
 }
 
-export async function evaluateGd({ topic, transcript, contributions, profile }) {
+export async function evaluateGd({ topic, frame, transcript, contributions, profile }) {
   try {
     const { data, model } = await askForJson(
-      gdEvaluationPrompt({ topic, transcript, contributions, profile }),
+      withVoice(gdEvaluationPrompt({ topic, frame, transcript, contributions, profile })),
       {
         temperature: 0.3,
         maxTokens: 900,
@@ -696,7 +728,7 @@ export async function evaluateGd({ topic, transcript, contributions, profile }) 
       model,
     }
   } catch (err) {
-    console.warn('[ai] GD debrief fell back to heuristic |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] GD debrief fell back to heuristic', err)
     return { ...heuristicGd({ transcript, contributions }), source: 'offline' }
   }
 }
@@ -742,7 +774,7 @@ const COMMON_WORDS = new Set([
 
 export async function writeReview({ review, title, company }) {
   try {
-    const { data, model } = await askForJson(reviewPrompt({ review, title, company }), {
+    const { data, model } = await askForJson(withVoice(reviewPrompt({ review, title, company })), {
       temperature: 0.5,
       maxTokens: 500,
       budgetMs: 45_000,
@@ -756,7 +788,7 @@ export async function writeReview({ review, title, company }) {
       model,
     }
   } catch (err) {
-    console.warn('[ai] review fell back |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] review fell back', err)
     return { ...heuristicReview(review), source: 'offline' }
   }
 }
@@ -766,7 +798,7 @@ const NEGOTIATION_RESULTS = new Set(['success', 'partial', 'none', 'backfire'])
 export async function judgeNegotiation({ offer, message, review, round, roundsLeft }) {
   try {
     const { data, model } = await askForJson(
-      negotiationPrompt({ offer, message, review, round, roundsLeft }),
+      withVoice(negotiationPrompt({ offer, message, review, round, roundsLeft })),
       {
         temperature: 0.35,
         maxTokens: 800,
@@ -801,7 +833,7 @@ export async function judgeNegotiation({ offer, message, review, round, roundsLe
       model,
     }
   } catch (err) {
-    console.warn('[ai] negotiation fell back |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] negotiation fell back', err)
     return { ...heuristicNegotiation({ message, review }), message, source: 'offline' }
   }
 }
@@ -810,7 +842,7 @@ export async function judgeNegotiation({ offer, message, review, round, roundsLe
 
 export async function generateBeat(spec) {
   try {
-    const { data, model } = await askForJson(workplaceBeatPrompt(spec), {
+    const { data, model } = await askForJson(withVoice(workplaceBeatPrompt(spec)), {
       temperature: 1.0,
       maxTokens: spec.kind === 'decision' ? 1400 : 700,
       budgetMs: 50_000,
@@ -838,7 +870,7 @@ export async function generateBeat(spec) {
     }
     return beat
   } catch (err) {
-    console.warn('[ai] beat fell back |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] beat fell back', err)
     return { ...FALLBACK_BEAT(spec), source: 'offline' }
   }
 }
@@ -846,7 +878,7 @@ export async function generateBeat(spec) {
 export async function dialogueTurn({ character, situation, turns, remaining, company }) {
   try {
     const { data, model } = await askForJson(
-      dialogueTurnPrompt({ character, situation, turns, remaining, company }),
+      withVoice(dialogueTurnPrompt({ character, situation, turns, remaining, company })),
       {
         temperature: 0.95,
         maxTokens: 400,
@@ -856,7 +888,7 @@ export async function dialogueTurn({ character, situation, turns, remaining, com
     )
     return { text: str(data.text, 300), mood: str(data.mood, 20) || 'same', source: 'ai', model }
   } catch (err) {
-    console.warn('[ai] dialogue turn fell back |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] dialogue turn fell back', err)
     return {
       ...FALLBACK_DIALOGUE_TURN({ character, turnIndex: turns.filter((t) => t.who === 'you').length - 1 }),
       source: 'offline',
@@ -867,7 +899,7 @@ export async function dialogueTurn({ character, situation, turns, remaining, com
 export async function evaluateDialogue({ character, situation, turns, learner }) {
   try {
     const { data, model } = await askForJson(
-      dialogueEvaluationPrompt({ character, situation, turns, learner }),
+      withVoice(dialogueEvaluationPrompt({ character, situation, turns, learner })),
       {
         temperature: 0.3,
         maxTokens: 900,
@@ -886,7 +918,60 @@ export async function evaluateDialogue({ character, situation, turns, learner })
       model,
     }
   } catch (err) {
-    console.warn('[ai] dialogue grading fell back |', (err.tried ?? []).join(' | ') || err.message)
+    warnFallback('[ai] dialogue grading fell back', err)
     return { ...heuristicDialogue({ turns, character }), source: 'offline' }
+  }
+}
+
+/* ------------------------------------------------------- mock interview ---- */
+
+const MOCK_SCORES = [9, 6, 3, 1]
+
+/**
+ * A fresh set of mock questions for one round, written for this trainee.
+ * Returns null when the model is unavailable or offline, and the caller serves
+ * the bank instead; a mock that cannot be generated must never block a round.
+ */
+export async function generateMock({ round, role, company, style, topics, asked, weak, n = 5 }) {
+  try {
+    const { data, model } = await askForJson(
+      mockPrompt({ round, role, company, style, topics, asked, weak, n }),
+      {
+        temperature: 0.9,
+        maxTokens: 1800,
+        budgetMs: 45_000,
+        validate: (d) => Array.isArray(d.questions) && d.questions.length >= 3,
+      }
+    )
+
+    const questions = data.questions
+      .map((q, i) => {
+        const options = (Array.isArray(q?.options) ? q.options : [])
+          .filter((o) => o && typeof o.text === 'string' && o.text.trim().length > 6)
+          .map((o) => ({ text: str(o.text, 320), score: Number(o.score), why: str(o.why, 260) }))
+        // Exactly one of each score, or the question is dropped. A malformed
+        // question grades wrongly, which is worse than having one fewer.
+        const ok =
+          options.length === 4 && MOCK_SCORES.every((sc) => options.filter((o) => o.score === sc).length === 1)
+        if (!ok || typeof q.question !== 'string' || q.question.trim().length < 20) return null
+        return {
+          id: `ai-${Date.now().toString(36)}-${i}`,
+          round: round.level,
+          topic: str(q.topic, 40).toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'general',
+          style: style ?? 'any',
+          question: str(q.question, 420),
+          options,
+          lesson: str(q.lesson, 200),
+        }
+      })
+      .filter(Boolean)
+
+    if (questions.length < 3) throw new Error('too few usable mock questions')
+    return { questions: questions.slice(0, n), source: 'ai', model }
+  } catch (err) {
+    if (!err.offline) {
+      warnFallback('[ai] mock fell back to the bank', err)
+    }
+    return null
   }
 }

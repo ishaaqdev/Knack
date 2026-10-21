@@ -1,3 +1,4 @@
+import { MicButton } from '../components/MicButton'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -235,7 +236,12 @@ function WrittenStage({ written, loading, text, setText, onSubmit, submitting, e
               if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && canSubmit) onSubmit()
             }}
           />
-          <div className="flex items-center justify-between border-t border-hair px-4 py-2">
+          <div className="flex items-center justify-between gap-3 border-t-2 border-hair px-3 py-2">
+            <MicButton
+              onText={(chunk) => setText((t) => (t ? `${t} ${chunk}` : chunk))}
+              disabled={submitting}
+              size="sm"
+            />
             <span className="stat text-[11px] text-faint">
               {words} {words === 1 ? 'word' : 'words'}
             </span>

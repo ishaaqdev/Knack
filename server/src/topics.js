@@ -1,7 +1,7 @@
 /**
  * Group discussion topics.
  *
- * The first eight were placeholders and read like it — "should companies
+ * The first eight were placeholders and read like it, "should companies
  * require employees to return to the office" is a motion nobody in the room has
  * a stake in, so nobody argues properly.
  *
@@ -232,6 +232,6 @@ export const ROOM = {
   setting:
     'A placement drive. Six of you around one table, a panel of two watching from the side, and a shortlist at the end of it.',
   brief:
-    'They are not marking who is loudest. They are marking who moves the discussion somewhere it would not otherwise have gone — which sometimes means being the person who summarises, and sometimes means being the person who disagrees with the room.',
+    'They are not marking who is loudest. They are marking who moves the discussion somewhere it would not otherwise have gone, which sometimes means being the person who summarises, and sometimes means being the person who disagrees with the room.',
   moderator: 'The moderator reads out the topic, says nothing else, and lets the room begin.',
 }

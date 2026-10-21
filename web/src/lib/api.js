@@ -112,6 +112,17 @@ export const api = {
   finishGd: (runId) => req('/gd/finish', { method: 'POST', body: { runId } }),
   gdRun: (id) => req(`/gd/runs/${id}`),
 
+  // companies, mock interviews, settings
+  companyProfile: (id) => req(`/career/companies/${id}`),
+  mock: () => req('/mock'),
+  startMock: (level, practice = false) =>
+    req('/mock/start', { method: 'POST', body: { level, practice } }),
+  answerMock: (runId, index, choice) =>
+    req('/mock/answer', { method: 'POST', body: { runId, index, choice } }),
+  finishMock: (runId) => req('/mock/finish', { method: 'POST', body: { runId } }),
+  settings: () => req('/settings'),
+  setOffline: (offline) => req('/settings/offline', { method: 'POST', body: { offline } }),
+
   history: ({ trackId = 'all', limit = 50, offset = 0 } = {}) =>
     req(`/history?trackId=${encodeURIComponent(trackId)}&limit=${limit}&offset=${offset}`),
 }

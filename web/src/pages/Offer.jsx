@@ -1,3 +1,4 @@
+import { MicButton } from '../components/MicButton'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -220,7 +221,12 @@ function Negotiate({ offer, maxRounds, onSent, busy, error, last }) {
             placeholder="Hi Hema — thanks for the offer…"
             className="w-full resize-none bg-transparent px-4 py-3.5 text-[14.5px] leading-relaxed outline-none placeholder:text-faint disabled:opacity-60"
           />
-          <div className="flex items-center justify-between border-t border-hair px-4 py-2">
+          <div className="flex items-center justify-between gap-3 border-t-2 border-hair px-3 py-2">
+            <MicButton
+              onText={(chunk) => setText((t) => (t ? `${t} ${chunk}` : chunk))}
+              disabled={busy}
+              size="sm"
+            />
             <span className="stat text-[11px] text-faint">{words} words</span>
           </div>
         </div>

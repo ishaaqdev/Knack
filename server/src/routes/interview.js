@@ -18,7 +18,9 @@ import {
   interviewProgress,
   unlockAfter,
   interviewXp,
+  mockDoneLevels,
 } from '../interview.js'
+import { recordStat } from '../personalise.js'
 import {
   levelFor,
   localDate,
@@ -143,6 +145,20 @@ interviewRouter.post('/start', async (req, res, next) => {
 
     const round = roundFor(level)
 
+    /*
+     * The mock comes first. A real round is where you are assessed, and being
+     * assessed on a kind of question you have never seen answered well is a poor
+     * way to learn what a good answer is. One mock per round, any score: it is
+     * a rehearsal, not a gate on ability. Practice mode skips it.
+     */
+    if (req.body?.practice !== true && !mockDoneLevels(user.id).includes(level)) {
+      return res.status(409).json({
+        needsMock: true,
+        level,
+        error: `Do the round ${level} mock interview first. It is five questions, and it shows you what a strong answer sounds like before you have to give one.`,
+      })
+    }
+
     // Do not ask the same questions twice in a row when a round is repeated.
     const previous = askedBefore
       .all(user.id, level)
@@ -170,6 +186,7 @@ interviewRouter.post('/start', async (req, res, next) => {
       runId,
       level,
       round: { level: round.level, name: round.name, focus: round.focus },
+      interviewer: round.interviewer,
       role: roleFor(user),
       company: companyFor(user),
       opener: generated.opener,
@@ -273,6 +290,10 @@ interviewRouter.post('/submit', async (req, res, next) => {
     })()
 
     pending.delete(req.body.runId)
+
+    // What the app knows about this trainee keeps moving: a round is evidence
+    // about how they answer, and the next mock and the dashboard read it back.
+    if (!practice) recordStat(before.id, 'interview-round', `round-${run.level}`, debrief.score * 10)
 
     const unlockedTo = practice
       ? (before.interviewLevel ?? 1)

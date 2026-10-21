@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { cx, useReducedMotion } from '../lib/ui'
+import { Character } from './Character'
 
 /**
  * A person, as a ring.
@@ -20,6 +21,10 @@ export function Avatar({
   active = false,
   className,
   delay = 0,
+  look = null, // a drawn character instead of initials
+  accent,
+  expression = 'neutral',
+  speaking = false,
 }) {
   const reduced = useReducedMotion()
   // A one-word name gave a single letter, which reads as a bullet rather than a
@@ -79,6 +84,16 @@ export function Avatar({
         </svg>
       )}
 
+      {look ? (
+        <Character
+          look={look}
+          accent={accent}
+          expression={expression}
+          speaking={speaking}
+          title={name}
+          size={size - stroke * 2 - 2}
+        />
+      ) : (
       <span
         className={cx(
           'grid place-items-center rounded-full font-semibold',
@@ -97,6 +112,7 @@ export function Avatar({
       >
         <span className="stat">{initials}</span>
       </span>
+      )}
     </div>
   )
 }

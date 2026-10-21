@@ -14,6 +14,8 @@ import {
   Spinner,
 } from '../components/primitives'
 import { Avatar } from '../components/Avatar'
+import { MicButton } from '../components/MicButton'
+import { useCast } from '../lib/cast'
 import { Clock, useCountdown } from '../components/Countdown'
 import { AttributeDeltas } from '../components/Attributes'
 import {
@@ -57,6 +59,7 @@ const KIND_LABEL = {
 /* ------------------------------------------------------------- the beat -- */
 
 function Beat({ beat, at, total, onAnswer, onDialogue, busy, error }) {
+  const cast = useCast()
   const reduced = useReducedMotion()
   const [text, setText] = useState('')
   const [choice, setChoice] = useState(null)
@@ -114,7 +117,7 @@ function Beat({ beat, at, total, onAnswer, onDialogue, busy, error }) {
         <div className="absolute left-0 top-0 h-full w-[3px] bg-ember" />
         {beat.character && (
           <div className="mb-3 flex items-center gap-2.5">
-            <Avatar name={beat.character.name} size={26} stroke={0} value={null} />
+            <Avatar name={beat.character.name} size={40} stroke={0} value={null} {...cast(beat.character.name)} />
             <p className="text-[11.5px] text-faint">
               <span className="text-dim">{beat.character.name}</span> · {beat.character.role}
             </p>
@@ -131,8 +134,9 @@ function Beat({ beat, at, total, onAnswer, onDialogue, busy, error }) {
             <div key={i} className={cx('flex gap-2.5', t.who === 'you' && 'flex-row-reverse')}>
               <Avatar
                 name={t.who === 'you' ? 'You' : (beat.character?.name ?? '?')}
+                {...(t.who === 'you' ? {} : cast(beat.character?.name))}
                 value={null}
-                size={28}
+                size={34}
                 stroke={0}
                 active={t.who === 'you'}
                 className="mt-0.5"
@@ -200,7 +204,12 @@ function Beat({ beat, at, total, onAnswer, onDialogue, busy, error }) {
               placeholder={isDialogue ? 'Reply as you would out loud…' : 'Write it the way you would send it…'}
               className="w-full resize-none bg-transparent px-4 py-3 text-[15px] leading-relaxed outline-none placeholder:text-faint disabled:opacity-60"
             />
-            <div className="flex items-center justify-between border-t border-hair px-4 py-2">
+            <div className="flex items-center justify-between gap-3 border-t-2 border-hair px-3 py-2">
+              <MicButton
+                onText={(chunk) => setText((t) => (t ? `${t} ${chunk}` : chunk))}
+                disabled={busy}
+                size="sm"
+              />
               <span className="stat text-[11px] text-faint">{words} words</span>
               {isDialogue && (
                 <span className="text-[11px] text-faint">{3 - mine} replies left</span>
@@ -682,7 +691,7 @@ export function Workplace() {
         <Card className="divide-y divide-hair p-0">
           {state.people.map((p, i) => (
             <div key={p.id} className="flex items-center gap-3 px-4 py-3">
-              <Avatar name={p.name} value={p.relationship} size={34} delay={0.1 + i * 0.05} />
+              <Avatar name={p.name} value={p.relationship} size={40} delay={0.1 + i * 0.05} look={p.look} accent={p.accent} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[13.5px] font-medium">{p.name}</span>
                 <span className="block truncate text-[11.5px] text-faint">{p.role}</span>

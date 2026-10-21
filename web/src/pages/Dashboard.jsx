@@ -4,6 +4,7 @@ import { useKnack } from '../store/useKnack'
 import { Button, Card, Empty, Page, Pill, SectionLabel, SkillBar } from '../components/primitives'
 import { Gauge } from '../components/Ring'
 import { Insight } from '../components/Insight'
+import { NextStep } from '../components/TrainingProfile'
 import { CountUp } from '../components/CountUp'
 import { TRACK_ICONS, IconArrowRight, IconBriefcase, IconCheck, IconFlame } from '../components/Icons'
 import { SkillBar as Bar } from '../components/primitives'
@@ -194,6 +195,7 @@ export function Dashboard() {
       <div className="space-y-4">
         <TodayCard user={user} />
         <Insight insight={user.insight} compact />
+        <NextStep next={user.training?.next} />
         <ReadinessCard user={user} />
 
         {/* tracks */}

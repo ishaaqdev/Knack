@@ -3,6 +3,7 @@ import { seedCast, listCharacters } from './characters.js'
 import { award } from './badges.js'
 import { weakest, tierFor, ATTRIBUTES } from './attributes.js'
 import { MAX_LEVEL as INTERVIEW_ROUNDS, interviewProgress } from './interview.js'
+import { COMPANIES as COMPANY_DATA, companyById, companySummary, companyProfile } from './companies.js'
 
 /**
  * The career spine.
@@ -66,28 +67,10 @@ export const INTERNSHIP_END = 30
 
 /**
  * Where the simulation is set. The trainee picks one; it changes who is in the
- * room, how formal the language is and what the stakes are.
+ * room, how formal the language is and what the stakes are. The dataset lives in
+ * companies.js — real firms and invented ones — and this is the picker's view.
  */
-export const COMPANIES = [
-  {
-    id: 'startup',
-    name: 'Nexora',
-    kind: 'a 30-person product startup',
-    blurb: 'Everyone is reachable, nothing is documented, and the roadmap changed on Tuesday.',
-  },
-  {
-    id: 'product',
-    name: 'Aether Systems',
-    kind: 'a 900-person product company',
-    blurb: 'Defined teams, real process, and a design review you have to get through.',
-  },
-  {
-    id: 'service',
-    name: 'Vantage Global',
-    kind: 'a large IT services company',
-    blurb: 'Clients, hierarchy, status calls, and a manager between you and every decision.',
-  },
-]
+export const COMPANIES = COMPANY_DATA.map(companySummary)
 
 export const ROLES = [
   { id: 'swe', name: 'Software Engineer Intern', blurb: 'Code review, blockers, estimates, deploys.' },
@@ -98,6 +81,9 @@ export const ROLES = [
 ]
 
 export const companyFor = (id) => COMPANIES.find((c) => c.id === id) ?? COMPANIES[0]
+
+/** The full profile — description, headcount, turnover, hiring and openings. */
+export const profileFor = (id) => companyProfile(companyById(id) ?? COMPANY_DATA[0], ROLES)
 export const roleFor = (id) => ROLES.find((r) => r.id === id) ?? ROLES[0]
 
 /* --------------------------------------------------------------- state --- */
@@ -105,7 +91,7 @@ export const roleFor = (id) => ROLES.find((r) => r.id === id) ?? ROLES[0]
 const setPhase = db.prepare('UPDATE users SET phase = ? WHERE id = ?')
 const setCompany = db.prepare(
   `UPDATE users SET simCompany = @simCompany, simCompanyKind = @simCompanyKind,
-                    simRole = @simRole WHERE id = @id`
+                    simCompanyId = @simCompanyId, simRole = @simRole WHERE id = @id`
 )
 const setJoined = db.prepare(
   'UPDATE users SET joinedCompanyAt = ?, internshipLevel = ?, phase = ? WHERE id = ?'
@@ -131,7 +117,9 @@ export function careerState(user) {
       reached: i <= phaseIndex(phase),
       current: p.id === phase,
     })),
-    company: user.simCompany ? { name: user.simCompany, kind: user.simCompanyKind } : null,
+    company: user.simCompany
+      ? { id: user.simCompanyId ?? null, name: user.simCompany, kind: user.simCompanyKind }
+      : null,
     role: user.simRole ? roleFor(user.simRole) : null,
     gd: { best: gd.best ?? null, runs: gd.runs, cleared: !!user.gdCleared, pass: GD_PASS },
     interview: { cleared: iv.cleared, rounds: iv.maxLevel, unlocked: iv.unlocked },
@@ -153,12 +141,20 @@ export function chooseCompany(user, { companyId, roleId, customName }) {
   const c = companyFor(companyId)
   const r = roleFor(roleId)
 
-  // The trainee may name the company themselves. The kind still comes from the
-  // preset, because that is what decides how formal the room is and who is in
-  // it — the name is the part that makes it theirs.
-  const name = String(customName ?? '').trim().slice(0, 40) || c.name
+  // The trainee may name an invented company themselves. The kind still comes
+  // from the preset, because that is what decides how formal the room is and who
+  // is in it — the name is the part that makes it theirs. A real company keeps
+  // its own name: renaming TCS to something else would just be a different
+  // fictional company wearing a real one's numbers.
+  const name = c.real ? c.name : String(customName ?? '').trim().slice(0, 40) || c.name
 
-  setCompany.run({ id: user.id, simCompany: name, simCompanyKind: c.kind, simRole: r.id })
+  setCompany.run({
+    id: user.id,
+    simCompany: name,
+    simCompanyKind: c.kind,
+    simCompanyId: c.id,
+    simRole: r.id,
+  })
   return { company: { ...c, name }, role: r }
 }
 

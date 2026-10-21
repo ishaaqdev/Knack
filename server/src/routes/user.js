@@ -3,7 +3,9 @@ import { db, findUserById, listTracks, publicUser } from '../db.js'
 import { requireAuth } from '../auth.js'
 import { validateProfile } from '../profile.js'
 import { getContext } from '../context.js'
-import { interviewProgress } from '../interview.js'
+import { interviewProgress, mockDoneLevels } from '../interview.js'
+import { trainingProfile } from '../personalise.js'
+import { offlineStatus } from '../settings.js'
 import { getAttributes, professionalIndex, seedAttributes, weakest } from '../attributes.js'
 import { listCharacters } from '../characters.js'
 import { earnedCount } from '../badges.js'
@@ -95,6 +97,14 @@ userRouter.get('/', (req, res) => {
     people: listCharacters(user.id),
     badgeCount: earnedCount(user.id),
 
+    // The structured half of personalisation, read from the stats the app keeps
+    // updating after every mock, discussion and round.
+    training: trainingProfile(user.id, {
+      mockDone: mockDoneLevels(user.id),
+      interviewLevel: user.interviewLevel ?? 1,
+    }),
+    offline: offlineStatus(),
+
     // What the app has worked out about them — surfaced so it is legible
     // rather than a black box.
     insight: ctx.summary
@@ -111,6 +121,9 @@ userRouter.post('/reset', (req, res) => {
     db.prepare('DELETE FROM learner_context WHERE userId = ?').run(req.user.id)
     db.prepare('DELETE FROM interview_runs WHERE userId = ?').run(req.user.id)
     db.prepare('DELETE FROM gd_runs WHERE userId = ?').run(req.user.id)
+    db.prepare('DELETE FROM mock_runs WHERE userId = ?').run(req.user.id)
+    db.prepare('DELETE FROM mock_seen WHERE userId = ?').run(req.user.id)
+    db.prepare('DELETE FROM training_stats WHERE userId = ?').run(req.user.id)
     db.prepare('DELETE FROM attribute_log WHERE userId = ?').run(req.user.id)
     db.prepare('DELETE FROM attributes WHERE userId = ?').run(req.user.id)
     db.prepare('DELETE FROM character_events WHERE userId = ?').run(req.user.id)
