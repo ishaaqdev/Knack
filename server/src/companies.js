@@ -221,7 +221,7 @@ const COMPANY_DATA = [
     tagline: 'American headquarters, majority of its people in India.',
     hq: 'Teaneck, New Jersey',
     founded: 1994,
-    employees: 347000,
+    employees: 336800,
     revenue: { label: 'US$19.7 billion', usd: '≈ ₹1.7 lakh crore', note: 'revenue', year: 'CY2024' },
     description:
       'A professional services company that grew quickly through offshore delivery, with a very large share of its workforce in India. It hires graduates through several tiers of campus programmes.',
@@ -281,7 +281,7 @@ const COMPANY_DATA = [
     hq: 'Chennai',
     founded: 1996,
     employees: 18000,
-    revenue: { label: '₹8,700 crore', usd: '≈ US$1 billion', note: 'revenue, as reported', year: 'FY2023-24' },
+    revenue: { label: '₹12,300 crore', usd: '≈ US$1.45 billion', note: 'consolidated revenue', year: 'FY2024-25' },
     description:
       'A privately held software company that makes a very wide suite of business products and has never taken outside funding. It is known for hiring on programming ability rather than marks, and for running its own training school.',
     culture: 'Engineering-first and low on ceremony. Builds its own stack, values depth, and cares about product craft.',

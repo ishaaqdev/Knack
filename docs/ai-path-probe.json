@@ -1,0 +1,292 @@
+{
+ "when": "2026-10-30T17:58:04.183Z",
+ "chain": [
+  "google/gemma-4-31b-it:free",
+  "google/gemma-4-26b-a4b-it:free",
+  "minimax/minimax-m3.1-flash:free",
+  "nvidia/nemotron-3.5-lightning:free"
+ ],
+ "calls": [
+  {
+   "name": "gd opening (beat 1)",
+   "ms": 40465,
+   "source": "offline",
+   "error": null,
+   "requests": [
+    {
+     "model": "google/gemma-4-31b-it:free",
+     "status": 429,
+     "ms": 860
+    },
+    {
+     "model": "google/gemma-4-26b-a4b-it:free",
+     "status": 429,
+     "ms": 816
+    },
+    {
+     "model": "minimax/minimax-m3.1-flash:free",
+     "status": 404,
+     "ms": 47
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 30022
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 8006
+    }
+   ]
+  },
+  {
+   "name": "gd turn (beat 2)",
+   "ms": 40009,
+   "source": "offline",
+   "error": null,
+   "requests": [
+    {
+     "model": "google/gemma-4-31b-it:free",
+     "status": 429,
+     "ms": 471
+    },
+    {
+     "model": "google/gemma-4-26b-a4b-it:free",
+     "status": 429,
+     "ms": 720
+    },
+    {
+     "model": "minimax/minimax-m3.1-flash:free",
+     "status": 404,
+     "ms": 74
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 30002
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 8028
+    }
+   ]
+  },
+  {
+   "name": "gd turn (beat 3)",
+   "ms": 40012,
+   "source": "offline",
+   "error": null,
+   "requests": [
+    {
+     "model": "google/gemma-4-31b-it:free",
+     "status": 429,
+     "ms": 439
+    },
+    {
+     "model": "google/gemma-4-26b-a4b-it:free",
+     "status": 429,
+     "ms": 718
+    },
+    {
+     "model": "minimax/minimax-m3.1-flash:free",
+     "status": 404,
+     "ms": 87
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 30004
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 8061
+    }
+   ]
+  },
+  {
+   "name": "gd turn (beat 4)",
+   "ms": 40308,
+   "source": "offline",
+   "error": null,
+   "requests": [
+    {
+     "model": "google/gemma-4-31b-it:free",
+     "status": 429,
+     "ms": 765
+    },
+    {
+     "model": "google/gemma-4-26b-a4b-it:free",
+     "status": 429,
+     "ms": 718
+    },
+    {
+     "model": "minimax/minimax-m3.1-flash:free",
+     "status": 404,
+     "ms": 89
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 30015
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 8016
+    }
+   ]
+  },
+  {
+   "name": "gd debrief",
+   "ms": 60003,
+   "source": "offline",
+   "error": null,
+   "requests": [
+    {
+     "model": "google/gemma-4-31b-it:free",
+     "status": 429,
+     "ms": 770
+    },
+    {
+     "model": "google/gemma-4-26b-a4b-it:free",
+     "status": 429,
+     "ms": 759
+    },
+    {
+     "model": "minimax/minimax-m3.1-flash:free",
+     "status": 404,
+     "ms": 74
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 30002
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 27691
+    }
+   ]
+  },
+  {
+   "name": "mock (3 fresh items)",
+   "ms": 45003,
+   "source": null,
+   "error": null,
+   "requests": [
+    {
+     "model": "google/gemma-4-31b-it:free",
+     "status": 429,
+     "ms": 750
+    },
+    {
+     "model": "google/gemma-4-26b-a4b-it:free",
+     "status": 429,
+     "ms": 529
+    },
+    {
+     "model": "minimax/minimax-m3.1-flash:free",
+     "status": 404,
+     "ms": 372
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 30002
+    },
+    {
+     "model": "nvidia/nemotron-3.5-lightning:free",
+     "status": 200,
+     "ms": 12634
+    }
+   ]
+  },
+  {
+   "name": "interview round 1 (3 qs)",
+   "ms": 0,
+   "source": "offline",
+   "error": null,
+   "requests": []
+  }
+ ],
+ "moods": [
+  {
+   "beat": 1,
+   "label": "Calm",
+   "tension": 11,
+   "warmth": 49,
+   "energy": 52,
+   "people": [
+    "Rohit:Listening",
+    "Anjali:Bridging",
+    "Vikram:Making a point",
+    "Sneha:Listening",
+    "Imran:Thinking it over"
+   ]
+  },
+  {
+   "beat": 2,
+   "label": "Lively",
+   "tension": 38,
+   "warmth": 45,
+   "energy": 81,
+   "people": [
+    "Rohit:Listening",
+    "Anjali:Bridging",
+    "Vikram:Pushing back",
+    "Sneha:Pushing back",
+    "Imran:Thinking it over"
+   ]
+  },
+  {
+   "beat": 3,
+   "label": "Lively",
+   "tension": 38,
+   "warmth": 45,
+   "energy": 87,
+   "people": [
+    "Rohit:Listening",
+    "Anjali:Listening",
+    "Vikram:Making a point",
+    "Sneha:Pushing back",
+    "Imran:Making a point"
+   ]
+  },
+  {
+   "beat": 4,
+   "label": "Lively",
+   "tension": 23,
+   "warmth": 54,
+   "energy": 85,
+   "people": [
+    "Rohit:Making a point",
+    "Anjali:Listening",
+    "Vikram:Pushing back",
+    "Sneha:Listening",
+    "Imran:Making a point"
+   ]
+  }
+ ],
+ "debrief": {
+  "source": "offline",
+  "score": 6,
+  "scores": {
+   "communication": 62,
+   "confidence": 83,
+   "leadership": 62,
+   "teamwork": 55,
+   "listening": 58
+  },
+  "verdict": "Scored locally while the model was unavailable \u2014 treat this as rough."
+ },
+ "httpTotal": 30,
+ "httpByStatus": {
+  "200": 12,
+  "404": 6,
+  "429": 12
+ }
+}

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Knack Poster</title>
+<!--
+  A3 project poster, laid out like the department's Recylo poster: college
+  header, title, then a two-column grid of blue-headed boxes.
+  Print with Edge headless to Knack_Poster.pdf.
+-->
+<style>
+  @page { size: 842pt 1191pt; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { width: 842pt; height: 1191pt; position: relative; overflow: hidden; font-family: "Times New Roman", Times, serif; color: #000; }
+
+  .hdr img { position: absolute; display: block; }
+  .center { position: absolute; left: 0; right: 0; text-align: center; font-weight: 700; }
+
+  .grid { position: absolute; left: 32pt; right: 44pt; top: 272pt; display: grid; grid-template-columns: 1fr 1fr; border: 1pt solid #000; }
+  .grid > div { border: 1pt solid #000; }
+  .h { background: #a5c9eb; font-size: 16.5pt; font-weight: 700; text-align: center; text-transform: uppercase; padding: 5pt 6pt; line-height: 1.15; display: flex; align-items: center; justify-content: center; }
+  .b { padding: 6pt 8pt; font-size: 12pt; line-height: 1.24; }
+  .b p.j { text-align: justify; }
+  .b ul { list-style: none; }
+  .b li { position: relative; padding-left: 20pt; margin-bottom: 3pt; text-align: justify; }
+  .b li::before { content: "•"; position: absolute; left: 7pt; top: 0; }
+  .b .sub { margin: 2pt 0 2pt; }
+
+  .phones { display: flex; justify-content: center; gap: 9pt; }
+  .phones figure { text-align: center; }
+  .phones img { display: block; height: 124pt; aspect-ratio: 9 / 16; object-fit: cover; border: 0.75pt solid #333; border-radius: 6pt; }
+  .phones figcaption { font-size: 9.5pt; margin-top: 3pt; }
+
+  .foot { position: absolute; bottom: 22pt; font: 14pt Aptos, Calibri, "Segoe UI", sans-serif; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <img src="poster-assets/header-left.png" alt="" style="left:48pt; top:45pt; width:67pt; height:74pt;">
+  <img src="poster-assets/header-college.png" alt="BGS College of Engineering and Technology" style="left:156pt; top:36pt; width:508pt; height:83pt;">
+  <img src="poster-assets/header-right.png" alt="" style="left:732pt; top:47pt; width:61pt; height:72pt;">
+</div>
+
+<p class="center" style="top:150pt; font-size:20pt;">BGS COLLEGE OF ENGINEERING AND TECHNOLOGY</p>
+<p class="center" style="top:180pt; font-size:18pt;">DEPARTMENT OF INFORMATION SCIENCE AND ENGINEERING – MAJOR PROJECT</p>
+<p class="center" style="top:213pt; font-size:29pt; line-height:1.15;">TITLE: KNACK – A Gamified Platform for Skill Development</p>
+
+<div class="grid">
+  <div class="h">Abstract</div>
+  <div class="h">Objective</div>
+
+  <div class="b"><p class="j">Knack is a gamified web platform that prepares engineering students for campus placements by simulating the whole journey: a group discussion, five interview rounds, joining, an internship, an offer and full-time work. Before every real round the student takes an MCQ mock in which every option is explained. Group discussions run with five profiled AI panellists who speak one at a time, beside a live, lexicon-based sentiment reading of the room's mood. Sixteen company profiles carry turnover, headcount, hiring steps and open roles. Every attempt is stored to personalise the next session, answers can be spoken, and a full offline mode keeps it working without the internet.</p></div>
+  <div class="b"><ul>
+    <li>To simulate the complete placement path, from group discussion to full-time work, with each stage unlocked only on demonstrated competency.</li>
+    <li>To teach before testing through an MCQ mock before every interview round, with every option graded and explained.</li>
+    <li>To make group-discussion practice realistic with profiled AI panellists and a live reading of the room's mood.</li>
+    <li>To personalise practice from stored history, and keep the platform usable offline, by voice or by typing.</li>
+  </ul></div>
+
+  <div class="h">Methodology / System Architecture</div>
+  <div class="h">Results &amp; Discussion</div>
+
+  <div class="b" style="display:flex; align-items:center; justify-content:center; padding:8pt 6pt;">
+    <svg viewBox="0 0 360 236" style="width:100%; height:auto; max-height:200pt; display:block;" font-family="Arial, Helvetica, sans-serif" font-size="7.2">
+      <defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L8 4L0 8z" fill="#555"/></marker></defs>
+      <!-- student -->
+      <rect x="4" y="88" width="62" height="58" rx="5" fill="#f3e8fb" stroke="#a66ad3" stroke-width="1.2"/>
+      <text x="35" y="102" text-anchor="middle" font-weight="700" fill="#7a3fa8">Student</text>
+      <g text-anchor="middle"><rect x="11" y="108" width="48" height="13" rx="3" fill="#fff" stroke="#a66ad3" stroke-width="0.7"/><text x="35" y="117">Phone / laptop</text>
+      <rect x="11" y="125" width="48" height="13" rx="3" fill="#fff" stroke="#a66ad3" stroke-width="0.7"/><text x="35" y="134">Mic or typing</text></g>
+      <!-- client -->
+      <rect x="84" y="62" width="82" height="110" rx="5" fill="#e8f0fd" stroke="#4a7fd9" stroke-width="1.2"/>
+      <text x="125" y="76" text-anchor="middle" font-weight="700" fill="#2c5bb0">React 19 Client</text>
+      <g text-anchor="middle">
+        <rect x="92" y="82" width="66" height="13" rx="3" fill="#fff" stroke="#4a7fd9" stroke-width="0.7"/><text x="125" y="91">Level map, 17 pages</text>
+        <rect x="92" y="99" width="66" height="13" rx="3" fill="#fff" stroke="#4a7fd9" stroke-width="0.7"/><text x="125" y="108">SVG characters</text>
+        <rect x="92" y="116" width="66" height="13" rx="3" fill="#fff" stroke="#4a7fd9" stroke-width="0.7"/><text x="125" y="125">Web Speech mic</text>
+        <rect x="92" y="133" width="66" height="13" rx="3" fill="#fff" stroke="#4a7fd9" stroke-width="0.7"/><text x="125" y="142">Room-mood panel</text>
+        <rect x="92" y="150" width="66" height="13" rx="3" fill="#fff" stroke="#4a7fd9" stroke-width="0.7"/><text x="125" y="159">Zustand state</text>
+      </g>
+      <!-- server -->
+      <rect x="184" y="4" width="92" height="228" rx="5" fill="#fff8e1" stroke="#d9a400" stroke-width="1.2"/>
+      <text x="230" y="18" text-anchor="middle" font-weight="700" fill="#9a7400">Express 5 API</text>
+      <g text-anchor="middle">
+        <rect x="191" y="25" width="78" height="15" rx="3" fill="#fff" stroke="#d9a400" stroke-width="0.7"/><text x="230" y="35">Auth (scrypt)</text>
+        <rect x="191" y="44" width="78" height="15" rx="3" fill="#fff" stroke="#d9a400" stroke-width="0.7"/><text x="230" y="54">Career engine, gates</text>
+        <rect x="191" y="63" width="78" height="15" rx="3" fill="#fff" stroke="#d9a400" stroke-width="0.7"/><text x="230" y="73">Mock-interview engine</text>
+        <rect x="191" y="82" width="78" height="15" rx="3" fill="#fff" stroke="#d9a400" stroke-width="0.7"/><text x="230" y="92">Company catalogue</text>
+        <rect x="191" y="101" width="78" height="15" rx="3" fill="#fff" stroke="#d9a400" stroke-width="0.7"/><text x="230" y="111">GD room, panel turns</text>
+        <rect x="191" y="120" width="78" height="15" rx="3" fill="#fff" stroke="#d9a400" stroke-width="0.7"/><text x="230" y="130">Sentiment (room mood)</text>
+        <rect x="191" y="139" width="78" height="15" rx="3" fill="#fff" stroke="#d9a400" stroke-width="0.7"/><text x="230" y="149">Personalisation</text>
+        <rect x="191" y="158" width="78" height="15" rx="3" fill="#fff" stroke="#d9a400" stroke-width="0.7"/><text x="230" y="168">Humaniser filter</text>
+        <rect x="191" y="177" width="78" height="15" rx="3" fill="#fff" stroke="#d9a400" stroke-width="0.7"/><text x="230" y="187">Offline switch</text>
+        <rect x="191" y="196" width="78" height="15" rx="3" fill="#fff" stroke="#d9a400" stroke-width="0.7"/><text x="230" y="206">AI adapter, fallbacks</text>
+      </g>
+      <!-- data -->
+      <rect x="294" y="18" width="62" height="56" rx="5" fill="#e7f6e9" stroke="#3fa34d" stroke-width="1.2"/>
+      <text x="325" y="32" text-anchor="middle" font-weight="700" fill="#2b7a36">SQLite</text>
+      <g text-anchor="middle"><text x="325" y="45">20 relations</text><text x="325" y="56">training_stats</text><text x="325" y="67">mock_seen</text></g>
+      <rect x="294" y="90" width="62" height="56" rx="5" fill="#e7f6e9" stroke="#3fa34d" stroke-width="1.2"/>
+      <text x="325" y="104" text-anchor="middle" font-weight="700" fill="#2b7a36">Local content</text>
+      <g text-anchor="middle"><text x="325" y="117">84 mock items</text><text x="325" y="128">Scripted panel</text><text x="325" y="139">16 companies</text></g>
+      <rect x="294" y="162" width="62" height="56" rx="5" fill="#fde9f1" stroke="#d6588c" stroke-width="1.2" stroke-dasharray="3 2"/>
+      <text x="325" y="176" text-anchor="middle" font-weight="700" fill="#a83466">OpenRouter</text>
+      <g text-anchor="middle"><text x="325" y="189">Gemma 4 (free)</text><text x="325" y="200">+ fallback models</text><text x="325" y="211">optional</text></g>
+      <!-- arrows -->
+      <g stroke="#555" stroke-width="0.9" fill="none" marker-end="url(#a)">
+        <line x1="66" y1="117" x2="83" y2="117"/>
+        <line x1="166" y1="110" x2="183" y2="110"/>
+        <line x1="183" y1="128" x2="167" y2="128"/>
+        <line x1="276" y1="46" x2="293" y2="46"/>
+        <line x1="276" y1="118" x2="293" y2="118"/>
+        <line x1="276" y1="190" x2="293" y2="190" stroke-dasharray="3 2"/>
+      </g>
+      <text x="175" y="104" text-anchor="middle" font-size="6" fill="#555">REST</text>
+    </svg>
+  </div>
+  <div class="b" style="padding:8pt 6pt;">
+    <div class="phones">
+      <figure><img src="paper-figures/phone-1-company.png" alt="Company profile"><figcaption>Company profile</figcaption></figure>
+      <figure><img src="paper-figures/phone-4-mock-explained.png" alt="Mock explained"><figcaption>Mock, explained</figcaption></figure>
+      <figure><img src="paper-figures/phone-6-room-mood.png" alt="Room mood"><figcaption>Room mood</figcaption></figure>
+      <figure><img src="paper-figures/phone-8-training-profile.png" alt="Training profile"><figcaption>Training profile</figcaption></figure>
+    </div>
+    <ul style="margin-top:6pt; font-size:11.5pt;">
+      <li>37 of 37 end-to-end checks passed in offline mode; median server response about 1 ms.</li>
+      <li>Question selection wastes 41% fewer repeats than a no-repeat cycle (2000 simulated learners).</li>
+    </ul>
+  </div>
+
+  <div class="h">Conclusion</div>
+  <div class="h">Future Scope</div>
+
+  <div class="b"><ul>
+    <li>Knack delivers a working, gamified simulation of the full placement journey, tied to real company profiles.</li>
+    <li>Mock-first teaching shows students what a strong answer looks like before they are assessed.</li>
+    <li>Profiled panellists and the room-mood reading make solo group-discussion practice realistic.</li>
+    <li>Stored, visible personalisation and a full offline mode make practice continuous and always available.</li>
+  </ul></div>
+  <div class="b"><ul>
+    <li>A pilot study with students, rated before and after by independent assessors.</li>
+    <li>Spoken replies from the interviewer and the panel, and AI-based sentiment analysis of the discussion.</li>
+    <li>A larger question bank and company catalogue, and a native mobile app.</li>
+  </ul></div>
+
+  <div class="h">HW / SW Requirements</div>
+  <div class="h">Student Details / Guided</div>
+
+  <div class="b">
+    <p class="sub">Hardware:</p>
+    <ul>
+      <li>Laptop / PC: dual-core 2 GHz, 4 GB RAM, 500 MB storage</li>
+      <li>Microphone (optional, for spoken answers)</li>
+      <li>Any phone or laptop with a modern browser</li>
+    </ul>
+    <p class="sub">Software:</p>
+    <ul>
+      <li>Node.js 24, Express 5, SQLite (better-sqlite3)</li>
+      <li>React 19, Vite, Tailwind CSS, Framer Motion</li>
+      <li>OpenRouter – Gemma 4 (optional AI)</li>
+      <li>Web Speech API (Chrome / Edge)</li>
+    </ul>
+  </div>
+  <div class="b">
+    <p>Presented By:</p>
+    <p>D Karthik Raj</p>
+    <p>Kiranraj G</p>
+    <p>Mohammed Ishaaq</p>
+    <p>Ullas M</p>
+    <p style="margin-top:12pt;">Guided By:</p>
+    <p>Dr. Chaitra Naveen,</p>
+    <p>Dept. of ISE, BGSCET</p>
+  </div>
+</div>
+
+<p class="foot" style="left:40pt;">BGSCET</p>
+<p class="foot" style="right:62pt;">Academic Year: 2025 - 2026</p>
+
+</body>
+</html>

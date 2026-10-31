@@ -22,11 +22,10 @@
   /* ----- title block ----- */
   .head { column-span: all; text-align: center; margin-bottom: 4mm; }
   .head h1 { font-size: 20pt; line-height: 1.12; font-weight: 400; margin: 0 8mm 5mm; }
-  .authors { display: grid; grid-template-columns: 1fr 1fr; gap: 3.2mm 6mm; }
-  .author { font-size: 9.6pt; line-height: 1.2; }
+  .authors { display: flex; flex-wrap: wrap; justify-content: center; gap: 3.2mm 0; }
+  .author { flex: 0 0 33.3%; font-size: 8.8pt; line-height: 1.2; }
   .author b { display: block; font-size: 10.5pt; }
   .author i { display: block; }
-  .author.first { grid-column: 1 / span 2; }
 
   .abs { column-span: all; columns: 2; column-gap: 7mm; text-align: justify; font-size: 9pt; font-weight: 700; line-height: 1.15; margin: 0 0 3mm; }
   .abs p { text-indent: 0; margin: 0 0 3pt; }
@@ -91,11 +90,11 @@
 <div class="head">
   <h1>“Knack: A Personalised, Offline-Capable Career Simulation for Placement Preparation with Mock Interviews, Profiled Group-Discussion Panels and Company Data”</h1>
   <div class="authors">
-    <div class="author first"><b>Dr. Chaitra Naveen</b><i>Head of the Department</i><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i></div>
-    <div class="author"><b>D Karthik Raj</b><i>1MP23IS018</i><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is018@gmail.com</span></div>
-    <div class="author"><b>Kiranraj</b><i>1MP23IS027</i><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is027@gmail.com</span></div>
-    <div class="author"><b>Mohammed Ishaaq</b><i>1MP23IS030</i><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is030@gmail.com</span></div>
-    <div class="author"><b>Ullas M</b><i>1MP23IS058</i><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is058@gmail.com</span></div>
+    <div class="author"><b>Dr. Chaitra Naveen</b><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i></div>
+    <div class="author"><b>D Karthik Raj</b><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is018@gmail.com</span></div>
+    <div class="author"><b>Kiranraj</b><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is027@gmail.com</span></div>
+    <div class="author"><b>Mohammed Ishaaq</b><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is030@gmail.com</span></div>
+    <div class="author"><b>Ullas M</b><i>Dept. of Information Science and Engineering</i><i>BGS College of Engineering and Technology</i><i>Bangalore, India</i><span>1mp23is058@gmail.com</span></div>
   </div>
 </div>
 
@@ -272,7 +271,7 @@
   <path d="M286 42 V84 H54 V112" fill="none" stroke="#000" marker-end="url(#a2)"/>
   <text x="102" y="21" font-size="7">6/10</text><text x="219" y="21" font-size="7">6/10</text>
   <text x="102" y="128" font-size="7">5/10</text>
-  <rect x="124" y="52" width="92" height="20" rx="3" fill="#fff" stroke="#000" stroke-dasharray="3 2"/>
+  <rect x="110" y="52" width="120" height="20" rx="3" fill="#fff" stroke="#000" stroke-dasharray="3 2"/>
   <text x="170" y="65" text-anchor="middle">MCQ mock before each round</text>
   <line x1="170" y1="42" x2="170" y2="52" stroke="#000" stroke-dasharray="3 2"/>
 </svg>
