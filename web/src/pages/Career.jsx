@@ -7,6 +7,7 @@ import { Button, Card, Page, PageHead, Pill, SectionLabel, Spinner } from '../co
 import { AttributePanel } from '../components/Attributes'
 import { CompanyCard } from '../components/CompanyCard'
 import { JourneyPath } from '../components/JourneyPath'
+import { AdminPanel } from '../components/AdminPanel'
 import {
   IconArrowRight,
   IconBriefcase,
@@ -36,6 +37,7 @@ const PHASE_ICON = {
 const PHASE_ROUTE = {
   gd: '/gd',
   interview: '/interview',
+  joining: '/joining',
   internship: '/office',
   offer: '/offer',
   fulltime: '/office',
@@ -178,6 +180,74 @@ function ChooseCompany({ career, onChosen }) {
   )
 }
 
+/* ---------------------------------------------------------- the review -- */
+
+/**
+ * The periodic review. The server writes one every six internship levels; until
+ * now no screen asked for it, so it was never seen.
+ */
+function ReviewCard({ career }) {
+  const [data, setData] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  const due = career.review?.due
+
+  async function read() {
+    setBusy(true)
+    setError(null)
+    try {
+      setData(await api.review())
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card hot={!!due} className="mb-5">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ember">Your review</p>
+      {!data && (
+        <>
+          <p className="mt-1.5 text-[13.5px] leading-relaxed text-dim">
+            {due
+              ? `A review is ready at level ${career.review.atLevel}.`
+              : `Your next review is at level ${career.review?.nextAt ?? career.internship.level}.`}
+          </p>
+          {due && (
+            <Button size="sm" className="mt-3" onClick={read} disabled={busy}>
+              {busy ? <Spinner size={14} /> : null} Read it
+            </Button>
+          )}
+        </>
+      )}
+      {error && <p className="mt-2 text-[12.5px] text-ember-hi">{error}</p>}
+      {data?.due && (
+        <>
+          <p className="mt-1.5 font-display text-[15.5px] font-semibold">
+            Level {data.level} · {data.band?.name}
+          </p>
+          {data.summary && <p className="mt-1.5 text-[13.5px] leading-relaxed text-dim">{data.summary}</p>}
+          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
+            {Object.entries(data.review?.scores ?? {}).map(([name, v]) => (
+              <p key={name} className="flex justify-between text-[12.5px]">
+                <span className="text-faint">{name}</span>
+                <span className="stat font-bold">{v}</span>
+              </p>
+            ))}
+          </div>
+          {data.feedback && <p className="mt-3 text-[13px] leading-relaxed text-dim">{data.feedback}</p>}
+          {data.goal && (
+            <p className="mt-3 text-[13px] leading-relaxed text-ember-hi">
+              Before the next one: {data.goal.challenge}
+            </p>
+          )}
+        </>
+      )}
+    </Card>
+  )
+}
+
 /* ------------------------------------------------------------------ page -- */
 
 export function Career() {
@@ -286,6 +356,8 @@ export function Career() {
         )}
       </Card>
 
+      {career.admin && <AdminPanel career={career} onChanged={load} />}
+
       {!career.company && career.phase === 'gd' && (
         <ChooseCompany career={career} onChosen={load} />
       )}
@@ -321,10 +393,10 @@ export function Career() {
               id: p.id,
               title: p.name,
               sub: p.current ? p.goal : p.tagline,
-              state: done ? 'done' : p.current ? 'current' : 'locked',
+              state: done ? 'done' : p.current ? 'current' : career.admin ? 'open' : 'locked',
               icon: PHASE_ICON[p.id] ?? IconBriefcase,
               tag: p.current ? 'You are here' : undefined,
-              onClick: p.current && route ? () => navigate(route) : undefined,
+              onClick: (p.current || career.admin) && route ? () => navigate(route) : undefined,
             }
           })}
         />
@@ -351,6 +423,8 @@ export function Career() {
           </p>
         </Card>
       )}
+
+      {career.phase === 'internship' && career.review && <ReviewCard career={career} />}
 
       <SectionLabel
         right={

@@ -449,6 +449,28 @@ export function QuestSession() {
         )}
       </AnimatePresence>
 
+      {user?.admin && !loading && level && !onWritten && (
+        <div className="mx-auto mt-4 flex items-center justify-center gap-2">
+          <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-faint">Admin · level</span>
+          {['easy', 'medium', 'hard'].map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => fetchLevel(d)}
+              aria-pressed={level.difficulty === d}
+              className={
+                'rounded-full border-2 px-3 py-1 text-[12px] font-bold transition-colors ' +
+                (level.difficulty === d
+                  ? 'border-ember bg-ember/20 text-ember-hi'
+                  : 'border-line bg-raised text-dim hover:border-ember/40')
+              }
+            >
+              {DIFFICULTY_LABEL[d]}
+            </button>
+          ))}
+        </div>
+      )}
+
       {!loading && level && !onWritten && (
         <button
           type="button"

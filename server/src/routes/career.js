@@ -1,3 +1,4 @@
+import { requireAdmin } from '../admin.js'
 import { Router } from 'express'
 import { findUserById, publicUser } from '../db.js'
 import { requireOnboarded } from '../auth.js'
@@ -15,6 +16,7 @@ import {
   reviewDue,
   markReviewed,
   bandFor,
+  adminJump,
   INTERNSHIP_START,
 } from '../career.js'
 import { performanceReview } from '../offer.js'
@@ -105,6 +107,20 @@ careerRouter.post('/join', (req, res) => {
     user: publicUser(fresh),
     career: careerState(fresh),
   })
+})
+
+/* ------------------------------------------ POST /api/career/admin/phase --- */
+
+/** Admin only: move the career to any phase, optionally to a given internship level. */
+careerRouter.post('/admin/phase', requireAdmin, (req, res, next) => {
+  try {
+    adminJump(req.user, String(req.body?.phase ?? ''), req.body?.level)
+    const fresh = findUserById(req.user.id)
+    res.json({ user: publicUser(fresh), career: careerState(fresh) })
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message })
+    next(err)
+  }
 })
 
 /* -------------------------------------------- GET /api/career/challenge --- */

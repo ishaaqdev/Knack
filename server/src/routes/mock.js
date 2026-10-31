@@ -1,3 +1,4 @@
+import { isAdmin } from '../admin.js'
 import { Router } from 'express'
 import { randomUUID } from 'node:crypto'
 import { db } from '../db.js'
@@ -98,7 +99,7 @@ mockRouter.post('/start', async (req, res, next) => {
       return res.status(400).json({ error: `Rounds run from 1 to ${MAX_LEVEL}.` })
     }
     // A mock is for a round you can actually reach. Practice opens them all.
-    if (level > (user.interviewLevel ?? 1) && req.body?.practice !== true) {
+    if (level > (user.interviewLevel ?? 1) && req.body?.practice !== true && !isAdmin(user)) {
       return res.status(403).json({ error: `Round ${level} is locked, so its mock is too.` })
     }
 

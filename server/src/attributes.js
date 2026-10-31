@@ -135,8 +135,13 @@ export const TIERS = [
   { min: 91, max: 100, label: 'Exceptional', tone: 'best' },
 ]
 
-export const tierFor = (value) =>
-  TIERS.find((t) => value >= t.min && value <= t.max) ?? TIERS[0]
+// Values carry one decimal and the tiers are whole-number ranges, so 90.4 fit
+// none of them and fell through to the first tier. Compare the rounded value,
+// which is also the number the reader sees.
+export const tierFor = (value) => {
+  const v = Math.round(value)
+  return TIERS.find((t) => v >= t.min && v <= t.max) ?? (v > 100 ? TIERS.at(-1) : TIERS[0])
+}
 
 /* ----------------------------------------------------------- starting ---- */
 

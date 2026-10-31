@@ -1,3 +1,4 @@
+import { isAdmin } from './admin.js'
 import { db } from './db.js'
 
 /**
@@ -136,7 +137,7 @@ export const mockDoneLevels = (userId) => mockByLevel.all(userId).map((r) => r.l
 export function interviewProgress(user) {
   const rows = bestByLevel.all(user.id)
   const byLevel = Object.fromEntries(rows.map((r) => [r.level, r]))
-  const unlocked = Math.min(MAX_LEVEL, Math.max(1, user.interviewLevel ?? 1))
+  const unlocked = isAdmin(user) ? MAX_LEVEL : Math.min(MAX_LEVEL, Math.max(1, user.interviewLevel ?? 1))
   const t = totalXp.get(user.id)
   const mocks = Object.fromEntries(mockByLevel.all(user.id).map((r) => [r.level, r]))
 

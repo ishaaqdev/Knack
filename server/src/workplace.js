@@ -281,19 +281,25 @@ export function evolveCompany(userId, day) {
   return { kind, headline, detail, character: target.name }
 }
 
-const LADDER = [
-  'Intern',
-  'Junior Engineer',
-  'Engineer',
-  'Senior Engineer',
-  'Team Lead',
-  'Engineering Manager',
-]
+// One step up from each title the cast can hold. Matching by substring put an
+// Engineering Manager on a ladder that ended at Senior Engineer and gave an HR
+// Business Partner the title "Senior Senior HR Business Partner".
+const NEXT_ROLE = {
+  'Fellow Intern': 'Junior Engineer',
+  Intern: 'Junior Engineer',
+  'Junior Engineer': 'Engineer',
+  Engineer: 'Senior Engineer',
+  'Senior Engineer': 'Team Lead',
+  'Team Lead': 'Engineering Manager',
+  'Engineering Manager': 'Director of Engineering',
+  'Product Manager': 'Senior Product Manager',
+  'Senior Product Manager': 'Group Product Manager',
+  'HR Business Partner': 'Senior HR Business Partner',
+  'Senior HR Business Partner': 'Head of People',
+}
 
 function nextRole(role) {
-  const i = LADDER.findIndex((r) => role.includes(r.replace('Engineering ', '')))
-  if (i >= 0 && LADDER[i + 1]) return LADDER[i + 1]
-  return `Senior ${role}`
+  return NEXT_ROLE[role] ?? (/^Senior /.test(role) ? role.replace(/^Senior /, 'Lead ') : `Senior ${role}`)
 }
 
 export const pendingCompanyNews = (userId) => unseenEvents.all(userId)

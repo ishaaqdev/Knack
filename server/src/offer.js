@@ -56,7 +56,7 @@ const round1 = (n) => Math.round(n * 10) / 10
 
 const levelStats = db.prepare(`
   SELECT COUNT(*) AS n, COALESCE(AVG(score), 0) AS avg
-  FROM attempts WHERE userId = ? AND kind = 'level'
+  FROM attempts WHERE userId = ? AND kind IN ('level', 'workday')
 `)
 
 /**
@@ -137,7 +137,9 @@ export function buildOffer(user) {
 
   return {
     company: user.simCompany ?? companyFor('product').name,
-    title: TITLES[roleId] ?? 'Engineer',
+    // The first rung of the ladder the trainee lands on, so the letter and the
+    // grade they are given on accepting it are the same title.
+    title: LADDERS[roleId]?.[0]?.name ?? TITLES[roleId] ?? 'Engineer',
     fixed,
     variable,
     joiningBonus: 0,

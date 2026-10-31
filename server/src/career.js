@@ -1,9 +1,10 @@
 import { db } from './db.js'
+import { isAdmin } from './admin.js'
 import { seedCast, listCharacters } from './characters.js'
 import { award } from './badges.js'
 import { weakest, tierFor, ATTRIBUTES } from './attributes.js'
 import { MAX_LEVEL as INTERVIEW_ROUNDS, interviewProgress } from './interview.js'
-import { COMPANIES as COMPANY_DATA, companyById, companySummary, companyProfile } from './companies.js'
+import { COMPANIES as COMPANY_DATA, DEFAULT_COMPANY_ID, companyById, companySummary, companyProfile } from './companies.js'
 
 /**
  * The career spine.
@@ -111,6 +112,7 @@ export function careerState(user) {
 
   return {
     phase,
+    admin: isAdmin(user),
     phaseIndex: phaseIndex(phase),
     phases: PHASES.map((p, i) => ({
       ...p,
@@ -128,6 +130,7 @@ export function careerState(user) {
       start: INTERNSHIP_START,
       end: INTERNSHIP_END,
     },
+    bands: BANDS,
     joinedAt: user.joinedCompanyAt,
     band: phase === 'internship' ? bandFor(user.internshipLevel ?? INTERNSHIP_START) : null,
     objective: currentObjective(user),
@@ -191,6 +194,45 @@ export function joinCompany(user) {
   }
   seedCast(user.id)
   return { joinedAt: user.joinedCompanyAt ?? now, cast: listCharacters(user.id) }
+}
+
+/**
+ * Admin only: move the career to any phase.
+ *
+ * Everything before the target is treated as done, so the screens of the target
+ * phase find what they expect: the discussion cleared, all five rounds open, a
+ * company and a cast, the internship level they should be at. Nothing already
+ * earned is deleted, so jumping back and forth loses no history. Going back to
+ * Joining clears the join date, because joining is the step that sets it.
+ */
+export function adminJump(user, phase, level) {
+  if (!PHASE_IDS.includes(phase)) throw Object.assign(new Error(`There is no phase called ${phase}.`), { status: 400 })
+  const at = phaseIndex(phase)
+  if (phase === 'fulltime' && !user.jobTitle) {
+    throw Object.assign(new Error('Full-time needs an accepted offer. Jump to The Offer and accept it first.'), { status: 409 })
+  }
+
+  db.transaction(() => {
+    if (at >= 1) db.prepare('UPDATE users SET gdCleared = 1 WHERE id = ?').run(user.id)
+    if (at >= 2) {
+      db.prepare('UPDATE users SET interviewLevel = ? WHERE id = ?').run(INTERVIEW_ROUNDS, user.id)
+      if (!user.simCompany) chooseCompany(user, { companyId: DEFAULT_COMPANY_ID, roleId: user.targetRole })
+    }
+    if (at === 2) db.prepare('UPDATE users SET joinedCompanyAt = NULL WHERE id = ?').run(user.id)
+    if (at >= 3) {
+      const joined = user.joinedCompanyAt ?? new Date().toISOString()
+      const asked = Number(level)
+      const lvl =
+        phase === 'internship'
+          ? Number.isInteger(asked)
+            ? Math.max(INTERNSHIP_START, Math.min(INTERNSHIP_END - 1, asked))
+            : Math.min(INTERNSHIP_END - 1, user.internshipLevel ?? INTERNSHIP_START)
+          : INTERNSHIP_END
+      db.prepare('UPDATE users SET joinedCompanyAt = ?, internshipLevel = ? WHERE id = ?').run(joined, lvl, user.id)
+      seedCast(user.id)
+    }
+    setPhase.run(phase, user.id)
+  })()
 }
 
 /**

@@ -88,11 +88,14 @@ export const api = {
   attributes: () => req('/career/attributes'),
   challenge: () => req('/career/challenge'),
   review: () => req('/career/review'),
+  adminPhase: (phase, level) =>
+    req('/career/admin/phase', { method: 'POST', body: level ? { phase, level } : { phase } }),
   badges: () => req('/career/badges'),
 
   // the workplace
   workplace: () => req('/workplace'),
-  startWorkday: (locationId) => req('/workplace/day', { method: 'POST', body: { locationId } }),
+  startWorkday: (locationId, level) =>
+    req('/workplace/day', { method: 'POST', body: level ? { locationId, level } : { locationId } }),
   answerBeat: (body) => req('/workplace/answer', { method: 'POST', body }),
   workplaceDialogue: (text) => req('/workplace/dialogue', { method: 'POST', body: { text } }),
   closeWorkday: () => req('/workplace/close', { method: 'POST' }),

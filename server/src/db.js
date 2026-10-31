@@ -1,3 +1,4 @@
+import { isAdmin } from './admin.js'
 import Database from 'better-sqlite3'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -480,6 +481,7 @@ export function publicUser(row) {
     confidence: safeParse(row.confidence, {}),
     focusAreas: safeParse(row.focusAreas, []),
     onboarded: !!row.onboardedAt,
+    admin: isAdmin(row),
     sim: {
       phase: row.phase ?? 'gd',
       company: row.simCompany,

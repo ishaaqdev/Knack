@@ -1,3 +1,4 @@
+import { isAdmin } from '../admin.js'
 import { Router } from 'express'
 import { randomUUID } from 'node:crypto'
 import { db, safeParse } from '../db.js'
@@ -137,7 +138,7 @@ interviewRouter.post('/start', async (req, res, next) => {
     if (level < 1 || level > MAX_LEVEL) {
       return res.status(400).json({ error: `Rounds run from 1 to ${MAX_LEVEL}.` })
     }
-    if (level > (user.interviewLevel ?? 1)) {
+    if (level > (user.interviewLevel ?? 1) && !isAdmin(user)) {
       return res.status(403).json({
         error: `Round ${level} is locked. Clear round ${user.interviewLevel ?? 1} with ${PASS_SCORE}/10 or better to open it.`,
       })
@@ -151,7 +152,7 @@ interviewRouter.post('/start', async (req, res, next) => {
      * way to learn what a good answer is. One mock per round, any score: it is
      * a rehearsal, not a gate on ability. Practice mode skips it.
      */
-    if (req.body?.practice !== true && !mockDoneLevels(user.id).includes(level)) {
+    if (req.body?.practice !== true && !isAdmin(user) && !mockDoneLevels(user.id).includes(level)) {
       return res.status(409).json({
         needsMock: true,
         level,
@@ -364,7 +365,9 @@ interviewRouter.post('/submit', async (req, res, next) => {
       xp: { total: xp, before: before.xp, after: afterXp, bonus: STREAK_BONUS(streak) },
       streak: { value: streak, event, before: streakStatus(before, today).streak },
       levelUp: afterLevel.index > beforeLevel.index ? afterLevel : null,
-      level: afterLevel,
+      // Not `level`: that key already carries the round number, and a second
+      // `level` in this literal silently replaced it with this object.
+      xpLevel: afterLevel,
       progress,
 
       attributes: moved,

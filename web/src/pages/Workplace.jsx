@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useKnack } from '../store/useKnack'
+import { LevelChips } from '../components/AdminPanel'
 import { api } from '../lib/api'
 import {
   Button,
@@ -429,6 +430,9 @@ function DaySummary({ result, onDone }) {
 
 export function Workplace() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  // Admin only: the level whose band the next day is played in. null means the real one.
+  const [adminLevel, setAdminLevel] = useState(() => Number(params.get('level')) || null)
   const applyResult = useKnack((s) => s.applyResult)
 
   const [state, setState] = useState(null)
@@ -465,7 +469,7 @@ export function Workplace() {
     setError(null)
     setSummary(null)
     try {
-      const d = await api.startWorkday(locationId)
+      const d = await api.startWorkday(locationId, state?.admin ? adminLevel : null)
       setDay(d)
       setBeat(d.beats[d.at])
       setResult(null)
@@ -640,6 +644,18 @@ export function Workplace() {
       )}
 
       {error && <p className="mb-4 text-[12.5px] text-ember-hi">{error}</p>}
+
+      {state.admin && (
+        <Card className="mb-5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ember">Admin · play a level</p>
+          <p className="mt-1.5 mb-3 text-[12.5px] leading-relaxed text-dim">
+            {adminLevel
+              ? `Today is played at level ${adminLevel}: ${state.levels.bands.find((b) => adminLevel >= b.from && adminLevel <= b.to)?.name}.`
+              : `Today is played at your own level, ${state.levels.current}. Pick a level to play its band instead.`}
+          </p>
+          <LevelChips value={adminLevel} onChange={setAdminLevel} bands={state.levels.bands} from={state.levels.from} to={state.levels.to} />
+        </Card>
+      )}
 
       <SectionLabel>Where do you go?</SectionLabel>
       <div className="space-y-3">

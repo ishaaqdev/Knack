@@ -1,3 +1,4 @@
+import { isAdmin } from '../admin.js'
 import { Router } from 'express'
 import { db, findUserById } from '../db.js'
 import { requireOnboarded } from '../auth.js'
@@ -7,7 +8,7 @@ import { contextBrief, maybeRefresh } from '../context.js'
 import { listCharacters, castBrief, recordInteraction } from '../characters.js'
 import { applyAttributeDeltas, derivedDeltas, getAttributes, attributeBrief } from '../attributes.js'
 import { award, checkStateBadges } from '../badges.js'
-import { advanceInternship, careerState, roleFor, bandFor } from '../career.js'
+import { advanceInternship, careerState, roleFor, bandFor, BANDS } from '../career.js'
 import { maybeSchedule, fireDue, worldBrief } from '../consequences.js'
 import {
   LOCATIONS,
@@ -75,6 +76,8 @@ workplaceRouter.get('/', (req, res) => {
 
   res.json({
     day: dayNumber(user.id),
+    admin: isAdmin(user),
+    levels: { from: 5, to: 30, current: user.internshipLevel ?? 5, bands: BANDS },
     locations: LOCATIONS.map((l) => ({ id: l.id, name: l.name, blurb: l.blurb })),
     open: open
       ? {
@@ -152,7 +155,13 @@ workplaceRouter.post('/day', async (req, res, next) => {
 
     const location = locationFor(req.body?.locationId)
     const day = dayNumber(user.id)
-    const band = bandFor(user.internshipLevel ?? 5)
+    // An admin can play any internship level, which for a day means its band.
+    const asked = Number(req.body?.level)
+    const level =
+      isAdmin(user) && Number.isInteger(asked)
+        ? Math.max(5, Math.min(30, asked))
+        : (user.internshipLevel ?? 5)
+    const band = bandFor(level)
     const plan = planDay(user.id, location.id, day * 3, band.id)
 
     // Only the first beat is written now. The rest are written as they are
